@@ -1,0 +1,8 @@
+/*
+!/.gitignore
+!/frontend/
+!/frontend/**
+!/backend/
+!/backend/**
+!/package.json
+!/README.md
