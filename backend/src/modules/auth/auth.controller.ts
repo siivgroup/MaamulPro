@@ -5,6 +5,12 @@ import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { isPlatformHost } from '../../common/security/platform-host';
 
+// The frontend may be served from a different origin than the API (VITE_API_URL), so the
+// browser's actual domain only shows up in Origin/Referer — the request's own Host is the API's.
+function requestDomain(req: Request): string | undefined {
+  return req.headers.origin || req.headers.referer || req.headers.host;
+}
+
 @Controller('api')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -16,7 +22,7 @@ export class AuthController {
     @Req() req: Request,
     @Body() body: { email?: string; userName?: string; password?: string; tenantId?: string },
   ) {
-    if (process.env.NODE_ENV === 'production' && isPlatformHost(req.headers.host)) {
+    if (process.env.NODE_ENV === 'production' && isPlatformHost(requestDomain(req))) {
       throw new ForbiddenException('Tenant sign-in is not available on this domain');
     }
     const userEmail = body.email || body.userName || '';
@@ -31,7 +37,7 @@ export class AuthController {
     @Req() req: Request,
     @Body() body: { email?: string; userName?: string; password?: string },
   ) {
-    if (process.env.NODE_ENV === 'production' && !isPlatformHost(req.headers.host)) {
+    if (process.env.NODE_ENV === 'production' && !isPlatformHost(requestDomain(req))) {
       throw new ForbiddenException('Super admin sign-in is only available on the platform domain');
     }
     const userEmail = body.email || body.userName || '';
