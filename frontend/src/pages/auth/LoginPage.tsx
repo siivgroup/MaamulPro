@@ -1,7 +1,8 @@
 import { FormEvent, useState } from 'react';
 import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { api, Session, sessionStore } from '../../lib/api';
+import { hostKind } from '../../lib/tenant-domain';
 
 const LANDING_BY_PERMISSION: { permission: string; route: string }[] = [
     { permission: 'dashboard.executive.read', route: '/app/dashboard' },
@@ -24,7 +25,9 @@ function resolveLanding(session: Session): string {
 const LoginPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const superAdmin = location.pathname.startsWith('/superadmin');
+    const kind = hostKind(window.location.hostname);
+    const pathIsSuperAdmin = location.pathname.startsWith('/superadmin');
+    const superAdmin = kind === 'platform' || (kind === 'dev' && pathIsSuperAdmin);
     const successMessage = (location.state as { message?: string } | null)?.message;
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -32,6 +35,8 @@ const LoginPage = () => {
     const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    if (kind === 'tenant' && pathIsSuperAdmin) return <Navigate to="/sign-in" replace />;
 
     const submit = async (event: FormEvent) => {
         event.preventDefault();

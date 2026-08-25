@@ -1,7 +1,9 @@
-import { Controller, Get, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Req, ForbiddenException, HttpCode, HttpStatus } from '@nestjs/common';
+import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { isPlatformHost } from '../../common/security/platform-host';
 
 @Controller('api')
 export class AuthController {
@@ -11,8 +13,12 @@ export class AuthController {
   @Public()
   @HttpCode(HttpStatus.OK)
   async loginCompanyUser(
+    @Req() req: Request,
     @Body() body: { email?: string; userName?: string; password?: string; tenantId?: string },
   ) {
+    if (process.env.NODE_ENV === 'production' && isPlatformHost(req.headers.host)) {
+      throw new ForbiddenException('Tenant sign-in is not available on this domain');
+    }
     const userEmail = body.email || body.userName || '';
     const userPassword = body.password || '';
     return this.authService.loginCompanyUser(userEmail, userPassword, body.tenantId);
@@ -22,8 +28,12 @@ export class AuthController {
   @Public()
   @HttpCode(HttpStatus.OK)
   async loginSuperAdmin(
+    @Req() req: Request,
     @Body() body: { email?: string; userName?: string; password?: string },
   ) {
+    if (process.env.NODE_ENV === 'production' && !isPlatformHost(req.headers.host)) {
+      throw new ForbiddenException('Super admin sign-in is only available on the platform domain');
+    }
     const userEmail = body.email || body.userName || '';
     const userPassword = body.password || '';
     return this.authService.loginSuperAdmin(userEmail, userPassword);
