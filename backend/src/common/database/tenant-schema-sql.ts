@@ -11,7 +11,7 @@
 import { Pool } from "pg";
 import { connectionTimeoutMillis, getDatabaseConnectionPair } from "./database-url";
 
-export const CURRENT_TENANT_SCHEMA_VERSION = 24;
+export const CURRENT_TENANT_SCHEMA_VERSION = 26;
 
 export const TENANT_SCHEMA_STATEMENTS: string[] = [
   // ── Enum types ─────────────────────────────────────────────
@@ -1092,6 +1092,7 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
     "project_id"      TEXT                     NOT NULL,
     "title"           TEXT                     NOT NULL,
     "description"     TEXT,
+    "contractor_name" TEXT,
     "original_budget" DECIMAL(12,2)            NOT NULL,
     "total_paid"      DECIMAL(12,2)            NOT NULL DEFAULT 0,
     "status"          "WorkforceContractStatus" NOT NULL DEFAULT 'DRAFT',
@@ -1117,7 +1118,8 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   `CREATE TABLE IF NOT EXISTS "workforce_contract_payments" (
     "id"             TEXT          NOT NULL PRIMARY KEY,
     "contract_id"    TEXT          NOT NULL,
-    "staff_id"       TEXT          NOT NULL,
+    "staff_id"       TEXT,
+    "payee_name"     TEXT,
     "amount"         DECIMAL(12,2) NOT NULL,
     "date"           TIMESTAMP(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "description"    TEXT          NOT NULL,
@@ -1137,6 +1139,10 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
 
   `DO $$ BEGIN
     ALTER TABLE "daily_operational_expenses" ADD COLUMN "recorded_by_user_id" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "workforce_contracts" ADD COLUMN "contractor_name" TEXT;
   EXCEPTION WHEN duplicate_column THEN null; END $$`,
 
   `DO $$ BEGIN
@@ -1160,8 +1166,16 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   EXCEPTION WHEN duplicate_object THEN null; END $$`,
 
   `DO $$ BEGIN
+    ALTER TABLE "workforce_contract_payments" ADD COLUMN "payee_name" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `ALTER TABLE "workforce_contract_payments" ALTER COLUMN "staff_id" DROP NOT NULL`,
+
+  `ALTER TABLE "workforce_contract_payments" DROP CONSTRAINT IF EXISTS "workforce_contract_payments_staff_id_fkey"`,
+
+  `DO $$ BEGIN
     ALTER TABLE "workforce_contract_payments" ADD CONSTRAINT "workforce_contract_payments_staff_id_fkey"
-      FOREIGN KEY ("staff_id") REFERENCES "staff"("id") ON DELETE CASCADE;
+      FOREIGN KEY ("staff_id") REFERENCES "staff"("id") ON DELETE SET NULL;
   EXCEPTION WHEN duplicate_object THEN null; END $$`,
 
   `DO $$ BEGIN
@@ -1221,6 +1235,7 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
     "total_gross_salary"   NUMERIC(12,2) NOT NULL DEFAULT 0,
     "total_net_salary"     NUMERIC(12,2) NOT NULL DEFAULT 0,
     "expense_account_code" TEXT,
+    "project_id"           TEXT,
     "created_by_id"        TEXT,
     "approved_by_id"       TEXT,
     "approved_at"          TIMESTAMP(3),
@@ -1251,6 +1266,15 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   )`,
 
   `DO $$ BEGIN
+    ALTER TABLE "payrolls" ADD COLUMN "project_id" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "payrolls" ADD CONSTRAINT "payrolls_project_id_fkey"
+      FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
     ALTER TABLE "payrolls" ADD CONSTRAINT "payrolls_created_by_id_fkey"
       FOREIGN KEY ("created_by_id") REFERENCES "users"("id") ON DELETE SET NULL;
   EXCEPTION WHEN duplicate_object THEN null; END $$`,
@@ -1278,6 +1302,7 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   `CREATE INDEX IF NOT EXISTS "payrolls_status_idx" ON "payrolls"("status")`,
   `CREATE INDEX IF NOT EXISTS "payrolls_year_month_idx" ON "payrolls"("year", "month")`,
   `CREATE INDEX IF NOT EXISTS "payrolls_deleted_at_created_at_idx" ON "payrolls"("deleted_at", "created_at")`,
+  `CREATE INDEX IF NOT EXISTS "payrolls_project_id_idx" ON "payrolls"("project_id")`,
   // One active payroll per (year, month). A plain unique index on
   // (year, month, deleted_at) lets NULL deleted_at rows duplicate, so this
   // partial index enforces the invariant only for active rows.
@@ -1598,12 +1623,37 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
     "quantity"    DECIMAL(12,2)              NOT NULL,
     "date"        TIMESTAMP(3)               NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "user_id"     TEXT                       NOT NULL,
+    "supplier_id"    TEXT,
+    "payment_method" TEXT,
+    "unit_cost"      DECIMAL(12,2),
+    "total_cost"     DECIMAL(12,2),
+    "source_ref"     TEXT,
     "notes"       TEXT,
     "warehouse"   TEXT,
     "created_at"  TIMESTAMP(3)               NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at"  TIMESTAMP(3)               NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at"  TIMESTAMP(3)
   )`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "construction_inventory_transactions" ADD COLUMN "supplier_id" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "construction_inventory_transactions" ADD COLUMN "payment_method" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "construction_inventory_transactions" ADD COLUMN "unit_cost" DECIMAL(12,2);
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "construction_inventory_transactions" ADD COLUMN "total_cost" DECIMAL(12,2);
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "construction_inventory_transactions" ADD COLUMN "source_ref" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
 
   `DO $$ BEGIN
     ALTER TABLE "construction_inventory_transactions" ADD CONSTRAINT "construction_inventory_transactions_material_id_fkey"
@@ -1620,12 +1670,19 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
       FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT;
   EXCEPTION WHEN duplicate_object THEN null; END $$`,
 
+  `DO $$ BEGIN
+    ALTER TABLE "construction_inventory_transactions" ADD CONSTRAINT "construction_inventory_transactions_supplier_id_fkey"
+      FOREIGN KEY ("supplier_id") REFERENCES "suppliers"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
   `CREATE INDEX IF NOT EXISTS "construction_materials_name_idx" ON "construction_materials"("name")`,
   `CREATE INDEX IF NOT EXISTS "construction_materials_created_at_idx" ON "construction_materials"("created_at")`,
   `CREATE INDEX IF NOT EXISTS "construction_inventory_transactions_material_id_idx" ON "construction_inventory_transactions"("material_id")`,
   `CREATE INDEX IF NOT EXISTS "construction_inventory_transactions_project_id_idx" ON "construction_inventory_transactions"("project_id")`,
   `CREATE INDEX IF NOT EXISTS "construction_inventory_transactions_date_idx" ON "construction_inventory_transactions"("date")`,
   `CREATE INDEX IF NOT EXISTS "construction_inventory_transactions_type_project_id_date_idx" ON "construction_inventory_transactions"("type", "project_id", "date")`,
+  `CREATE INDEX IF NOT EXISTS "construction_inventory_transactions_supplier_id_idx" ON "construction_inventory_transactions"("supplier_id")`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "construction_inventory_transactions_source_ref_key" ON "construction_inventory_transactions"("source_ref")`,
 ];
 
 /**
