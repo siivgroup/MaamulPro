@@ -130,7 +130,7 @@ const routes = [
     { path: '/app/construction/expenses/:id/edit', element: <CrudRoutePage title="Edit site expense" description="Correct the amount, category, assignment or expense date." endpoint="/api/construction/expenses" fields={expenseFields} initialMode="edit" returnTo="/app/construction/expenses" />, layout: 'blank', permission: 'construction_expenses.update' },
     { path: '/app/construction/manpower', element: <ManpowerPage />, layout: 'blank', permission: 'manpower.read' },
     { path: '/app/construction/worker-types', element: <CrudPage title="Worker Types" description="Reusable workforce classifications and display colors." endpoint="/api/construction/worker-types" createPermission="manpower.create" updatePermission="manpower.update" deletePermission="manpower.delete" fields={[
-        { name: 'name', label: 'Name', required: true }, { name: 'color', label: 'Color' }, { name: 'description', label: 'Description', type: 'textarea' },
+        { name: 'name', label: 'Name', required: true }, { name: 'color', label: 'Color', type: 'color' }, { name: 'description', label: 'Description', type: 'textarea' },
     ]} />, layout: 'blank', permission: 'manpower.read' },
     { path: '/app/construction/worker-ledger', element: <CrudPage title="Worker Ledger" description="Labor income and expenses synchronized with the unified ledger." endpoint="/api/construction/worker-ledger" createPermission="manpower.create" deletePermission="manpower.delete" canEdit={false} fields={[
         { name: 'type', label: 'Type', type: 'select', required: true, options: ['INCOME', 'EXPENSE'].map((value) => ({ value, label: value })) },

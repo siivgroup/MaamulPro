@@ -10,7 +10,7 @@ import { CurrencyInput, EmptyState, ErrorAlert, FormActions, LoadingState, Modal
 export type CrudField = {
     name: string;
     label: string;
-    type?: 'text' | 'email' | 'number' | 'date' | 'select' | 'textarea' | 'json' | 'lineItems' | 'image' | 'checkbox' | 'password';
+    type?: 'text' | 'email' | 'number' | 'date' | 'select' | 'textarea' | 'json' | 'lineItems' | 'image' | 'checkbox' | 'password' | 'color';
     required?: boolean;
     placeholder?: string;
     hint?: string;

@@ -211,7 +211,7 @@ export class ConstructionService {
         originalBudget: data.originalBudget,
         startDate: data.startDate ? new Date(data.startDate) : null,
         endDate: data.endDate ? new Date(data.endDate) : null,
-        status: (data.status as any) || 'DRAFT',
+        status: (data.status as any) || 'ACTIVE',
         notes: data.notes,
       },
     });
