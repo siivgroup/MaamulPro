@@ -20,6 +20,7 @@ import store from './store/index';
 
 // Toasts
 import { ToastViewport } from './components/maamulpro/Toast';
+import { GlobalProgressBar } from './components/maamulpro/GlobalProgressBar';
 
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
@@ -28,6 +29,7 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
             <Provider store={store}>
                 <RouterProvider router={router} future={{ v7_startTransition: true }} />
                 <ToastViewport />
+                <GlobalProgressBar />
             </Provider>
         </Suspense>
     </React.StrictMode>

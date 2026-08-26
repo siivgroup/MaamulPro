@@ -1,5 +1,9 @@
 import { toast } from './toast';
 
+export const LOADING_EVENT = 'maamulpro:loading';
+let pendingRequests = 0;
+const emitLoading = () => window.dispatchEvent(new CustomEvent(LOADING_EVENT, { detail: pendingRequests }));
+
 export type ApiEnvelope<T> = {
     success: boolean;
     data: T;
@@ -123,7 +127,13 @@ export async function api<T>(path: string, init: ApiInit = {}): Promise<T> {
     if (session?.accessToken) headers.set('Authorization', `Bearer ${session.accessToken}`);
     if (session?.user.companyId) headers.set('X-Company-Id', session.user.companyId);
 
-    const response = await fetch(requestUrl(path), { ...fetchInit, headers });
+    pendingRequests++; emitLoading();
+    let response: Response;
+    try {
+        response = await fetch(requestUrl(path), { ...fetchInit, headers });
+    } finally {
+        pendingRequests--; emitLoading();
+    }
     const payload = await response.json().catch(() => null);
     if (!response.ok) {
         if (response.status === 401) sessionStore.clear();

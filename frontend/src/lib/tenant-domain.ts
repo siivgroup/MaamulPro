@@ -11,5 +11,5 @@ export type HostKind = 'platform' | 'tenant' | 'dev';
 
 export const hostKind = (hostname: string): HostKind => {
     if (hostname === 'localhost' || hostname === '127.0.0.1') return 'dev';
-    return hostname === `app.${tenantBaseDomain}` || hostname === tenantBaseDomain ? 'platform' : 'tenant';
+    return hostname === `admin.${tenantBaseDomain}` || hostname === tenantBaseDomain ? 'platform' : 'tenant';
 };

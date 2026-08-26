@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { AccountingService } from '../accounting/accounting.service';
 import {
   ConstructionMaterialDto,
@@ -18,18 +18,10 @@ import { SubscriptionEntitlementService } from '../../common/subscriptions/subsc
 
 @Injectable()
 export class ConstructionService {
-  private readonly logger = new Logger('ConstructionService');
   constructor(
     private readonly entitlements: SubscriptionEntitlementService,
     private readonly accounting: AccountingService,
   ) {}
-
-  private async safePost(fn: () => Promise<unknown>) {
-    try { await fn(); } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      this.logger.warn(`Journal post skipped: ${message}`);
-    }
-  }
 
   // -----------------------------------------------------------
   // Projects & Tasks
@@ -418,20 +410,20 @@ export class ConstructionService {
         },
       });
       // Workforce contract payments are a labor expense funded from
-      // cash — same posting shape as payroll.
-      await this.safePost(() =>
-        this.accounting.postFinancialEvent(tx, {
-          tx, tenantId: 'system', userId,
-          sourceType: 'WORKFORCE_PAYMENT',
-          sourceId: payment.id,
-          sourceRef: `wfpayment ${payment.id}`,
-          date: data.date || new Date(),
-          memo: data.description,
-          drKey: 'PAYROLL_EXPENSE',
-          crKey: 'PAYROLL_CASH',
-          amount: Number(data.amount),
-        }),
-      );
+      // cash — same posting shape as payroll. Posting failure (e.g. an
+      // unmapped account) rolls back the whole payment: the operational
+      // record must never exist without its journal entry.
+      await this.accounting.postFinancialEvent(tx, {
+        tx, tenantId: 'system', userId,
+        sourceType: 'WORKFORCE_PAYMENT',
+        sourceId: payment.id,
+        sourceRef: `wfpayment ${payment.id}`,
+        date: data.date || new Date(),
+        memo: data.description,
+        drKey: 'PAYROLL_EXPENSE',
+        crKey: 'PAYROLL_CASH',
+        amount: Number(data.amount),
+      });
       return payment;
     });
   }
@@ -725,7 +717,7 @@ export class ConstructionService {
         where: { referenceId: `expense:${id}`, deletedAt: null },
         data: { deletedAt: new Date(), version: { increment: 1 } },
       });
-      await this.safePost(() => this.accounting.retractPriorForSource(tx, 'DAILY_EXPENSE', id));
+      await this.accounting.retractPriorForSource(tx, 'DAILY_EXPENSE', id);
       return { deleted: true };
     });
   }
@@ -766,7 +758,7 @@ export class ConstructionService {
         where: { referenceId: `ledger:${id}`, deletedAt: null },
         data: { deletedAt: new Date(), version: { increment: 1 } },
       });
-      await this.safePost(() => this.accounting.retractPriorForSource(tx, 'WORKER_LEDGER', id));
+      await this.accounting.retractPriorForSource(tx, 'WORKER_LEDGER', id);
       return { deleted: true };
     });
   }
@@ -930,7 +922,7 @@ export class ConstructionService {
             notes: data.paymentMethod ? `Payment method: ${data.paymentMethod}` : data.notes,
           },
         });
-        await this.safePost(() => this.accounting.postFinancialEvent(tx, {
+        await this.accounting.postFinancialEvent(tx, {
           tx,
           tenantId: 'system',
           userId,
@@ -942,7 +934,7 @@ export class ConstructionService {
           drKey: 'TRANSACTION_EXPENSE_ACCOUNT',
           crKey: 'TRANSACTION_EXPENSE_CASH',
           amount: totalCost,
-        }));
+        });
       }
       // USAGE is an internal stock movement only. Procurement was already
       // expensed at RESTOCK, so posting usage again would double-count it.
@@ -992,19 +984,17 @@ export class ConstructionService {
         version: { increment: 1 },
       },
     });
-    await this.safePost(async () => {
-      await this.accounting.retractPriorForSource(tx, 'DAILY_EXPENSE', expense.id);
-      await this.accounting.postFinancialEvent(tx, {
-        tx, tenantId: 'system', userId,
-        sourceType: 'DAILY_EXPENSE',
-        sourceId: expense.id,
-        sourceRef: `expense ${expense.id}`,
-        date: expense.date,
-        memo: expense.description,
-        drKey: 'TRANSACTION_EXPENSE_ACCOUNT',
-        crKey: 'TRANSACTION_EXPENSE_CASH',
-        amount: Number(expense.amount),
-      });
+    await this.accounting.retractPriorForSource(tx, 'DAILY_EXPENSE', expense.id);
+    await this.accounting.postFinancialEvent(tx, {
+      tx, tenantId: 'system', userId,
+      sourceType: 'DAILY_EXPENSE',
+      sourceId: expense.id,
+      sourceRef: `expense ${expense.id}`,
+      date: expense.date,
+      memo: expense.description,
+      drKey: 'TRANSACTION_EXPENSE_ACCOUNT',
+      crKey: 'TRANSACTION_EXPENSE_CASH',
+      amount: Number(expense.amount),
     });
     return result;
   }
@@ -1040,20 +1030,18 @@ export class ConstructionService {
         version: { increment: 1 },
       },
     });
-    await this.safePost(async () => {
-      await this.accounting.retractPriorForSource(tx, 'WORKER_LEDGER', entry.id);
-      const isExpense = entry.type === 'EXPENSE';
-      await this.accounting.postFinancialEvent(tx, {
-        tx, tenantId: 'system', userId,
-        sourceType: 'WORKER_LEDGER',
-        sourceId: entry.id,
-        sourceRef: `ledger ${entry.id}`,
-        date: entry.date,
-        memo: entry.description,
-        drKey: isExpense ? 'PAYROLL_EXPENSE' : 'TRANSACTION_INCOME_CASH',
-        crKey: isExpense ? 'PAYROLL_CASH' : 'TRANSACTION_INCOME_REVENUE',
-        amount: Number(entry.amount),
-      });
+    await this.accounting.retractPriorForSource(tx, 'WORKER_LEDGER', entry.id);
+    const isExpense = entry.type === 'EXPENSE';
+    await this.accounting.postFinancialEvent(tx, {
+      tx, tenantId: 'system', userId,
+      sourceType: 'WORKER_LEDGER',
+      sourceId: entry.id,
+      sourceRef: `ledger ${entry.id}`,
+      date: entry.date,
+      memo: entry.description,
+      drKey: isExpense ? 'PAYROLL_EXPENSE' : 'TRANSACTION_INCOME_CASH',
+      crKey: isExpense ? 'PAYROLL_CASH' : 'TRANSACTION_INCOME_REVENUE',
+      amount: Number(entry.amount),
     });
     return result;
   }
