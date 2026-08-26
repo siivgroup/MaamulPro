@@ -48,7 +48,7 @@ export class AuthService {
     }
   }
 
-  async loginCompanyUser(email: string, passwordAttempt: string, tenantId?: string) {
+  async loginCompanyUser(email: string, passwordAttempt: string, tenantId?: string, requestSubdomain?: string | null) {
     // 1. Locate CompanyUser in Central DB
     const companyUser = await this.central.companyUser.findFirst({
       where: { email },
@@ -64,6 +64,12 @@ export class AuthService {
     }
 
     const company = companyUser.company;
+
+    // A valid account signing in from a different tenant's subdomain is still a wrong sign-in attempt.
+    if (requestSubdomain && company.subdomain !== requestSubdomain) {
+      throw new UnauthorizedException('Invalid email or password credentials');
+    }
+
     // 2. Password Verification
     let isPasswordValid = false;
     if (companyUser.passwordHash.startsWith('$argon2')) {

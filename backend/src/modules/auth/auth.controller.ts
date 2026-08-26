@@ -3,7 +3,7 @@ import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { isPlatformHost } from '../../common/security/platform-host';
+import { isPlatformHost, resolveTenantSubdomain } from '../../common/security/platform-host';
 
 // The frontend may be served from a different origin than the API (VITE_API_URL), so the
 // browser's actual domain only shows up in Origin/Referer — the request's own Host is the API's.
@@ -27,7 +27,8 @@ export class AuthController {
     }
     const userEmail = body.email || body.userName || '';
     const userPassword = body.password || '';
-    return this.authService.loginCompanyUser(userEmail, userPassword, body.tenantId);
+    const requestSubdomain = resolveTenantSubdomain(requestDomain(req));
+    return this.authService.loginCompanyUser(userEmail, userPassword, body.tenantId, requestSubdomain);
   }
 
   @Post(['auth/superadmin/login', 'superadmin/login'])
