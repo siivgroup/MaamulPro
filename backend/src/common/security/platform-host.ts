@@ -10,5 +10,5 @@ export function isPlatformHost(hostOrOrigin?: string): boolean {
     .replace(/^\[|\]$/g, '')
     .split(/[/:]/)[0]
     .toLowerCase();
-  return hostname === `app.${baseDomain}` || hostname === baseDomain;
+  return hostname === `admin.${baseDomain}` || hostname === baseDomain;
 }

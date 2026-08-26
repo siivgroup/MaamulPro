@@ -67,7 +67,7 @@ export class TenantResolverMiddleware implements NestMiddleware {
       company = await this.central.company.findUnique({
         where: { id: companyIdHeader },
       });
-    } else if (subdomain && subdomain !== 'localhost' && subdomain !== 'www' && subdomain !== 'app') {
+    } else if (subdomain && subdomain !== 'localhost' && subdomain !== 'www' && subdomain !== 'app' && subdomain !== 'admin') {
       company = await this.central.company.findUnique({
         where: { subdomain },
       });
