@@ -31,12 +31,24 @@ export class WorkerTypeDto {
   @IsOptional() @IsString() @MaxLength(32) color?: string;
 }
 
+export class ManpowerWorkerDto {
+  @IsOptional() @IsString() linkedStaffId?: string;
+  @IsOptional() @IsString() @MaxLength(100) firstName?: string;
+  @IsOptional() @IsString() @MaxLength(100) lastName?: string;
+  @IsOptional() @IsString() @MaxLength(40) phone?: string;
+  @IsOptional() @IsString() @MaxLength(120) position?: string;
+  @IsOptional() @IsString() workerTypeId?: string;
+  @IsOptional() @IsString() assignedProjectId?: string;
+  @IsOptional() @IsString() @MaxLength(2000) notes?: string;
+  @IsOptional() @IsIn(['ACTIVE', 'INACTIVE', 'ON_LEAVE', 'TERMINATED']) status?: string;
+}
+
 export class DailyExpenseDto {
   @Type(() => Number) @IsNumber() @Min(0.01) amount: number;
   @IsString() @MaxLength(1000) description: string;
   @IsOptional() @IsString() @MaxLength(120) category?: string;
   @IsOptional() @Type(() => Date) @IsDate() date?: Date;
-  @IsOptional() @IsString() staffId?: string;
+  @IsOptional() @IsString() workerId?: string;
   @IsOptional() @IsString() projectId?: string;
 }
 
@@ -45,7 +57,7 @@ export class WorkerLedgerDto {
   @Type(() => Number) @IsNumber() @Min(0.01) amount: number;
   @IsString() @MaxLength(1000) description: string;
   @IsOptional() @Type(() => Date) @IsDate() date?: Date;
-  @IsOptional() @IsString() staffId?: string;
+  @IsOptional() @IsString() workerId?: string;
   @IsOptional() @IsString() projectId?: string;
 }
 
@@ -92,12 +104,13 @@ export class WorkforceContractDto {
 }
 
 export class ContractAssignmentDto {
-  @IsString() staffId: string;
+  @IsString() workerId: string;
   @IsOptional() @IsString() @MaxLength(160) role?: string;
   @IsOptional() @IsString() @MaxLength(1000) notes?: string;
 }
 
 export class ContractPaymentDto {
+  @IsOptional() @IsString() workerId?: string;
   @IsOptional() @IsString() staffId?: string;
   @IsOptional() @IsString() @MaxLength(200) payeeName?: string;
   @Type(() => Number) @IsNumber() @Min(0.01) amount: number;

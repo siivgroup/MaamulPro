@@ -1,16 +1,18 @@
 import { FormEvent, useEffect, useState } from 'react';
 import AppShell from '../components/maamulpro/AppShell';
 import { CurrencyInput, EmptyState, Field, FormActions, LoadingState, Modal } from '../components/maamulpro/PageKit';
+import { AddManpowerWorkerModal } from '../components/maamulpro/AddManpowerWorkerModal';
 import { api } from '../lib/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { DocumentAttachments } from '../components/maamulpro/DocumentAttachments';
 
 type Project = { id: string; name: string };
-type Staff = { id: string; firstName: string; lastName: string };
-type Assignment = { staffId: string; removedAt?: string; role?: string; staff: Staff };
-type Payment = { id: string; amount: number | string; date: string; description: string; staff: Staff };
+type WorkerOption = { id: string; firstName?: string; lastName?: string };
+type WorkerLite = { id: string | null; firstName?: string; lastName?: string };
+type Assignment = { staffId?: string | null; workerId?: string | null; removedAt?: string; role?: string; worker: WorkerLite };
+type Payment = { id: string; amount: number | string; date: string; description: string; worker: WorkerLite | null; payeeName?: string };
 type Adjustment = { id: string; amount: number | string; reason: string; createdAt: string };
-type ContractWorkspace = { contracts: Contract[]; projects: Project[]; staff: Staff[] };
+type ContractWorkspace = { contracts: Contract[]; projects: Project[]; workers: WorkerOption[] };
 type Contract = {
     id: string;
     projectId: string;
@@ -51,19 +53,17 @@ const WorkforceContractsPage = () => {
     const canDelete = hasPermission('workforce_contracts.delete');
     const canPay = hasPermission('workforce_contracts.pay');
     const canAssign = canUpdate;
-    const canCreateStaff = hasPermission('users.create');
     const [contracts, setContracts] = useState<Contract[]>([]);
     const [initialLoading, setInitialLoading] = useState(true);
     const [projects, setProjects] = useState<Project[]>([]);
-    const [staff, setStaff] = useState<Staff[]>([]);
+    const [workers, setWorkers] = useState<WorkerOption[]>([]);
     const [selectedId, setSelectedId] = useState('');
     const [contractForm, setContractForm] = useState<Record<string, any>>(emptyContract);
     const [editing, setEditing] = useState<Contract | null>(null);
     const [modal, setModal] = useState(false);
-    const [worker, setWorker] = useState({ staffId: '', role: '', notes: '' });
+    const [worker, setWorker] = useState({ workerId: '', role: '', notes: '' });
     const [newWorkerOpen, setNewWorkerOpen] = useState(false);
-    const [newWorker, setNewWorker] = useState({ firstName: '', lastName: '' });
-    const [payment, setPayment] = useState({ staffId: '', amount: '', date: '', description: '', notes: '' });
+    const [payment, setPayment] = useState({ workerId: '', staffId: '', amount: '', date: '', description: '', notes: '' });
     const [adjustment, setAdjustment] = useState({ amount: '', reason: '' });
     const [error, setError] = useState('');
     const [deleteTarget, setDeleteTarget] = useState<Contract | null>(null);
@@ -74,10 +74,10 @@ const WorkforceContractsPage = () => {
 
     const load = async () => {
         try {
-            const { contracts: contractRows, projects: projectRows, staff: staffRows } = await api<ContractWorkspace>('/api/construction/contracts/workspace');
+            const { contracts: contractRows, projects: projectRows, workers: workerRows } = await api<ContractWorkspace>('/api/construction/contracts/workspace');
             setContracts(contractRows);
             setProjects(projectRows);
-            setStaff(Array.isArray(staffRows) ? staffRows : []);
+            setWorkers(Array.isArray(workerRows) ? workerRows : []);
             if (selectedId && !contractRows.some((row) => row.id === selectedId)) setSelectedId('');
         } catch (reason) {
             setError(reason instanceof Error ? reason.message : 'Unable to load contracts');
@@ -136,22 +136,16 @@ const WorkforceContractsPage = () => {
     const assignWorker = async (event: FormEvent) => {
         event.preventDefault();
         if (!selected) return;
-        try { await api(`/api/construction/contracts/${selected.id}/workers`, { method: 'POST', body: JSON.stringify(worker) }); setWorker({ staffId: '', role: '', notes: '' }); setAssignOpen(false); await load(); }
+        try { await api(`/api/construction/contracts/${selected.id}/workers`, { method: 'POST', body: JSON.stringify(worker) }); setWorker({ workerId: '', role: '', notes: '' }); setAssignOpen(false); await load(); }
         catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to assign worker'); }
     };
-    const createWorker = async (event: FormEvent) => {
-        event.preventDefault();
-        try {
-            const created = await api<Staff>('/api/staff', { method: 'POST', body: JSON.stringify(newWorker) });
-            setStaff((current) => [...current, created]);
-            setWorker((current) => ({ ...current, staffId: created.id }));
-            setNewWorker({ firstName: '', lastName: '' });
-            setNewWorkerOpen(false);
-        } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to create worker'); }
+    const onWorkerCreated = (created: WorkerOption) => {
+        setWorkers((current) => [...current, created]);
+        setWorker((current) => ({ ...current, workerId: created.id }));
     };
-    const removeWorker = async (staffId: string) => {
+    const removeWorker = async (id: string) => {
         if (!selected) return;
-        try { await api(`/api/construction/contracts/${selected.id}/workers/${staffId}`, { method: 'DELETE' }); await load(); }
+        try { await api(`/api/construction/contracts/${selected.id}/workers/${id}`, { method: 'DELETE' }); await load(); }
         catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to remove worker'); }
     };
     const addPayment = async (event: FormEvent) => {
@@ -159,7 +153,7 @@ const WorkforceContractsPage = () => {
         if (!selected) return;
         try {
             await api(`/api/construction/contracts/${selected.id}/payments`, { method: 'POST', body: JSON.stringify({ ...payment, amount: Number(payment.amount), date: payment.date || undefined }) });
-            setPayment({ staffId: '', amount: '', date: '', description: '', notes: '' });
+            setPayment({ workerId: '', staffId: '', amount: '', date: '', description: '', notes: '' });
             setPaymentOpen(false);
             await load();
         } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to record payment'); }
@@ -191,14 +185,14 @@ const WorkforceContractsPage = () => {
                 {canUpdate && <button className="btn btn-outline-warning" onClick={() => setAdjustOpen(true)}>Adjust budget</button>}
             </div>
             <div className="grid gap-6 xl:grid-cols-2">
-                <div className="panel"><h2 className="mb-4 font-bold">Active workers</h2><div className="space-y-2">{!selected.workerAssignments.filter((entry) => !entry.removedAt).length ? <p className="text-white-dark">No workers assigned.</p> : selected.workerAssignments.filter((entry) => !entry.removedAt).map((entry) => <div className="flex items-center justify-between rounded border border-white-light p-3 dark:border-[#191e3a]" key={entry.staffId}><span>{entry.staff.firstName} {entry.staff.lastName} <small className="text-white-dark">{entry.role}</small></span>{canUpdate && <button className="btn btn-sm btn-outline-danger" onClick={() => removeWorker(entry.staffId)}>Remove</button>}</div>)}</div></div>
-                <div className="panel"><h2 className="mb-4 font-bold">Payment history</h2><div className="space-y-2">{!selected.payments.length ? <p className="text-white-dark">No payments recorded.</p> : selected.payments.map((row) => <div className="flex justify-between rounded border border-white-light p-3 dark:border-[#191e3a]" key={row.id}><span>{row.staff.firstName} {row.staff.lastName}<small className="block text-white-dark">{row.description}</small></span><strong>${Number(row.amount).toLocaleString()}</strong></div>)}</div></div>
+                <div className="panel"><h2 className="mb-4 font-bold">Active workers</h2><div className="space-y-2">{!selected.workerAssignments.filter((entry) => !entry.removedAt).length ? <p className="text-white-dark">No workers assigned.</p> : selected.workerAssignments.filter((entry) => !entry.removedAt).map((entry) => <div className="flex items-center justify-between rounded border border-white-light p-3 dark:border-[#191e3a]" key={entry.workerId || entry.staffId || ''}><span>{entry.worker.firstName} {entry.worker.lastName} <small className="text-white-dark">{entry.role}</small></span>{canUpdate && <button className="btn btn-sm btn-outline-danger" onClick={() => removeWorker((entry.workerId || entry.staffId)!)}>Remove</button>}</div>)}</div></div>
+                <div className="panel"><h2 className="mb-4 font-bold">Payment history</h2><div className="space-y-2">{!selected.payments.length ? <p className="text-white-dark">No payments recorded.</p> : selected.payments.map((row) => <div className="flex justify-between rounded border border-white-light p-3 dark:border-[#191e3a]" key={row.id}><span>{row.worker ? `${row.worker.firstName} ${row.worker.lastName}` : row.payeeName || 'Payee'}<small className="block text-white-dark">{row.description}</small></span><strong>${Number(row.amount).toLocaleString()}</strong></div>)}</div></div>
             </div>
             <DocumentAttachments entityType="workforce_contract" entityId={selected.id} canUpload={canUpdate} canSign={canUpdate} />
         </div>}</Modal>
-        <Modal open={assignOpen} onClose={() => setAssignOpen(false)} title="Assign worker"><form className="space-y-3" onSubmit={assignWorker}><select className="form-select" required value={worker.staffId} onChange={(e) => { if (e.target.value === '__new__') { setNewWorkerOpen(true); return; } setWorker({ ...worker, staffId: e.target.value }); }}><option value="">Select worker…</option>{staff.map((person) => <option key={person.id} value={person.id}>{person.firstName} {person.lastName}</option>)}{canCreateStaff && <option value="__new__">+ Add new worker</option>}</select><input className="form-input" placeholder="Role" value={worker.role} onChange={(e) => setWorker({ ...worker, role: e.target.value })} /><textarea className="form-textarea" placeholder="Notes" value={worker.notes} onChange={(e) => setWorker({ ...worker, notes: e.target.value })} /><FormActions onCancel={() => setAssignOpen(false)} saveLabel="Assign" /></form></Modal>
-        <Modal open={newWorkerOpen} onClose={() => setNewWorkerOpen(false)} title="Add new worker"><form className="space-y-3" onSubmit={createWorker}><input className="form-input" placeholder="First name" required value={newWorker.firstName} onChange={(e) => setNewWorker({ ...newWorker, firstName: e.target.value })} /><input className="form-input" placeholder="Last name" required value={newWorker.lastName} onChange={(e) => setNewWorker({ ...newWorker, lastName: e.target.value })} /><FormActions onCancel={() => setNewWorkerOpen(false)} saveLabel="Add worker" /></form></Modal>
-        <Modal open={paymentOpen} onClose={() => setPaymentOpen(false)} title="Record payment"><form className="space-y-3" onSubmit={addPayment}><select className="form-select" required value={payment.staffId} onChange={(e) => setPayment({ ...payment, staffId: e.target.value })}><option value="">Assigned worker…</option>{selected?.workerAssignments.filter((entry) => !entry.removedAt).map((entry) => <option key={entry.staffId} value={entry.staffId}>{entry.staff.firstName} {entry.staff.lastName}</option>)}</select><CurrencyInput className="form-input" min="0.01" step="0.01" placeholder="Amount" required value={payment.amount} onChange={(e) => setPayment({ ...payment, amount: e.target.value })} /><input className="form-input" type="date" value={payment.date} onChange={(e) => setPayment({ ...payment, date: e.target.value })} /><input className="form-input" placeholder="Description" required value={payment.description} onChange={(e) => setPayment({ ...payment, description: e.target.value })} /><FormActions onCancel={() => setPaymentOpen(false)} saveLabel="Record payment" /></form></Modal>
+        <Modal open={assignOpen} onClose={() => setAssignOpen(false)} title="Assign worker"><form className="space-y-3" onSubmit={assignWorker}><select className="form-select" required value={worker.workerId} onChange={(e) => { if (e.target.value === '__new__') { setNewWorkerOpen(true); return; } setWorker({ ...worker, workerId: e.target.value }); }}><option value="">Select worker…</option>{workers.map((person) => <option key={person.id} value={person.id}>{person.firstName} {person.lastName}</option>)}<option value="__new__">+ Add new worker</option></select><input className="form-input" placeholder="Role" value={worker.role} onChange={(e) => setWorker({ ...worker, role: e.target.value })} /><textarea className="form-textarea" placeholder="Notes" value={worker.notes} onChange={(e) => setWorker({ ...worker, notes: e.target.value })} /><FormActions onCancel={() => setAssignOpen(false)} saveLabel="Assign" /></form></Modal>
+        <AddManpowerWorkerModal open={newWorkerOpen} onClose={() => setNewWorkerOpen(false)} onCreated={onWorkerCreated} />
+        <Modal open={paymentOpen} onClose={() => setPaymentOpen(false)} title="Record payment"><form className="space-y-3" onSubmit={addPayment}><select className="form-select" required value={payment.workerId || payment.staffId} onChange={(e) => { const entry = selected?.workerAssignments.find((a) => (a.workerId || a.staffId) === e.target.value); setPayment({ ...payment, workerId: entry?.workerId || '', staffId: entry?.staffId || '' }); }}><option value="">Assigned worker…</option>{selected?.workerAssignments.filter((entry) => !entry.removedAt).map((entry) => <option key={entry.workerId || entry.staffId || ''} value={entry.workerId || entry.staffId || ''}>{entry.worker.firstName} {entry.worker.lastName}</option>)}</select><CurrencyInput className="form-input" min="0.01" step="0.01" placeholder="Amount" required value={payment.amount} onChange={(e) => setPayment({ ...payment, amount: e.target.value })} /><input className="form-input" type="date" value={payment.date} onChange={(e) => setPayment({ ...payment, date: e.target.value })} /><input className="form-input" placeholder="Description" required value={payment.description} onChange={(e) => setPayment({ ...payment, description: e.target.value })} /><FormActions onCancel={() => setPaymentOpen(false)} saveLabel="Record payment" /></form></Modal>
         <Modal open={adjustOpen} onClose={() => setAdjustOpen(false)} title="Adjust budget"><form className="space-y-3" onSubmit={addAdjustment}><CurrencyInput className="form-input" step="0.01" placeholder="Positive or negative amount" required value={adjustment.amount} onChange={(e) => setAdjustment({ ...adjustment, amount: e.target.value })} /><textarea className="form-textarea" placeholder="Reason" required value={adjustment.reason} onChange={(e) => setAdjustment({ ...adjustment, reason: e.target.value })} /><FormActions onCancel={() => setAdjustOpen(false)} saveLabel="Apply adjustment" /></form></Modal>
         <Modal open={modal} onClose={() => setModal(false)} title={editing ? 'Edit contract' : 'Create contract'}><form className="grid gap-4 sm:grid-cols-2" onSubmit={saveContract}>
             <Field label="Project" required><select className="form-select mt-1" required value={contractForm.projectId} onChange={(e) => setContractForm({ ...contractForm, projectId: e.target.value })}><option value="">Select project…</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></Field>

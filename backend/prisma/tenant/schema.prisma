@@ -384,6 +384,7 @@ model Staff {
   workforceContractAssignments WorkforceContractWorker[]
   workforceContractPayments    WorkforceContractPayment[]
   payrollItems                 PayrollItem[]
+  manpowerWorker                ManpowerWorker?
 
 
   @@index([department])
@@ -567,6 +568,7 @@ model Project {
   dailyExpenses        DailyOperationalExpense[]
   workforceContracts   WorkforceContract[]
   payrolls             Payroll[]
+  manpowerWorkers      ManpowerWorker[]
 
   @@index([status])
   @@index([deletedAt, status])
@@ -1031,13 +1033,47 @@ model WorkerType {
   deletedAt DateTime? @map("deleted_at")
 
   staff Staff[]
+  manpowerWorkers ManpowerWorker[]
 
   @@map("worker_types")
+}
+
+model ManpowerWorker {
+  id                String      @id @default(cuid())
+  linkedStaffId     String?     @unique @map("linked_staff_id")
+  firstName         String?     @map("first_name")
+  lastName          String?     @map("last_name")
+  phone             String?
+  position          String?
+  workerTypeId      String?     @map("worker_type_id")
+  assignedProjectId String?     @map("assigned_project_id")
+  notes             String?
+  status            StaffStatus @default(ACTIVE)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  linkedStaff     Staff?      @relation(fields: [linkedStaffId], references: [id], onDelete: SetNull)
+  workerType      WorkerType? @relation(fields: [workerTypeId], references: [id], onDelete: SetNull)
+  assignedProject Project?    @relation(fields: [assignedProjectId], references: [id], onDelete: SetNull)
+
+  contractAssignments WorkforceContractWorker[]
+  contractPayments    WorkforceContractPayment[]
+  dailyExpenses       DailyOperationalExpense[]
+  ledgerEntries       WorkerLedgerEntry[]
+
+  @@index([workerTypeId])
+  @@index([assignedProjectId])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("manpower_workers")
 }
 
 model DailyOperationalExpense {
   id              String   @id @default(cuid())
   staffId         String?  @map("staff_id")
+  workerId        String?  @map("worker_id")
   projectId       String?  @map("project_id")
   recordedByUserId String? @map("recorded_by_user_id")
   amount          Decimal  @db.Decimal(12, 2)
@@ -1049,11 +1085,13 @@ model DailyOperationalExpense {
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  staff        Staff?   @relation(fields: [staffId], references: [id], onDelete: SetNull)
-  project      Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  recordedBy   User?    @relation("ExpenseRecorder", fields: [recordedByUserId], references: [id], onDelete: SetNull)
+  staff        Staff?          @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  worker       ManpowerWorker? @relation(fields: [workerId], references: [id], onDelete: SetNull)
+  project      Project?        @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  recordedBy   User?           @relation("ExpenseRecorder", fields: [recordedByUserId], references: [id], onDelete: SetNull)
 
   @@index([staffId])
+  @@index([workerId])
   @@index([projectId])
   @@index([recordedByUserId])
   @@index([date])
@@ -1066,6 +1104,7 @@ model WorkerLedgerEntry {
   id          String          @id @default(cuid())
   userId      String?         @map("user_id")
   staffId     String?         @map("staff_id")
+  workerId    String?         @map("worker_id")
   projectId   String?         @map("project_id")
   type        TransactionType
   amount      Decimal         @db.Decimal(12, 2)
@@ -1074,11 +1113,13 @@ model WorkerLedgerEntry {
 
   createdAt DateTime @default(now()) @map("created_at")
 
-  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  staff   Staff?   @relation(fields: [staffId], references: [id], onDelete: SetNull)
-  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  user    User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  staff   Staff?          @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  worker  ManpowerWorker? @relation(fields: [workerId], references: [id], onDelete: SetNull)
+  project Project?        @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   @@index([staffId])
+  @@index([workerId])
   @@index([projectId])
   @@index([date])
   @@map("worker_ledger_entries")
@@ -1296,7 +1337,8 @@ model WorkforceContract {
 model WorkforceContractWorker {
   id          String   @id @default(cuid())
   contractId  String   @map("contract_id")
-  staffId     String   @map("staff_id")
+  staffId     String?  @map("staff_id")
+  workerId    String?  @map("worker_id")
   role        String?
   notes       String?
 
@@ -1304,10 +1346,13 @@ model WorkforceContractWorker {
   removedAt  DateTime? @map("removed_at")
 
   contract WorkforceContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
-  staff    Staff             @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  staff    Staff?            @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  worker   ManpowerWorker?   @relation(fields: [workerId], references: [id], onDelete: Cascade)
 
   @@unique([contractId, staffId])
+  @@unique([contractId, workerId])
   @@index([staffId])
+  @@index([workerId])
   @@map("workforce_contract_workers")
 }
 
@@ -1315,6 +1360,7 @@ model WorkforceContractPayment {
   id           String   @id @default(cuid())
   contractId   String   @map("contract_id")
   staffId      String?  @map("staff_id")
+  workerId     String?  @map("worker_id")
   payeeName    String?  @map("payee_name")
   amount       Decimal  @db.Decimal(12, 2)
   date         DateTime @default(now())
@@ -1326,10 +1372,12 @@ model WorkforceContractPayment {
 
   contract   WorkforceContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
   staff      Staff?            @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  worker     ManpowerWorker?   @relation(fields: [workerId], references: [id], onDelete: SetNull)
   recordedBy User              @relation(fields: [recordedById], references: [id], onDelete: Restrict)
 
   @@index([contractId])
   @@index([staffId])
+  @@index([workerId])
   @@index([date])
   @@map("workforce_contract_payments")
 }

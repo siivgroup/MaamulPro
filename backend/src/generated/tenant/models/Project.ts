@@ -293,6 +293,7 @@ export type ProjectWhereInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseListRelationFilter
   workforceContracts?: Prisma.WorkforceContractListRelationFilter
   payrolls?: Prisma.PayrollListRelationFilter
+  manpowerWorkers?: Prisma.ManpowerWorkerListRelationFilter
 }
 
 export type ProjectOrderByWithRelationInput = {
@@ -318,6 +319,7 @@ export type ProjectOrderByWithRelationInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseOrderByRelationAggregateInput
   workforceContracts?: Prisma.WorkforceContractOrderByRelationAggregateInput
   payrolls?: Prisma.PayrollOrderByRelationAggregateInput
+  manpowerWorkers?: Prisma.ManpowerWorkerOrderByRelationAggregateInput
 }
 
 export type ProjectWhereUniqueInput = Prisma.AtLeast<{
@@ -346,6 +348,7 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
   dailyExpenses?: Prisma.DailyOperationalExpenseListRelationFilter
   workforceContracts?: Prisma.WorkforceContractListRelationFilter
   payrolls?: Prisma.PayrollListRelationFilter
+  manpowerWorkers?: Prisma.ManpowerWorkerListRelationFilter
 }, "id">
 
 export type ProjectOrderByWithAggregationInput = {
@@ -411,6 +414,7 @@ export type ProjectCreateInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseCreateNestedManyWithoutProjectInput
   workforceContracts?: Prisma.WorkforceContractCreateNestedManyWithoutProjectInput
   payrolls?: Prisma.PayrollCreateNestedManyWithoutProjectInput
+  manpowerWorkers?: Prisma.ManpowerWorkerCreateNestedManyWithoutAssignedProjectInput
 }
 
 export type ProjectUncheckedCreateInput = {
@@ -436,6 +440,7 @@ export type ProjectUncheckedCreateInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedCreateNestedManyWithoutProjectInput
   workforceContracts?: Prisma.WorkforceContractUncheckedCreateNestedManyWithoutProjectInput
   payrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutProjectInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUncheckedCreateNestedManyWithoutAssignedProjectInput
 }
 
 export type ProjectUpdateInput = {
@@ -461,6 +466,7 @@ export type ProjectUpdateInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUpdateManyWithoutProjectNestedInput
   workforceContracts?: Prisma.WorkforceContractUpdateManyWithoutProjectNestedInput
   payrolls?: Prisma.PayrollUpdateManyWithoutProjectNestedInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUpdateManyWithoutAssignedProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateInput = {
@@ -486,6 +492,7 @@ export type ProjectUncheckedUpdateInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedUpdateManyWithoutProjectNestedInput
   workforceContracts?: Prisma.WorkforceContractUncheckedUpdateManyWithoutProjectNestedInput
   payrolls?: Prisma.PayrollUncheckedUpdateManyWithoutProjectNestedInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUncheckedUpdateManyWithoutAssignedProjectNestedInput
 }
 
 export type ProjectCreateManyInput = {
@@ -686,6 +693,22 @@ export type ProjectUpdateOneWithoutConstructionInventoryTransactionsNestedInput 
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutConstructionInventoryTransactionsInput, Prisma.ProjectUpdateWithoutConstructionInventoryTransactionsInput>, Prisma.ProjectUncheckedUpdateWithoutConstructionInventoryTransactionsInput>
 }
 
+export type ProjectCreateNestedOneWithoutManpowerWorkersInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutManpowerWorkersInput, Prisma.ProjectUncheckedCreateWithoutManpowerWorkersInput>
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutManpowerWorkersInput
+  connect?: Prisma.ProjectWhereUniqueInput
+}
+
+export type ProjectUpdateOneWithoutManpowerWorkersNestedInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutManpowerWorkersInput, Prisma.ProjectUncheckedCreateWithoutManpowerWorkersInput>
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutManpowerWorkersInput
+  upsert?: Prisma.ProjectUpsertWithoutManpowerWorkersInput
+  disconnect?: Prisma.ProjectWhereInput | boolean
+  delete?: Prisma.ProjectWhereInput | boolean
+  connect?: Prisma.ProjectWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutManpowerWorkersInput, Prisma.ProjectUpdateWithoutManpowerWorkersInput>, Prisma.ProjectUncheckedUpdateWithoutManpowerWorkersInput>
+}
+
 export type ProjectCreateNestedOneWithoutDailyExpensesInput = {
   create?: Prisma.XOR<Prisma.ProjectCreateWithoutDailyExpensesInput, Prisma.ProjectUncheckedCreateWithoutDailyExpensesInput>
   connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutDailyExpensesInput
@@ -770,6 +793,7 @@ export type ProjectCreateWithoutAssignedStaffInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseCreateNestedManyWithoutProjectInput
   workforceContracts?: Prisma.WorkforceContractCreateNestedManyWithoutProjectInput
   payrolls?: Prisma.PayrollCreateNestedManyWithoutProjectInput
+  manpowerWorkers?: Prisma.ManpowerWorkerCreateNestedManyWithoutAssignedProjectInput
 }
 
 export type ProjectUncheckedCreateWithoutAssignedStaffInput = {
@@ -794,6 +818,7 @@ export type ProjectUncheckedCreateWithoutAssignedStaffInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedCreateNestedManyWithoutProjectInput
   workforceContracts?: Prisma.WorkforceContractUncheckedCreateNestedManyWithoutProjectInput
   payrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutProjectInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUncheckedCreateNestedManyWithoutAssignedProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutAssignedStaffInput = {
@@ -834,6 +859,7 @@ export type ProjectUpdateWithoutAssignedStaffInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUpdateManyWithoutProjectNestedInput
   workforceContracts?: Prisma.WorkforceContractUpdateManyWithoutProjectNestedInput
   payrolls?: Prisma.PayrollUpdateManyWithoutProjectNestedInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUpdateManyWithoutAssignedProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutAssignedStaffInput = {
@@ -858,6 +884,7 @@ export type ProjectUncheckedUpdateWithoutAssignedStaffInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedUpdateManyWithoutProjectNestedInput
   workforceContracts?: Prisma.WorkforceContractUncheckedUpdateManyWithoutProjectNestedInput
   payrolls?: Prisma.PayrollUncheckedUpdateManyWithoutProjectNestedInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUncheckedUpdateManyWithoutAssignedProjectNestedInput
 }
 
 export type ProjectCreateWithoutTransactionsInput = {
@@ -882,6 +909,7 @@ export type ProjectCreateWithoutTransactionsInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseCreateNestedManyWithoutProjectInput
   workforceContracts?: Prisma.WorkforceContractCreateNestedManyWithoutProjectInput
   payrolls?: Prisma.PayrollCreateNestedManyWithoutProjectInput
+  manpowerWorkers?: Prisma.ManpowerWorkerCreateNestedManyWithoutAssignedProjectInput
 }
 
 export type ProjectUncheckedCreateWithoutTransactionsInput = {
@@ -906,6 +934,7 @@ export type ProjectUncheckedCreateWithoutTransactionsInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedCreateNestedManyWithoutProjectInput
   workforceContracts?: Prisma.WorkforceContractUncheckedCreateNestedManyWithoutProjectInput
   payrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutProjectInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUncheckedCreateNestedManyWithoutAssignedProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutTransactionsInput = {
@@ -946,6 +975,7 @@ export type ProjectUpdateWithoutTransactionsInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUpdateManyWithoutProjectNestedInput
   workforceContracts?: Prisma.WorkforceContractUpdateManyWithoutProjectNestedInput
   payrolls?: Prisma.PayrollUpdateManyWithoutProjectNestedInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUpdateManyWithoutAssignedProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutTransactionsInput = {
@@ -970,6 +1000,7 @@ export type ProjectUncheckedUpdateWithoutTransactionsInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedUpdateManyWithoutProjectNestedInput
   workforceContracts?: Prisma.WorkforceContractUncheckedUpdateManyWithoutProjectNestedInput
   payrolls?: Prisma.PayrollUncheckedUpdateManyWithoutProjectNestedInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUncheckedUpdateManyWithoutAssignedProjectNestedInput
 }
 
 export type ProjectCreateWithoutTasksInput = {
@@ -994,6 +1025,7 @@ export type ProjectCreateWithoutTasksInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseCreateNestedManyWithoutProjectInput
   workforceContracts?: Prisma.WorkforceContractCreateNestedManyWithoutProjectInput
   payrolls?: Prisma.PayrollCreateNestedManyWithoutProjectInput
+  manpowerWorkers?: Prisma.ManpowerWorkerCreateNestedManyWithoutAssignedProjectInput
 }
 
 export type ProjectUncheckedCreateWithoutTasksInput = {
@@ -1018,6 +1050,7 @@ export type ProjectUncheckedCreateWithoutTasksInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedCreateNestedManyWithoutProjectInput
   workforceContracts?: Prisma.WorkforceContractUncheckedCreateNestedManyWithoutProjectInput
   payrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutProjectInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUncheckedCreateNestedManyWithoutAssignedProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutTasksInput = {
@@ -1058,6 +1091,7 @@ export type ProjectUpdateWithoutTasksInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUpdateManyWithoutProjectNestedInput
   workforceContracts?: Prisma.WorkforceContractUpdateManyWithoutProjectNestedInput
   payrolls?: Prisma.PayrollUpdateManyWithoutProjectNestedInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUpdateManyWithoutAssignedProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutTasksInput = {
@@ -1082,6 +1116,7 @@ export type ProjectUncheckedUpdateWithoutTasksInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedUpdateManyWithoutProjectNestedInput
   workforceContracts?: Prisma.WorkforceContractUncheckedUpdateManyWithoutProjectNestedInput
   payrolls?: Prisma.PayrollUncheckedUpdateManyWithoutProjectNestedInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUncheckedUpdateManyWithoutAssignedProjectNestedInput
 }
 
 export type ProjectCreateWithoutInventoryTransactionsInput = {
@@ -1106,6 +1141,7 @@ export type ProjectCreateWithoutInventoryTransactionsInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseCreateNestedManyWithoutProjectInput
   workforceContracts?: Prisma.WorkforceContractCreateNestedManyWithoutProjectInput
   payrolls?: Prisma.PayrollCreateNestedManyWithoutProjectInput
+  manpowerWorkers?: Prisma.ManpowerWorkerCreateNestedManyWithoutAssignedProjectInput
 }
 
 export type ProjectUncheckedCreateWithoutInventoryTransactionsInput = {
@@ -1130,6 +1166,7 @@ export type ProjectUncheckedCreateWithoutInventoryTransactionsInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedCreateNestedManyWithoutProjectInput
   workforceContracts?: Prisma.WorkforceContractUncheckedCreateNestedManyWithoutProjectInput
   payrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutProjectInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUncheckedCreateNestedManyWithoutAssignedProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutInventoryTransactionsInput = {
@@ -1170,6 +1207,7 @@ export type ProjectUpdateWithoutInventoryTransactionsInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUpdateManyWithoutProjectNestedInput
   workforceContracts?: Prisma.WorkforceContractUpdateManyWithoutProjectNestedInput
   payrolls?: Prisma.PayrollUpdateManyWithoutProjectNestedInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUpdateManyWithoutAssignedProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutInventoryTransactionsInput = {
@@ -1194,6 +1232,7 @@ export type ProjectUncheckedUpdateWithoutInventoryTransactionsInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedUpdateManyWithoutProjectNestedInput
   workforceContracts?: Prisma.WorkforceContractUncheckedUpdateManyWithoutProjectNestedInput
   payrolls?: Prisma.PayrollUncheckedUpdateManyWithoutProjectNestedInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUncheckedUpdateManyWithoutAssignedProjectNestedInput
 }
 
 export type ProjectCreateWithoutConstructionInventoryTransactionsInput = {
@@ -1218,6 +1257,7 @@ export type ProjectCreateWithoutConstructionInventoryTransactionsInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseCreateNestedManyWithoutProjectInput
   workforceContracts?: Prisma.WorkforceContractCreateNestedManyWithoutProjectInput
   payrolls?: Prisma.PayrollCreateNestedManyWithoutProjectInput
+  manpowerWorkers?: Prisma.ManpowerWorkerCreateNestedManyWithoutAssignedProjectInput
 }
 
 export type ProjectUncheckedCreateWithoutConstructionInventoryTransactionsInput = {
@@ -1242,6 +1282,7 @@ export type ProjectUncheckedCreateWithoutConstructionInventoryTransactionsInput 
   dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedCreateNestedManyWithoutProjectInput
   workforceContracts?: Prisma.WorkforceContractUncheckedCreateNestedManyWithoutProjectInput
   payrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutProjectInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUncheckedCreateNestedManyWithoutAssignedProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutConstructionInventoryTransactionsInput = {
@@ -1282,6 +1323,7 @@ export type ProjectUpdateWithoutConstructionInventoryTransactionsInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUpdateManyWithoutProjectNestedInput
   workforceContracts?: Prisma.WorkforceContractUpdateManyWithoutProjectNestedInput
   payrolls?: Prisma.PayrollUpdateManyWithoutProjectNestedInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUpdateManyWithoutAssignedProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutConstructionInventoryTransactionsInput = {
@@ -1301,6 +1343,123 @@ export type ProjectUncheckedUpdateWithoutConstructionInventoryTransactionsInput 
   tasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutProjectNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutProjectNestedInput
   inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutProjectNestedInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutProjectNestedInput
+  assignedStaff?: Prisma.StaffUncheckedUpdateManyWithoutAssignedProjectNestedInput
+  dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedUpdateManyWithoutProjectNestedInput
+  workforceContracts?: Prisma.WorkforceContractUncheckedUpdateManyWithoutProjectNestedInput
+  payrolls?: Prisma.PayrollUncheckedUpdateManyWithoutProjectNestedInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUncheckedUpdateManyWithoutAssignedProjectNestedInput
+}
+
+export type ProjectCreateWithoutManpowerWorkersInput = {
+  id?: string
+  name: string
+  location?: string | null
+  description?: string | null
+  status?: $Enums.ProjectStatus
+  budget?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  startDate?: Date | string | null
+  endDate?: Date | string | null
+  progress?: number
+  imageUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  tasks?: Prisma.ProjectTaskCreateNestedManyWithoutProjectInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutProjectInput
+  inventoryTransactions?: Prisma.InventoryTransactionCreateNestedManyWithoutProjectInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionCreateNestedManyWithoutProjectInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutProjectInput
+  assignedStaff?: Prisma.StaffCreateNestedManyWithoutAssignedProjectInput
+  dailyExpenses?: Prisma.DailyOperationalExpenseCreateNestedManyWithoutProjectInput
+  workforceContracts?: Prisma.WorkforceContractCreateNestedManyWithoutProjectInput
+  payrolls?: Prisma.PayrollCreateNestedManyWithoutProjectInput
+}
+
+export type ProjectUncheckedCreateWithoutManpowerWorkersInput = {
+  id?: string
+  name: string
+  location?: string | null
+  description?: string | null
+  status?: $Enums.ProjectStatus
+  budget?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  startDate?: Date | string | null
+  endDate?: Date | string | null
+  progress?: number
+  imageUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  tasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutProjectInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutProjectInput
+  inventoryTransactions?: Prisma.InventoryTransactionUncheckedCreateNestedManyWithoutProjectInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedCreateNestedManyWithoutProjectInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutProjectInput
+  assignedStaff?: Prisma.StaffUncheckedCreateNestedManyWithoutAssignedProjectInput
+  dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedCreateNestedManyWithoutProjectInput
+  workforceContracts?: Prisma.WorkforceContractUncheckedCreateNestedManyWithoutProjectInput
+  payrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutProjectInput
+}
+
+export type ProjectCreateOrConnectWithoutManpowerWorkersInput = {
+  where: Prisma.ProjectWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutManpowerWorkersInput, Prisma.ProjectUncheckedCreateWithoutManpowerWorkersInput>
+}
+
+export type ProjectUpsertWithoutManpowerWorkersInput = {
+  update: Prisma.XOR<Prisma.ProjectUpdateWithoutManpowerWorkersInput, Prisma.ProjectUncheckedUpdateWithoutManpowerWorkersInput>
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutManpowerWorkersInput, Prisma.ProjectUncheckedCreateWithoutManpowerWorkersInput>
+  where?: Prisma.ProjectWhereInput
+}
+
+export type ProjectUpdateToOneWithWhereWithoutManpowerWorkersInput = {
+  where?: Prisma.ProjectWhereInput
+  data: Prisma.XOR<Prisma.ProjectUpdateWithoutManpowerWorkersInput, Prisma.ProjectUncheckedUpdateWithoutManpowerWorkersInput>
+}
+
+export type ProjectUpdateWithoutManpowerWorkersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
+  budget?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  progress?: Prisma.IntFieldUpdateOperationsInput | number
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tasks?: Prisma.ProjectTaskUpdateManyWithoutProjectNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutProjectNestedInput
+  inventoryTransactions?: Prisma.InventoryTransactionUpdateManyWithoutProjectNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUpdateManyWithoutProjectNestedInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutProjectNestedInput
+  assignedStaff?: Prisma.StaffUpdateManyWithoutAssignedProjectNestedInput
+  dailyExpenses?: Prisma.DailyOperationalExpenseUpdateManyWithoutProjectNestedInput
+  workforceContracts?: Prisma.WorkforceContractUpdateManyWithoutProjectNestedInput
+  payrolls?: Prisma.PayrollUpdateManyWithoutProjectNestedInput
+}
+
+export type ProjectUncheckedUpdateWithoutManpowerWorkersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
+  budget?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  startDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  progress?: Prisma.IntFieldUpdateOperationsInput | number
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutProjectNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutProjectNestedInput
+  inventoryTransactions?: Prisma.InventoryTransactionUncheckedUpdateManyWithoutProjectNestedInput
+  constructionInventoryTransactions?: Prisma.ConstructionInventoryTransactionUncheckedUpdateManyWithoutProjectNestedInput
   workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutProjectNestedInput
   assignedStaff?: Prisma.StaffUncheckedUpdateManyWithoutAssignedProjectNestedInput
   dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedUpdateManyWithoutProjectNestedInput
@@ -1330,6 +1489,7 @@ export type ProjectCreateWithoutDailyExpensesInput = {
   assignedStaff?: Prisma.StaffCreateNestedManyWithoutAssignedProjectInput
   workforceContracts?: Prisma.WorkforceContractCreateNestedManyWithoutProjectInput
   payrolls?: Prisma.PayrollCreateNestedManyWithoutProjectInput
+  manpowerWorkers?: Prisma.ManpowerWorkerCreateNestedManyWithoutAssignedProjectInput
 }
 
 export type ProjectUncheckedCreateWithoutDailyExpensesInput = {
@@ -1354,6 +1514,7 @@ export type ProjectUncheckedCreateWithoutDailyExpensesInput = {
   assignedStaff?: Prisma.StaffUncheckedCreateNestedManyWithoutAssignedProjectInput
   workforceContracts?: Prisma.WorkforceContractUncheckedCreateNestedManyWithoutProjectInput
   payrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutProjectInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUncheckedCreateNestedManyWithoutAssignedProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutDailyExpensesInput = {
@@ -1394,6 +1555,7 @@ export type ProjectUpdateWithoutDailyExpensesInput = {
   assignedStaff?: Prisma.StaffUpdateManyWithoutAssignedProjectNestedInput
   workforceContracts?: Prisma.WorkforceContractUpdateManyWithoutProjectNestedInput
   payrolls?: Prisma.PayrollUpdateManyWithoutProjectNestedInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUpdateManyWithoutAssignedProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutDailyExpensesInput = {
@@ -1418,6 +1580,7 @@ export type ProjectUncheckedUpdateWithoutDailyExpensesInput = {
   assignedStaff?: Prisma.StaffUncheckedUpdateManyWithoutAssignedProjectNestedInput
   workforceContracts?: Prisma.WorkforceContractUncheckedUpdateManyWithoutProjectNestedInput
   payrolls?: Prisma.PayrollUncheckedUpdateManyWithoutProjectNestedInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUncheckedUpdateManyWithoutAssignedProjectNestedInput
 }
 
 export type ProjectCreateWithoutWorkerLedgerEntriesInput = {
@@ -1442,6 +1605,7 @@ export type ProjectCreateWithoutWorkerLedgerEntriesInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseCreateNestedManyWithoutProjectInput
   workforceContracts?: Prisma.WorkforceContractCreateNestedManyWithoutProjectInput
   payrolls?: Prisma.PayrollCreateNestedManyWithoutProjectInput
+  manpowerWorkers?: Prisma.ManpowerWorkerCreateNestedManyWithoutAssignedProjectInput
 }
 
 export type ProjectUncheckedCreateWithoutWorkerLedgerEntriesInput = {
@@ -1466,6 +1630,7 @@ export type ProjectUncheckedCreateWithoutWorkerLedgerEntriesInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedCreateNestedManyWithoutProjectInput
   workforceContracts?: Prisma.WorkforceContractUncheckedCreateNestedManyWithoutProjectInput
   payrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutProjectInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUncheckedCreateNestedManyWithoutAssignedProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutWorkerLedgerEntriesInput = {
@@ -1506,6 +1671,7 @@ export type ProjectUpdateWithoutWorkerLedgerEntriesInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUpdateManyWithoutProjectNestedInput
   workforceContracts?: Prisma.WorkforceContractUpdateManyWithoutProjectNestedInput
   payrolls?: Prisma.PayrollUpdateManyWithoutProjectNestedInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUpdateManyWithoutAssignedProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutWorkerLedgerEntriesInput = {
@@ -1530,6 +1696,7 @@ export type ProjectUncheckedUpdateWithoutWorkerLedgerEntriesInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedUpdateManyWithoutProjectNestedInput
   workforceContracts?: Prisma.WorkforceContractUncheckedUpdateManyWithoutProjectNestedInput
   payrolls?: Prisma.PayrollUncheckedUpdateManyWithoutProjectNestedInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUncheckedUpdateManyWithoutAssignedProjectNestedInput
 }
 
 export type ProjectCreateWithoutWorkforceContractsInput = {
@@ -1554,6 +1721,7 @@ export type ProjectCreateWithoutWorkforceContractsInput = {
   assignedStaff?: Prisma.StaffCreateNestedManyWithoutAssignedProjectInput
   dailyExpenses?: Prisma.DailyOperationalExpenseCreateNestedManyWithoutProjectInput
   payrolls?: Prisma.PayrollCreateNestedManyWithoutProjectInput
+  manpowerWorkers?: Prisma.ManpowerWorkerCreateNestedManyWithoutAssignedProjectInput
 }
 
 export type ProjectUncheckedCreateWithoutWorkforceContractsInput = {
@@ -1578,6 +1746,7 @@ export type ProjectUncheckedCreateWithoutWorkforceContractsInput = {
   assignedStaff?: Prisma.StaffUncheckedCreateNestedManyWithoutAssignedProjectInput
   dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedCreateNestedManyWithoutProjectInput
   payrolls?: Prisma.PayrollUncheckedCreateNestedManyWithoutProjectInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUncheckedCreateNestedManyWithoutAssignedProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutWorkforceContractsInput = {
@@ -1618,6 +1787,7 @@ export type ProjectUpdateWithoutWorkforceContractsInput = {
   assignedStaff?: Prisma.StaffUpdateManyWithoutAssignedProjectNestedInput
   dailyExpenses?: Prisma.DailyOperationalExpenseUpdateManyWithoutProjectNestedInput
   payrolls?: Prisma.PayrollUpdateManyWithoutProjectNestedInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUpdateManyWithoutAssignedProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutWorkforceContractsInput = {
@@ -1642,6 +1812,7 @@ export type ProjectUncheckedUpdateWithoutWorkforceContractsInput = {
   assignedStaff?: Prisma.StaffUncheckedUpdateManyWithoutAssignedProjectNestedInput
   dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedUpdateManyWithoutProjectNestedInput
   payrolls?: Prisma.PayrollUncheckedUpdateManyWithoutProjectNestedInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUncheckedUpdateManyWithoutAssignedProjectNestedInput
 }
 
 export type ProjectCreateWithoutPayrollsInput = {
@@ -1666,6 +1837,7 @@ export type ProjectCreateWithoutPayrollsInput = {
   assignedStaff?: Prisma.StaffCreateNestedManyWithoutAssignedProjectInput
   dailyExpenses?: Prisma.DailyOperationalExpenseCreateNestedManyWithoutProjectInput
   workforceContracts?: Prisma.WorkforceContractCreateNestedManyWithoutProjectInput
+  manpowerWorkers?: Prisma.ManpowerWorkerCreateNestedManyWithoutAssignedProjectInput
 }
 
 export type ProjectUncheckedCreateWithoutPayrollsInput = {
@@ -1690,6 +1862,7 @@ export type ProjectUncheckedCreateWithoutPayrollsInput = {
   assignedStaff?: Prisma.StaffUncheckedCreateNestedManyWithoutAssignedProjectInput
   dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedCreateNestedManyWithoutProjectInput
   workforceContracts?: Prisma.WorkforceContractUncheckedCreateNestedManyWithoutProjectInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUncheckedCreateNestedManyWithoutAssignedProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutPayrollsInput = {
@@ -1730,6 +1903,7 @@ export type ProjectUpdateWithoutPayrollsInput = {
   assignedStaff?: Prisma.StaffUpdateManyWithoutAssignedProjectNestedInput
   dailyExpenses?: Prisma.DailyOperationalExpenseUpdateManyWithoutProjectNestedInput
   workforceContracts?: Prisma.WorkforceContractUpdateManyWithoutProjectNestedInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUpdateManyWithoutAssignedProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutPayrollsInput = {
@@ -1754,6 +1928,7 @@ export type ProjectUncheckedUpdateWithoutPayrollsInput = {
   assignedStaff?: Prisma.StaffUncheckedUpdateManyWithoutAssignedProjectNestedInput
   dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedUpdateManyWithoutProjectNestedInput
   workforceContracts?: Prisma.WorkforceContractUncheckedUpdateManyWithoutProjectNestedInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUncheckedUpdateManyWithoutAssignedProjectNestedInput
 }
 
 
@@ -1771,6 +1946,7 @@ export type ProjectCountOutputType = {
   dailyExpenses: number
   workforceContracts: number
   payrolls: number
+  manpowerWorkers: number
 }
 
 export type ProjectCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1783,6 +1959,7 @@ export type ProjectCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
   dailyExpenses?: boolean | ProjectCountOutputTypeCountDailyExpensesArgs
   workforceContracts?: boolean | ProjectCountOutputTypeCountWorkforceContractsArgs
   payrolls?: boolean | ProjectCountOutputTypeCountPayrollsArgs
+  manpowerWorkers?: boolean | ProjectCountOutputTypeCountManpowerWorkersArgs
 }
 
 /**
@@ -1858,6 +2035,13 @@ export type ProjectCountOutputTypeCountPayrollsArgs<ExtArgs extends runtime.Type
   where?: Prisma.PayrollWhereInput
 }
 
+/**
+ * ProjectCountOutputType without action
+ */
+export type ProjectCountOutputTypeCountManpowerWorkersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ManpowerWorkerWhereInput
+}
+
 
 export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1882,6 +2066,7 @@ export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   dailyExpenses?: boolean | Prisma.Project$dailyExpensesArgs<ExtArgs>
   workforceContracts?: boolean | Prisma.Project$workforceContractsArgs<ExtArgs>
   payrolls?: boolean | Prisma.Project$payrollsArgs<ExtArgs>
+  manpowerWorkers?: boolean | Prisma.Project$manpowerWorkersArgs<ExtArgs>
   _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["project"]>
 
@@ -1944,6 +2129,7 @@ export type ProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   dailyExpenses?: boolean | Prisma.Project$dailyExpensesArgs<ExtArgs>
   workforceContracts?: boolean | Prisma.Project$workforceContractsArgs<ExtArgs>
   payrolls?: boolean | Prisma.Project$payrollsArgs<ExtArgs>
+  manpowerWorkers?: boolean | Prisma.Project$manpowerWorkersArgs<ExtArgs>
   _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ProjectIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1961,6 +2147,7 @@ export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     dailyExpenses: Prisma.$DailyOperationalExpensePayload<ExtArgs>[]
     workforceContracts: Prisma.$WorkforceContractPayload<ExtArgs>[]
     payrolls: Prisma.$PayrollPayload<ExtArgs>[]
+    manpowerWorkers: Prisma.$ManpowerWorkerPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2379,6 +2566,7 @@ export interface Prisma__ProjectClient<T, Null = never, ExtArgs extends runtime.
   dailyExpenses<T extends Prisma.Project$dailyExpensesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$dailyExpensesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DailyOperationalExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   workforceContracts<T extends Prisma.Project$workforceContractsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$workforceContractsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkforceContractPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   payrolls<T extends Prisma.Project$payrollsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$payrollsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PayrollPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  manpowerWorkers<T extends Prisma.Project$manpowerWorkersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$manpowerWorkersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ManpowerWorkerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3027,6 +3215,30 @@ export type Project$payrollsArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.PayrollScalarFieldEnum | Prisma.PayrollScalarFieldEnum[]
+}
+
+/**
+ * Project.manpowerWorkers
+ */
+export type Project$manpowerWorkersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ManpowerWorker
+   */
+  select?: Prisma.ManpowerWorkerSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ManpowerWorker
+   */
+  omit?: Prisma.ManpowerWorkerOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ManpowerWorkerInclude<ExtArgs> | null
+  where?: Prisma.ManpowerWorkerWhereInput
+  orderBy?: Prisma.ManpowerWorkerOrderByWithRelationInput | Prisma.ManpowerWorkerOrderByWithRelationInput[]
+  cursor?: Prisma.ManpowerWorkerWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ManpowerWorkerScalarFieldEnum | Prisma.ManpowerWorkerScalarFieldEnum[]
 }
 
 /**

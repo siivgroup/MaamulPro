@@ -30,7 +30,7 @@ const ConstructionOverviewPage = lazy(() => import('../pages/ConstructionOvervie
 const ConstructionProjectsPage = lazy(() => import('../pages/ConstructionProjectsPage'));
 const ConstructionProgressPage = lazy(() => import('../pages/ConstructionProgressPage'));
 const ManpowerPage = lazy(() => import('../pages/ManpowerPage'));
-import { constructionMaterialFields, expenseFields, projectFields, taskFields } from '../pages/constructionConfig';
+import { constructionMaterialFields, expenseFields, projectFields, taskFields, workerLookupField } from '../pages/constructionConfig';
 const RealEstateOverviewPage = lazy(() => import('../pages/RealEstateOverviewPage'));
 const PropertiesPage = lazy(() => import('../pages/PropertiesPage'));
 const RentalHubPage = lazy(() => import('../pages/RentalHubPage'));
@@ -135,7 +135,7 @@ const routes = [
     { path: '/app/construction/worker-ledger', element: <CrudPage title="Worker Ledger" description="Labor income and expenses synchronized with the unified ledger." endpoint="/api/construction/worker-ledger" createPermission="manpower.create" deletePermission="manpower.delete" canEdit={false} fields={[
         { name: 'type', label: 'Type', type: 'select', required: true, options: ['INCOME', 'EXPENSE'].map((value) => ({ value, label: value })) },
         { name: 'amount', label: 'Amount', type: 'number', required: true }, { name: 'description', label: 'Description', required: true },
-        { name: 'date', label: 'Date', type: 'date' }, { name: 'projectId', label: 'Project', lookup: { endpoint: '/api/construction/projects/options', labelKeys: ['name'] } }, { name: 'staffId', label: 'Staff member', lookup: { endpoint: '/api/staff/options', labelKeys: ['firstName', 'lastName'] } },
+        { name: 'date', label: 'Date', type: 'date' }, { name: 'projectId', label: 'Project', lookup: { endpoint: '/api/construction/projects/options', labelKeys: ['name'] } }, workerLookupField,
     ]} />, layout: 'blank', permission: 'manpower.read' },
     { path: '/app/construction/inventory', element: <ConstructionInventoryPage />, layout: 'blank', permission: 'construction_inventory.read' },
     { path: '/app/construction/inventory/manage', element: <CrudPage title="Manage construction materials" description="Add, edit or retire the material catalog used for site stock and usage tracking." endpoint="/api/construction/materials" createPermission="construction_inventory.create" updatePermission="construction_inventory.update" deletePermission="construction_inventory.delete" createTo="/app/construction/inventory/manage/new" editTo={(id) => `/app/construction/inventory/manage/${id}/edit`} fields={constructionMaterialFields} />, layout: 'blank', permission: 'construction_inventory.read' },

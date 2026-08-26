@@ -19,6 +19,24 @@ const projectQuickFields: CrudField[] = [
     { name: 'budget', label: 'Budget', type: 'number', required: true, placeholder: '250000' },
 ];
 
+const workerQuickFields: CrudField[] = [
+    { name: 'linkedStaffId', label: 'Existing staff member', lookup: { endpoint: '/api/staff/options', labelKeys: ['firstName', 'lastName'] } },
+    { name: 'firstName', label: 'First name' },
+    { name: 'lastName', label: 'Last name' },
+    { name: 'phone', label: 'Phone' },
+    { name: 'position', label: 'Position' },
+];
+
+export const workerLookupField: CrudField = {
+    name: 'workerId',
+    label: 'Worker',
+    lookup: {
+        endpoint: '/api/construction/manpower/workers/options',
+        labelKeys: ['firstName', 'lastName'],
+        create: { endpoint: '/api/construction/manpower/workers', label: '+ Add new worker', fields: workerQuickFields, permission: 'manpower.create' },
+    },
+};
+
 export const taskFields: CrudField[] = [
     { name: 'projectId', label: 'Project', required: true, lookup: { endpoint: '/api/construction/projects/options', labelKeys: ['name'], create: { fields: projectQuickFields, permission: 'projects.create' } } },
     { name: 'title', label: 'Task title', required: true, placeholder: 'Dhammaystir darbiga koowaad' },
@@ -47,5 +65,5 @@ export const expenseFields: CrudField[] = [
     { name: 'category', label: 'Category', type: 'select', options: options(['UNSKILLED_LABOR', 'LABOR', 'MATERIALS', 'EQUIPMENT', 'TRANSPORT', 'UTILITIES', 'FOOD', 'SUPPORT_COSTS', 'OTHER']) },
     { name: 'date', label: 'Date', type: 'date' },
     { name: 'projectId', label: 'Project', lookup: { endpoint: '/api/construction/projects/options', labelKeys: ['name'], create: { fields: projectQuickFields, permission: 'projects.create' } } },
-    { name: 'staffId', label: 'Staff member', lookup: { endpoint: '/api/staff/options', labelKeys: ['firstName', 'lastName'] }, hideWhen: (form) => form.category === 'UNSKILLED_LABOR' },
+    { ...workerLookupField, hideWhen: (form) => form.category === 'UNSKILLED_LABOR' },
 ];

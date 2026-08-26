@@ -38,6 +38,7 @@ export type WorkforceContractPaymentMinAggregateOutputType = {
   id: string | null
   contractId: string | null
   staffId: string | null
+  workerId: string | null
   payeeName: string | null
   amount: runtime.Decimal | null
   date: Date | null
@@ -51,6 +52,7 @@ export type WorkforceContractPaymentMaxAggregateOutputType = {
   id: string | null
   contractId: string | null
   staffId: string | null
+  workerId: string | null
   payeeName: string | null
   amount: runtime.Decimal | null
   date: Date | null
@@ -64,6 +66,7 @@ export type WorkforceContractPaymentCountAggregateOutputType = {
   id: number
   contractId: number
   staffId: number
+  workerId: number
   payeeName: number
   amount: number
   date: number
@@ -87,6 +90,7 @@ export type WorkforceContractPaymentMinAggregateInputType = {
   id?: true
   contractId?: true
   staffId?: true
+  workerId?: true
   payeeName?: true
   amount?: true
   date?: true
@@ -100,6 +104,7 @@ export type WorkforceContractPaymentMaxAggregateInputType = {
   id?: true
   contractId?: true
   staffId?: true
+  workerId?: true
   payeeName?: true
   amount?: true
   date?: true
@@ -113,6 +118,7 @@ export type WorkforceContractPaymentCountAggregateInputType = {
   id?: true
   contractId?: true
   staffId?: true
+  workerId?: true
   payeeName?: true
   amount?: true
   date?: true
@@ -213,6 +219,7 @@ export type WorkforceContractPaymentGroupByOutputType = {
   id: string
   contractId: string
   staffId: string | null
+  workerId: string | null
   payeeName: string | null
   amount: runtime.Decimal
   date: Date
@@ -249,6 +256,7 @@ export type WorkforceContractPaymentWhereInput = {
   id?: Prisma.StringFilter<"WorkforceContractPayment"> | string
   contractId?: Prisma.StringFilter<"WorkforceContractPayment"> | string
   staffId?: Prisma.StringNullableFilter<"WorkforceContractPayment"> | string | null
+  workerId?: Prisma.StringNullableFilter<"WorkforceContractPayment"> | string | null
   payeeName?: Prisma.StringNullableFilter<"WorkforceContractPayment"> | string | null
   amount?: Prisma.DecimalFilter<"WorkforceContractPayment"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFilter<"WorkforceContractPayment"> | Date | string
@@ -258,6 +266,7 @@ export type WorkforceContractPaymentWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"WorkforceContractPayment"> | Date | string
   contract?: Prisma.XOR<Prisma.WorkforceContractScalarRelationFilter, Prisma.WorkforceContractWhereInput>
   staff?: Prisma.XOR<Prisma.StaffNullableScalarRelationFilter, Prisma.StaffWhereInput> | null
+  worker?: Prisma.XOR<Prisma.ManpowerWorkerNullableScalarRelationFilter, Prisma.ManpowerWorkerWhereInput> | null
   recordedBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }
 
@@ -265,6 +274,7 @@ export type WorkforceContractPaymentOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   contractId?: Prisma.SortOrder
   staffId?: Prisma.SortOrderInput | Prisma.SortOrder
+  workerId?: Prisma.SortOrderInput | Prisma.SortOrder
   payeeName?: Prisma.SortOrderInput | Prisma.SortOrder
   amount?: Prisma.SortOrder
   date?: Prisma.SortOrder
@@ -274,6 +284,7 @@ export type WorkforceContractPaymentOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   contract?: Prisma.WorkforceContractOrderByWithRelationInput
   staff?: Prisma.StaffOrderByWithRelationInput
+  worker?: Prisma.ManpowerWorkerOrderByWithRelationInput
   recordedBy?: Prisma.UserOrderByWithRelationInput
 }
 
@@ -284,6 +295,7 @@ export type WorkforceContractPaymentWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.WorkforceContractPaymentWhereInput | Prisma.WorkforceContractPaymentWhereInput[]
   contractId?: Prisma.StringFilter<"WorkforceContractPayment"> | string
   staffId?: Prisma.StringNullableFilter<"WorkforceContractPayment"> | string | null
+  workerId?: Prisma.StringNullableFilter<"WorkforceContractPayment"> | string | null
   payeeName?: Prisma.StringNullableFilter<"WorkforceContractPayment"> | string | null
   amount?: Prisma.DecimalFilter<"WorkforceContractPayment"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFilter<"WorkforceContractPayment"> | Date | string
@@ -293,6 +305,7 @@ export type WorkforceContractPaymentWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"WorkforceContractPayment"> | Date | string
   contract?: Prisma.XOR<Prisma.WorkforceContractScalarRelationFilter, Prisma.WorkforceContractWhereInput>
   staff?: Prisma.XOR<Prisma.StaffNullableScalarRelationFilter, Prisma.StaffWhereInput> | null
+  worker?: Prisma.XOR<Prisma.ManpowerWorkerNullableScalarRelationFilter, Prisma.ManpowerWorkerWhereInput> | null
   recordedBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }, "id">
 
@@ -300,6 +313,7 @@ export type WorkforceContractPaymentOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   contractId?: Prisma.SortOrder
   staffId?: Prisma.SortOrderInput | Prisma.SortOrder
+  workerId?: Prisma.SortOrderInput | Prisma.SortOrder
   payeeName?: Prisma.SortOrderInput | Prisma.SortOrder
   amount?: Prisma.SortOrder
   date?: Prisma.SortOrder
@@ -321,6 +335,7 @@ export type WorkforceContractPaymentScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"WorkforceContractPayment"> | string
   contractId?: Prisma.StringWithAggregatesFilter<"WorkforceContractPayment"> | string
   staffId?: Prisma.StringNullableWithAggregatesFilter<"WorkforceContractPayment"> | string | null
+  workerId?: Prisma.StringNullableWithAggregatesFilter<"WorkforceContractPayment"> | string | null
   payeeName?: Prisma.StringNullableWithAggregatesFilter<"WorkforceContractPayment"> | string | null
   amount?: Prisma.DecimalWithAggregatesFilter<"WorkforceContractPayment"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeWithAggregatesFilter<"WorkforceContractPayment"> | Date | string
@@ -340,6 +355,7 @@ export type WorkforceContractPaymentCreateInput = {
   createdAt?: Date | string
   contract: Prisma.WorkforceContractCreateNestedOneWithoutPaymentsInput
   staff?: Prisma.StaffCreateNestedOneWithoutWorkforceContractPaymentsInput
+  worker?: Prisma.ManpowerWorkerCreateNestedOneWithoutContractPaymentsInput
   recordedBy: Prisma.UserCreateNestedOneWithoutWorkforceContractPaymentsInput
 }
 
@@ -347,6 +363,7 @@ export type WorkforceContractPaymentUncheckedCreateInput = {
   id?: string
   contractId: string
   staffId?: string | null
+  workerId?: string | null
   payeeName?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Date | string
@@ -366,6 +383,7 @@ export type WorkforceContractPaymentUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contract?: Prisma.WorkforceContractUpdateOneRequiredWithoutPaymentsNestedInput
   staff?: Prisma.StaffUpdateOneWithoutWorkforceContractPaymentsNestedInput
+  worker?: Prisma.ManpowerWorkerUpdateOneWithoutContractPaymentsNestedInput
   recordedBy?: Prisma.UserUpdateOneRequiredWithoutWorkforceContractPaymentsNestedInput
 }
 
@@ -373,6 +391,7 @@ export type WorkforceContractPaymentUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   contractId?: Prisma.StringFieldUpdateOperationsInput | string
   staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payeeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -386,6 +405,7 @@ export type WorkforceContractPaymentCreateManyInput = {
   id?: string
   contractId: string
   staffId?: string | null
+  workerId?: string | null
   payeeName?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Date | string
@@ -409,6 +429,7 @@ export type WorkforceContractPaymentUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   contractId?: Prisma.StringFieldUpdateOperationsInput | string
   staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payeeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -432,6 +453,7 @@ export type WorkforceContractPaymentCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   contractId?: Prisma.SortOrder
   staffId?: Prisma.SortOrder
+  workerId?: Prisma.SortOrder
   payeeName?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   date?: Prisma.SortOrder
@@ -449,6 +471,7 @@ export type WorkforceContractPaymentMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   contractId?: Prisma.SortOrder
   staffId?: Prisma.SortOrder
+  workerId?: Prisma.SortOrder
   payeeName?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   date?: Prisma.SortOrder
@@ -462,6 +485,7 @@ export type WorkforceContractPaymentMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   contractId?: Prisma.SortOrder
   staffId?: Prisma.SortOrder
+  workerId?: Prisma.SortOrder
   payeeName?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   date?: Prisma.SortOrder
@@ -559,6 +583,48 @@ export type WorkforceContractPaymentUncheckedUpdateManyWithoutStaffNestedInput =
   deleteMany?: Prisma.WorkforceContractPaymentScalarWhereInput | Prisma.WorkforceContractPaymentScalarWhereInput[]
 }
 
+export type WorkforceContractPaymentCreateNestedManyWithoutWorkerInput = {
+  create?: Prisma.XOR<Prisma.WorkforceContractPaymentCreateWithoutWorkerInput, Prisma.WorkforceContractPaymentUncheckedCreateWithoutWorkerInput> | Prisma.WorkforceContractPaymentCreateWithoutWorkerInput[] | Prisma.WorkforceContractPaymentUncheckedCreateWithoutWorkerInput[]
+  connectOrCreate?: Prisma.WorkforceContractPaymentCreateOrConnectWithoutWorkerInput | Prisma.WorkforceContractPaymentCreateOrConnectWithoutWorkerInput[]
+  createMany?: Prisma.WorkforceContractPaymentCreateManyWorkerInputEnvelope
+  connect?: Prisma.WorkforceContractPaymentWhereUniqueInput | Prisma.WorkforceContractPaymentWhereUniqueInput[]
+}
+
+export type WorkforceContractPaymentUncheckedCreateNestedManyWithoutWorkerInput = {
+  create?: Prisma.XOR<Prisma.WorkforceContractPaymentCreateWithoutWorkerInput, Prisma.WorkforceContractPaymentUncheckedCreateWithoutWorkerInput> | Prisma.WorkforceContractPaymentCreateWithoutWorkerInput[] | Prisma.WorkforceContractPaymentUncheckedCreateWithoutWorkerInput[]
+  connectOrCreate?: Prisma.WorkforceContractPaymentCreateOrConnectWithoutWorkerInput | Prisma.WorkforceContractPaymentCreateOrConnectWithoutWorkerInput[]
+  createMany?: Prisma.WorkforceContractPaymentCreateManyWorkerInputEnvelope
+  connect?: Prisma.WorkforceContractPaymentWhereUniqueInput | Prisma.WorkforceContractPaymentWhereUniqueInput[]
+}
+
+export type WorkforceContractPaymentUpdateManyWithoutWorkerNestedInput = {
+  create?: Prisma.XOR<Prisma.WorkforceContractPaymentCreateWithoutWorkerInput, Prisma.WorkforceContractPaymentUncheckedCreateWithoutWorkerInput> | Prisma.WorkforceContractPaymentCreateWithoutWorkerInput[] | Prisma.WorkforceContractPaymentUncheckedCreateWithoutWorkerInput[]
+  connectOrCreate?: Prisma.WorkforceContractPaymentCreateOrConnectWithoutWorkerInput | Prisma.WorkforceContractPaymentCreateOrConnectWithoutWorkerInput[]
+  upsert?: Prisma.WorkforceContractPaymentUpsertWithWhereUniqueWithoutWorkerInput | Prisma.WorkforceContractPaymentUpsertWithWhereUniqueWithoutWorkerInput[]
+  createMany?: Prisma.WorkforceContractPaymentCreateManyWorkerInputEnvelope
+  set?: Prisma.WorkforceContractPaymentWhereUniqueInput | Prisma.WorkforceContractPaymentWhereUniqueInput[]
+  disconnect?: Prisma.WorkforceContractPaymentWhereUniqueInput | Prisma.WorkforceContractPaymentWhereUniqueInput[]
+  delete?: Prisma.WorkforceContractPaymentWhereUniqueInput | Prisma.WorkforceContractPaymentWhereUniqueInput[]
+  connect?: Prisma.WorkforceContractPaymentWhereUniqueInput | Prisma.WorkforceContractPaymentWhereUniqueInput[]
+  update?: Prisma.WorkforceContractPaymentUpdateWithWhereUniqueWithoutWorkerInput | Prisma.WorkforceContractPaymentUpdateWithWhereUniqueWithoutWorkerInput[]
+  updateMany?: Prisma.WorkforceContractPaymentUpdateManyWithWhereWithoutWorkerInput | Prisma.WorkforceContractPaymentUpdateManyWithWhereWithoutWorkerInput[]
+  deleteMany?: Prisma.WorkforceContractPaymentScalarWhereInput | Prisma.WorkforceContractPaymentScalarWhereInput[]
+}
+
+export type WorkforceContractPaymentUncheckedUpdateManyWithoutWorkerNestedInput = {
+  create?: Prisma.XOR<Prisma.WorkforceContractPaymentCreateWithoutWorkerInput, Prisma.WorkforceContractPaymentUncheckedCreateWithoutWorkerInput> | Prisma.WorkforceContractPaymentCreateWithoutWorkerInput[] | Prisma.WorkforceContractPaymentUncheckedCreateWithoutWorkerInput[]
+  connectOrCreate?: Prisma.WorkforceContractPaymentCreateOrConnectWithoutWorkerInput | Prisma.WorkforceContractPaymentCreateOrConnectWithoutWorkerInput[]
+  upsert?: Prisma.WorkforceContractPaymentUpsertWithWhereUniqueWithoutWorkerInput | Prisma.WorkforceContractPaymentUpsertWithWhereUniqueWithoutWorkerInput[]
+  createMany?: Prisma.WorkforceContractPaymentCreateManyWorkerInputEnvelope
+  set?: Prisma.WorkforceContractPaymentWhereUniqueInput | Prisma.WorkforceContractPaymentWhereUniqueInput[]
+  disconnect?: Prisma.WorkforceContractPaymentWhereUniqueInput | Prisma.WorkforceContractPaymentWhereUniqueInput[]
+  delete?: Prisma.WorkforceContractPaymentWhereUniqueInput | Prisma.WorkforceContractPaymentWhereUniqueInput[]
+  connect?: Prisma.WorkforceContractPaymentWhereUniqueInput | Prisma.WorkforceContractPaymentWhereUniqueInput[]
+  update?: Prisma.WorkforceContractPaymentUpdateWithWhereUniqueWithoutWorkerInput | Prisma.WorkforceContractPaymentUpdateWithWhereUniqueWithoutWorkerInput[]
+  updateMany?: Prisma.WorkforceContractPaymentUpdateManyWithWhereWithoutWorkerInput | Prisma.WorkforceContractPaymentUpdateManyWithWhereWithoutWorkerInput[]
+  deleteMany?: Prisma.WorkforceContractPaymentScalarWhereInput | Prisma.WorkforceContractPaymentScalarWhereInput[]
+}
+
 export type WorkforceContractPaymentCreateNestedManyWithoutContractInput = {
   create?: Prisma.XOR<Prisma.WorkforceContractPaymentCreateWithoutContractInput, Prisma.WorkforceContractPaymentUncheckedCreateWithoutContractInput> | Prisma.WorkforceContractPaymentCreateWithoutContractInput[] | Prisma.WorkforceContractPaymentUncheckedCreateWithoutContractInput[]
   connectOrCreate?: Prisma.WorkforceContractPaymentCreateOrConnectWithoutContractInput | Prisma.WorkforceContractPaymentCreateOrConnectWithoutContractInput[]
@@ -611,12 +677,14 @@ export type WorkforceContractPaymentCreateWithoutRecordedByInput = {
   createdAt?: Date | string
   contract: Prisma.WorkforceContractCreateNestedOneWithoutPaymentsInput
   staff?: Prisma.StaffCreateNestedOneWithoutWorkforceContractPaymentsInput
+  worker?: Prisma.ManpowerWorkerCreateNestedOneWithoutContractPaymentsInput
 }
 
 export type WorkforceContractPaymentUncheckedCreateWithoutRecordedByInput = {
   id?: string
   contractId: string
   staffId?: string | null
+  workerId?: string | null
   payeeName?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Date | string
@@ -658,6 +726,7 @@ export type WorkforceContractPaymentScalarWhereInput = {
   id?: Prisma.StringFilter<"WorkforceContractPayment"> | string
   contractId?: Prisma.StringFilter<"WorkforceContractPayment"> | string
   staffId?: Prisma.StringNullableFilter<"WorkforceContractPayment"> | string | null
+  workerId?: Prisma.StringNullableFilter<"WorkforceContractPayment"> | string | null
   payeeName?: Prisma.StringNullableFilter<"WorkforceContractPayment"> | string | null
   amount?: Prisma.DecimalFilter<"WorkforceContractPayment"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFilter<"WorkforceContractPayment"> | Date | string
@@ -676,12 +745,14 @@ export type WorkforceContractPaymentCreateWithoutStaffInput = {
   notes?: string | null
   createdAt?: Date | string
   contract: Prisma.WorkforceContractCreateNestedOneWithoutPaymentsInput
+  worker?: Prisma.ManpowerWorkerCreateNestedOneWithoutContractPaymentsInput
   recordedBy: Prisma.UserCreateNestedOneWithoutWorkforceContractPaymentsInput
 }
 
 export type WorkforceContractPaymentUncheckedCreateWithoutStaffInput = {
   id?: string
   contractId: string
+  workerId?: string | null
   payeeName?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Date | string
@@ -717,6 +788,58 @@ export type WorkforceContractPaymentUpdateManyWithWhereWithoutStaffInput = {
   data: Prisma.XOR<Prisma.WorkforceContractPaymentUpdateManyMutationInput, Prisma.WorkforceContractPaymentUncheckedUpdateManyWithoutStaffInput>
 }
 
+export type WorkforceContractPaymentCreateWithoutWorkerInput = {
+  id?: string
+  payeeName?: string | null
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  date?: Date | string
+  description: string
+  notes?: string | null
+  createdAt?: Date | string
+  contract: Prisma.WorkforceContractCreateNestedOneWithoutPaymentsInput
+  staff?: Prisma.StaffCreateNestedOneWithoutWorkforceContractPaymentsInput
+  recordedBy: Prisma.UserCreateNestedOneWithoutWorkforceContractPaymentsInput
+}
+
+export type WorkforceContractPaymentUncheckedCreateWithoutWorkerInput = {
+  id?: string
+  contractId: string
+  staffId?: string | null
+  payeeName?: string | null
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  date?: Date | string
+  description: string
+  recordedById: string
+  notes?: string | null
+  createdAt?: Date | string
+}
+
+export type WorkforceContractPaymentCreateOrConnectWithoutWorkerInput = {
+  where: Prisma.WorkforceContractPaymentWhereUniqueInput
+  create: Prisma.XOR<Prisma.WorkforceContractPaymentCreateWithoutWorkerInput, Prisma.WorkforceContractPaymentUncheckedCreateWithoutWorkerInput>
+}
+
+export type WorkforceContractPaymentCreateManyWorkerInputEnvelope = {
+  data: Prisma.WorkforceContractPaymentCreateManyWorkerInput | Prisma.WorkforceContractPaymentCreateManyWorkerInput[]
+  skipDuplicates?: boolean
+}
+
+export type WorkforceContractPaymentUpsertWithWhereUniqueWithoutWorkerInput = {
+  where: Prisma.WorkforceContractPaymentWhereUniqueInput
+  update: Prisma.XOR<Prisma.WorkforceContractPaymentUpdateWithoutWorkerInput, Prisma.WorkforceContractPaymentUncheckedUpdateWithoutWorkerInput>
+  create: Prisma.XOR<Prisma.WorkforceContractPaymentCreateWithoutWorkerInput, Prisma.WorkforceContractPaymentUncheckedCreateWithoutWorkerInput>
+}
+
+export type WorkforceContractPaymentUpdateWithWhereUniqueWithoutWorkerInput = {
+  where: Prisma.WorkforceContractPaymentWhereUniqueInput
+  data: Prisma.XOR<Prisma.WorkforceContractPaymentUpdateWithoutWorkerInput, Prisma.WorkforceContractPaymentUncheckedUpdateWithoutWorkerInput>
+}
+
+export type WorkforceContractPaymentUpdateManyWithWhereWithoutWorkerInput = {
+  where: Prisma.WorkforceContractPaymentScalarWhereInput
+  data: Prisma.XOR<Prisma.WorkforceContractPaymentUpdateManyMutationInput, Prisma.WorkforceContractPaymentUncheckedUpdateManyWithoutWorkerInput>
+}
+
 export type WorkforceContractPaymentCreateWithoutContractInput = {
   id?: string
   payeeName?: string | null
@@ -726,12 +849,14 @@ export type WorkforceContractPaymentCreateWithoutContractInput = {
   notes?: string | null
   createdAt?: Date | string
   staff?: Prisma.StaffCreateNestedOneWithoutWorkforceContractPaymentsInput
+  worker?: Prisma.ManpowerWorkerCreateNestedOneWithoutContractPaymentsInput
   recordedBy: Prisma.UserCreateNestedOneWithoutWorkforceContractPaymentsInput
 }
 
 export type WorkforceContractPaymentUncheckedCreateWithoutContractInput = {
   id?: string
   staffId?: string | null
+  workerId?: string | null
   payeeName?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Date | string
@@ -771,6 +896,7 @@ export type WorkforceContractPaymentCreateManyRecordedByInput = {
   id?: string
   contractId: string
   staffId?: string | null
+  workerId?: string | null
   payeeName?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Date | string
@@ -789,12 +915,14 @@ export type WorkforceContractPaymentUpdateWithoutRecordedByInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contract?: Prisma.WorkforceContractUpdateOneRequiredWithoutPaymentsNestedInput
   staff?: Prisma.StaffUpdateOneWithoutWorkforceContractPaymentsNestedInput
+  worker?: Prisma.ManpowerWorkerUpdateOneWithoutContractPaymentsNestedInput
 }
 
 export type WorkforceContractPaymentUncheckedUpdateWithoutRecordedByInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   contractId?: Prisma.StringFieldUpdateOperationsInput | string
   staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payeeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -807,6 +935,7 @@ export type WorkforceContractPaymentUncheckedUpdateManyWithoutRecordedByInput = 
   id?: Prisma.StringFieldUpdateOperationsInput | string
   contractId?: Prisma.StringFieldUpdateOperationsInput | string
   staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payeeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -818,6 +947,7 @@ export type WorkforceContractPaymentUncheckedUpdateManyWithoutRecordedByInput = 
 export type WorkforceContractPaymentCreateManyStaffInput = {
   id?: string
   contractId: string
+  workerId?: string | null
   payeeName?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Date | string
@@ -836,12 +966,14 @@ export type WorkforceContractPaymentUpdateWithoutStaffInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contract?: Prisma.WorkforceContractUpdateOneRequiredWithoutPaymentsNestedInput
+  worker?: Prisma.ManpowerWorkerUpdateOneWithoutContractPaymentsNestedInput
   recordedBy?: Prisma.UserUpdateOneRequiredWithoutWorkforceContractPaymentsNestedInput
 }
 
 export type WorkforceContractPaymentUncheckedUpdateWithoutStaffInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   contractId?: Prisma.StringFieldUpdateOperationsInput | string
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payeeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -854,6 +986,59 @@ export type WorkforceContractPaymentUncheckedUpdateWithoutStaffInput = {
 export type WorkforceContractPaymentUncheckedUpdateManyWithoutStaffInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   contractId?: Prisma.StringFieldUpdateOperationsInput | string
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payeeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  recordedById?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type WorkforceContractPaymentCreateManyWorkerInput = {
+  id?: string
+  contractId: string
+  staffId?: string | null
+  payeeName?: string | null
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  date?: Date | string
+  description: string
+  recordedById: string
+  notes?: string | null
+  createdAt?: Date | string
+}
+
+export type WorkforceContractPaymentUpdateWithoutWorkerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  payeeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  contract?: Prisma.WorkforceContractUpdateOneRequiredWithoutPaymentsNestedInput
+  staff?: Prisma.StaffUpdateOneWithoutWorkforceContractPaymentsNestedInput
+  recordedBy?: Prisma.UserUpdateOneRequiredWithoutWorkforceContractPaymentsNestedInput
+}
+
+export type WorkforceContractPaymentUncheckedUpdateWithoutWorkerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  contractId?: Prisma.StringFieldUpdateOperationsInput | string
+  staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payeeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  recordedById?: Prisma.StringFieldUpdateOperationsInput | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type WorkforceContractPaymentUncheckedUpdateManyWithoutWorkerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  contractId?: Prisma.StringFieldUpdateOperationsInput | string
+  staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payeeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -866,6 +1051,7 @@ export type WorkforceContractPaymentUncheckedUpdateManyWithoutStaffInput = {
 export type WorkforceContractPaymentCreateManyContractInput = {
   id?: string
   staffId?: string | null
+  workerId?: string | null
   payeeName?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Date | string
@@ -884,12 +1070,14 @@ export type WorkforceContractPaymentUpdateWithoutContractInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   staff?: Prisma.StaffUpdateOneWithoutWorkforceContractPaymentsNestedInput
+  worker?: Prisma.ManpowerWorkerUpdateOneWithoutContractPaymentsNestedInput
   recordedBy?: Prisma.UserUpdateOneRequiredWithoutWorkforceContractPaymentsNestedInput
 }
 
 export type WorkforceContractPaymentUncheckedUpdateWithoutContractInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payeeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -902,6 +1090,7 @@ export type WorkforceContractPaymentUncheckedUpdateWithoutContractInput = {
 export type WorkforceContractPaymentUncheckedUpdateManyWithoutContractInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payeeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -917,6 +1106,7 @@ export type WorkforceContractPaymentSelect<ExtArgs extends runtime.Types.Extensi
   id?: boolean
   contractId?: boolean
   staffId?: boolean
+  workerId?: boolean
   payeeName?: boolean
   amount?: boolean
   date?: boolean
@@ -926,6 +1116,7 @@ export type WorkforceContractPaymentSelect<ExtArgs extends runtime.Types.Extensi
   createdAt?: boolean
   contract?: boolean | Prisma.WorkforceContractDefaultArgs<ExtArgs>
   staff?: boolean | Prisma.WorkforceContractPayment$staffArgs<ExtArgs>
+  worker?: boolean | Prisma.WorkforceContractPayment$workerArgs<ExtArgs>
   recordedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["workforceContractPayment"]>
 
@@ -933,6 +1124,7 @@ export type WorkforceContractPaymentSelectCreateManyAndReturn<ExtArgs extends ru
   id?: boolean
   contractId?: boolean
   staffId?: boolean
+  workerId?: boolean
   payeeName?: boolean
   amount?: boolean
   date?: boolean
@@ -942,6 +1134,7 @@ export type WorkforceContractPaymentSelectCreateManyAndReturn<ExtArgs extends ru
   createdAt?: boolean
   contract?: boolean | Prisma.WorkforceContractDefaultArgs<ExtArgs>
   staff?: boolean | Prisma.WorkforceContractPayment$staffArgs<ExtArgs>
+  worker?: boolean | Prisma.WorkforceContractPayment$workerArgs<ExtArgs>
   recordedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["workforceContractPayment"]>
 
@@ -949,6 +1142,7 @@ export type WorkforceContractPaymentSelectUpdateManyAndReturn<ExtArgs extends ru
   id?: boolean
   contractId?: boolean
   staffId?: boolean
+  workerId?: boolean
   payeeName?: boolean
   amount?: boolean
   date?: boolean
@@ -958,6 +1152,7 @@ export type WorkforceContractPaymentSelectUpdateManyAndReturn<ExtArgs extends ru
   createdAt?: boolean
   contract?: boolean | Prisma.WorkforceContractDefaultArgs<ExtArgs>
   staff?: boolean | Prisma.WorkforceContractPayment$staffArgs<ExtArgs>
+  worker?: boolean | Prisma.WorkforceContractPayment$workerArgs<ExtArgs>
   recordedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["workforceContractPayment"]>
 
@@ -965,6 +1160,7 @@ export type WorkforceContractPaymentSelectScalar = {
   id?: boolean
   contractId?: boolean
   staffId?: boolean
+  workerId?: boolean
   payeeName?: boolean
   amount?: boolean
   date?: boolean
@@ -974,20 +1170,23 @@ export type WorkforceContractPaymentSelectScalar = {
   createdAt?: boolean
 }
 
-export type WorkforceContractPaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "contractId" | "staffId" | "payeeName" | "amount" | "date" | "description" | "recordedById" | "notes" | "createdAt", ExtArgs["result"]["workforceContractPayment"]>
+export type WorkforceContractPaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "contractId" | "staffId" | "workerId" | "payeeName" | "amount" | "date" | "description" | "recordedById" | "notes" | "createdAt", ExtArgs["result"]["workforceContractPayment"]>
 export type WorkforceContractPaymentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   contract?: boolean | Prisma.WorkforceContractDefaultArgs<ExtArgs>
   staff?: boolean | Prisma.WorkforceContractPayment$staffArgs<ExtArgs>
+  worker?: boolean | Prisma.WorkforceContractPayment$workerArgs<ExtArgs>
   recordedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 export type WorkforceContractPaymentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   contract?: boolean | Prisma.WorkforceContractDefaultArgs<ExtArgs>
   staff?: boolean | Prisma.WorkforceContractPayment$staffArgs<ExtArgs>
+  worker?: boolean | Prisma.WorkforceContractPayment$workerArgs<ExtArgs>
   recordedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 export type WorkforceContractPaymentIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   contract?: boolean | Prisma.WorkforceContractDefaultArgs<ExtArgs>
   staff?: boolean | Prisma.WorkforceContractPayment$staffArgs<ExtArgs>
+  worker?: boolean | Prisma.WorkforceContractPayment$workerArgs<ExtArgs>
   recordedBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 
@@ -996,12 +1195,14 @@ export type $WorkforceContractPaymentPayload<ExtArgs extends runtime.Types.Exten
   objects: {
     contract: Prisma.$WorkforceContractPayload<ExtArgs>
     staff: Prisma.$StaffPayload<ExtArgs> | null
+    worker: Prisma.$ManpowerWorkerPayload<ExtArgs> | null
     recordedBy: Prisma.$UserPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     contractId: string
     staffId: string | null
+    workerId: string | null
     payeeName: string | null
     amount: runtime.Decimal
     date: Date
@@ -1405,6 +1606,7 @@ export interface Prisma__WorkforceContractPaymentClient<T, Null = never, ExtArgs
   readonly [Symbol.toStringTag]: "PrismaPromise"
   contract<T extends Prisma.WorkforceContractDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WorkforceContractDefaultArgs<ExtArgs>>): Prisma.Prisma__WorkforceContractClient<runtime.Types.Result.GetResult<Prisma.$WorkforceContractPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   staff<T extends Prisma.WorkforceContractPayment$staffArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WorkforceContractPayment$staffArgs<ExtArgs>>): Prisma.Prisma__StaffClient<runtime.Types.Result.GetResult<Prisma.$StaffPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  worker<T extends Prisma.WorkforceContractPayment$workerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WorkforceContractPayment$workerArgs<ExtArgs>>): Prisma.Prisma__ManpowerWorkerClient<runtime.Types.Result.GetResult<Prisma.$ManpowerWorkerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   recordedBy<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1438,6 +1640,7 @@ export interface WorkforceContractPaymentFieldRefs {
   readonly id: Prisma.FieldRef<"WorkforceContractPayment", 'String'>
   readonly contractId: Prisma.FieldRef<"WorkforceContractPayment", 'String'>
   readonly staffId: Prisma.FieldRef<"WorkforceContractPayment", 'String'>
+  readonly workerId: Prisma.FieldRef<"WorkforceContractPayment", 'String'>
   readonly payeeName: Prisma.FieldRef<"WorkforceContractPayment", 'String'>
   readonly amount: Prisma.FieldRef<"WorkforceContractPayment", 'Decimal'>
   readonly date: Prisma.FieldRef<"WorkforceContractPayment", 'DateTime'>
@@ -1862,6 +2065,25 @@ export type WorkforceContractPayment$staffArgs<ExtArgs extends runtime.Types.Ext
    */
   include?: Prisma.StaffInclude<ExtArgs> | null
   where?: Prisma.StaffWhereInput
+}
+
+/**
+ * WorkforceContractPayment.worker
+ */
+export type WorkforceContractPayment$workerArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ManpowerWorker
+   */
+  select?: Prisma.ManpowerWorkerSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ManpowerWorker
+   */
+  omit?: Prisma.ManpowerWorkerOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ManpowerWorkerInclude<ExtArgs> | null
+  where?: Prisma.ManpowerWorkerWhereInput
 }
 
 /**

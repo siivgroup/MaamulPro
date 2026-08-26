@@ -28,6 +28,7 @@ export type WorkforceContractWorkerMinAggregateOutputType = {
   id: string | null
   contractId: string | null
   staffId: string | null
+  workerId: string | null
   role: string | null
   notes: string | null
   assignedAt: Date | null
@@ -38,6 +39,7 @@ export type WorkforceContractWorkerMaxAggregateOutputType = {
   id: string | null
   contractId: string | null
   staffId: string | null
+  workerId: string | null
   role: string | null
   notes: string | null
   assignedAt: Date | null
@@ -48,6 +50,7 @@ export type WorkforceContractWorkerCountAggregateOutputType = {
   id: number
   contractId: number
   staffId: number
+  workerId: number
   role: number
   notes: number
   assignedAt: number
@@ -60,6 +63,7 @@ export type WorkforceContractWorkerMinAggregateInputType = {
   id?: true
   contractId?: true
   staffId?: true
+  workerId?: true
   role?: true
   notes?: true
   assignedAt?: true
@@ -70,6 +74,7 @@ export type WorkforceContractWorkerMaxAggregateInputType = {
   id?: true
   contractId?: true
   staffId?: true
+  workerId?: true
   role?: true
   notes?: true
   assignedAt?: true
@@ -80,6 +85,7 @@ export type WorkforceContractWorkerCountAggregateInputType = {
   id?: true
   contractId?: true
   staffId?: true
+  workerId?: true
   role?: true
   notes?: true
   assignedAt?: true
@@ -162,7 +168,8 @@ export type WorkforceContractWorkerGroupByArgs<ExtArgs extends runtime.Types.Ext
 export type WorkforceContractWorkerGroupByOutputType = {
   id: string
   contractId: string
-  staffId: string
+  staffId: string | null
+  workerId: string | null
   role: string | null
   notes: string | null
   assignedAt: Date
@@ -193,47 +200,55 @@ export type WorkforceContractWorkerWhereInput = {
   NOT?: Prisma.WorkforceContractWorkerWhereInput | Prisma.WorkforceContractWorkerWhereInput[]
   id?: Prisma.StringFilter<"WorkforceContractWorker"> | string
   contractId?: Prisma.StringFilter<"WorkforceContractWorker"> | string
-  staffId?: Prisma.StringFilter<"WorkforceContractWorker"> | string
+  staffId?: Prisma.StringNullableFilter<"WorkforceContractWorker"> | string | null
+  workerId?: Prisma.StringNullableFilter<"WorkforceContractWorker"> | string | null
   role?: Prisma.StringNullableFilter<"WorkforceContractWorker"> | string | null
   notes?: Prisma.StringNullableFilter<"WorkforceContractWorker"> | string | null
   assignedAt?: Prisma.DateTimeFilter<"WorkforceContractWorker"> | Date | string
   removedAt?: Prisma.DateTimeNullableFilter<"WorkforceContractWorker"> | Date | string | null
   contract?: Prisma.XOR<Prisma.WorkforceContractScalarRelationFilter, Prisma.WorkforceContractWhereInput>
-  staff?: Prisma.XOR<Prisma.StaffScalarRelationFilter, Prisma.StaffWhereInput>
+  staff?: Prisma.XOR<Prisma.StaffNullableScalarRelationFilter, Prisma.StaffWhereInput> | null
+  worker?: Prisma.XOR<Prisma.ManpowerWorkerNullableScalarRelationFilter, Prisma.ManpowerWorkerWhereInput> | null
 }
 
 export type WorkforceContractWorkerOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   contractId?: Prisma.SortOrder
-  staffId?: Prisma.SortOrder
+  staffId?: Prisma.SortOrderInput | Prisma.SortOrder
+  workerId?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   assignedAt?: Prisma.SortOrder
   removedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   contract?: Prisma.WorkforceContractOrderByWithRelationInput
   staff?: Prisma.StaffOrderByWithRelationInput
+  worker?: Prisma.ManpowerWorkerOrderByWithRelationInput
 }
 
 export type WorkforceContractWorkerWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   contractId_staffId?: Prisma.WorkforceContractWorkerContractIdStaffIdCompoundUniqueInput
+  contractId_workerId?: Prisma.WorkforceContractWorkerContractIdWorkerIdCompoundUniqueInput
   AND?: Prisma.WorkforceContractWorkerWhereInput | Prisma.WorkforceContractWorkerWhereInput[]
   OR?: Prisma.WorkforceContractWorkerWhereInput[]
   NOT?: Prisma.WorkforceContractWorkerWhereInput | Prisma.WorkforceContractWorkerWhereInput[]
   contractId?: Prisma.StringFilter<"WorkforceContractWorker"> | string
-  staffId?: Prisma.StringFilter<"WorkforceContractWorker"> | string
+  staffId?: Prisma.StringNullableFilter<"WorkforceContractWorker"> | string | null
+  workerId?: Prisma.StringNullableFilter<"WorkforceContractWorker"> | string | null
   role?: Prisma.StringNullableFilter<"WorkforceContractWorker"> | string | null
   notes?: Prisma.StringNullableFilter<"WorkforceContractWorker"> | string | null
   assignedAt?: Prisma.DateTimeFilter<"WorkforceContractWorker"> | Date | string
   removedAt?: Prisma.DateTimeNullableFilter<"WorkforceContractWorker"> | Date | string | null
   contract?: Prisma.XOR<Prisma.WorkforceContractScalarRelationFilter, Prisma.WorkforceContractWhereInput>
-  staff?: Prisma.XOR<Prisma.StaffScalarRelationFilter, Prisma.StaffWhereInput>
-}, "id" | "contractId_staffId">
+  staff?: Prisma.XOR<Prisma.StaffNullableScalarRelationFilter, Prisma.StaffWhereInput> | null
+  worker?: Prisma.XOR<Prisma.ManpowerWorkerNullableScalarRelationFilter, Prisma.ManpowerWorkerWhereInput> | null
+}, "id" | "contractId_staffId" | "contractId_workerId">
 
 export type WorkforceContractWorkerOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   contractId?: Prisma.SortOrder
-  staffId?: Prisma.SortOrder
+  staffId?: Prisma.SortOrderInput | Prisma.SortOrder
+  workerId?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   assignedAt?: Prisma.SortOrder
@@ -249,7 +264,8 @@ export type WorkforceContractWorkerScalarWhereWithAggregatesInput = {
   NOT?: Prisma.WorkforceContractWorkerScalarWhereWithAggregatesInput | Prisma.WorkforceContractWorkerScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"WorkforceContractWorker"> | string
   contractId?: Prisma.StringWithAggregatesFilter<"WorkforceContractWorker"> | string
-  staffId?: Prisma.StringWithAggregatesFilter<"WorkforceContractWorker"> | string
+  staffId?: Prisma.StringNullableWithAggregatesFilter<"WorkforceContractWorker"> | string | null
+  workerId?: Prisma.StringNullableWithAggregatesFilter<"WorkforceContractWorker"> | string | null
   role?: Prisma.StringNullableWithAggregatesFilter<"WorkforceContractWorker"> | string | null
   notes?: Prisma.StringNullableWithAggregatesFilter<"WorkforceContractWorker"> | string | null
   assignedAt?: Prisma.DateTimeWithAggregatesFilter<"WorkforceContractWorker"> | Date | string
@@ -263,13 +279,15 @@ export type WorkforceContractWorkerCreateInput = {
   assignedAt?: Date | string
   removedAt?: Date | string | null
   contract: Prisma.WorkforceContractCreateNestedOneWithoutWorkerAssignmentsInput
-  staff: Prisma.StaffCreateNestedOneWithoutWorkforceContractAssignmentsInput
+  staff?: Prisma.StaffCreateNestedOneWithoutWorkforceContractAssignmentsInput
+  worker?: Prisma.ManpowerWorkerCreateNestedOneWithoutContractAssignmentsInput
 }
 
 export type WorkforceContractWorkerUncheckedCreateInput = {
   id?: string
   contractId: string
-  staffId: string
+  staffId?: string | null
+  workerId?: string | null
   role?: string | null
   notes?: string | null
   assignedAt?: Date | string
@@ -283,13 +301,15 @@ export type WorkforceContractWorkerUpdateInput = {
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   contract?: Prisma.WorkforceContractUpdateOneRequiredWithoutWorkerAssignmentsNestedInput
-  staff?: Prisma.StaffUpdateOneRequiredWithoutWorkforceContractAssignmentsNestedInput
+  staff?: Prisma.StaffUpdateOneWithoutWorkforceContractAssignmentsNestedInput
+  worker?: Prisma.ManpowerWorkerUpdateOneWithoutContractAssignmentsNestedInput
 }
 
 export type WorkforceContractWorkerUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   contractId?: Prisma.StringFieldUpdateOperationsInput | string
-  staffId?: Prisma.StringFieldUpdateOperationsInput | string
+  staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -299,7 +319,8 @@ export type WorkforceContractWorkerUncheckedUpdateInput = {
 export type WorkforceContractWorkerCreateManyInput = {
   id?: string
   contractId: string
-  staffId: string
+  staffId?: string | null
+  workerId?: string | null
   role?: string | null
   notes?: string | null
   assignedAt?: Date | string
@@ -317,7 +338,8 @@ export type WorkforceContractWorkerUpdateManyMutationInput = {
 export type WorkforceContractWorkerUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   contractId?: Prisma.StringFieldUpdateOperationsInput | string
-  staffId?: Prisma.StringFieldUpdateOperationsInput | string
+  staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -339,10 +361,16 @@ export type WorkforceContractWorkerContractIdStaffIdCompoundUniqueInput = {
   staffId: string
 }
 
+export type WorkforceContractWorkerContractIdWorkerIdCompoundUniqueInput = {
+  contractId: string
+  workerId: string
+}
+
 export type WorkforceContractWorkerCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   contractId?: Prisma.SortOrder
   staffId?: Prisma.SortOrder
+  workerId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   assignedAt?: Prisma.SortOrder
@@ -353,6 +381,7 @@ export type WorkforceContractWorkerMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   contractId?: Prisma.SortOrder
   staffId?: Prisma.SortOrder
+  workerId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   assignedAt?: Prisma.SortOrder
@@ -363,6 +392,7 @@ export type WorkforceContractWorkerMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   contractId?: Prisma.SortOrder
   staffId?: Prisma.SortOrder
+  workerId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   assignedAt?: Prisma.SortOrder
@@ -408,6 +438,48 @@ export type WorkforceContractWorkerUncheckedUpdateManyWithoutStaffNestedInput = 
   connect?: Prisma.WorkforceContractWorkerWhereUniqueInput | Prisma.WorkforceContractWorkerWhereUniqueInput[]
   update?: Prisma.WorkforceContractWorkerUpdateWithWhereUniqueWithoutStaffInput | Prisma.WorkforceContractWorkerUpdateWithWhereUniqueWithoutStaffInput[]
   updateMany?: Prisma.WorkforceContractWorkerUpdateManyWithWhereWithoutStaffInput | Prisma.WorkforceContractWorkerUpdateManyWithWhereWithoutStaffInput[]
+  deleteMany?: Prisma.WorkforceContractWorkerScalarWhereInput | Prisma.WorkforceContractWorkerScalarWhereInput[]
+}
+
+export type WorkforceContractWorkerCreateNestedManyWithoutWorkerInput = {
+  create?: Prisma.XOR<Prisma.WorkforceContractWorkerCreateWithoutWorkerInput, Prisma.WorkforceContractWorkerUncheckedCreateWithoutWorkerInput> | Prisma.WorkforceContractWorkerCreateWithoutWorkerInput[] | Prisma.WorkforceContractWorkerUncheckedCreateWithoutWorkerInput[]
+  connectOrCreate?: Prisma.WorkforceContractWorkerCreateOrConnectWithoutWorkerInput | Prisma.WorkforceContractWorkerCreateOrConnectWithoutWorkerInput[]
+  createMany?: Prisma.WorkforceContractWorkerCreateManyWorkerInputEnvelope
+  connect?: Prisma.WorkforceContractWorkerWhereUniqueInput | Prisma.WorkforceContractWorkerWhereUniqueInput[]
+}
+
+export type WorkforceContractWorkerUncheckedCreateNestedManyWithoutWorkerInput = {
+  create?: Prisma.XOR<Prisma.WorkforceContractWorkerCreateWithoutWorkerInput, Prisma.WorkforceContractWorkerUncheckedCreateWithoutWorkerInput> | Prisma.WorkforceContractWorkerCreateWithoutWorkerInput[] | Prisma.WorkforceContractWorkerUncheckedCreateWithoutWorkerInput[]
+  connectOrCreate?: Prisma.WorkforceContractWorkerCreateOrConnectWithoutWorkerInput | Prisma.WorkforceContractWorkerCreateOrConnectWithoutWorkerInput[]
+  createMany?: Prisma.WorkforceContractWorkerCreateManyWorkerInputEnvelope
+  connect?: Prisma.WorkforceContractWorkerWhereUniqueInput | Prisma.WorkforceContractWorkerWhereUniqueInput[]
+}
+
+export type WorkforceContractWorkerUpdateManyWithoutWorkerNestedInput = {
+  create?: Prisma.XOR<Prisma.WorkforceContractWorkerCreateWithoutWorkerInput, Prisma.WorkforceContractWorkerUncheckedCreateWithoutWorkerInput> | Prisma.WorkforceContractWorkerCreateWithoutWorkerInput[] | Prisma.WorkforceContractWorkerUncheckedCreateWithoutWorkerInput[]
+  connectOrCreate?: Prisma.WorkforceContractWorkerCreateOrConnectWithoutWorkerInput | Prisma.WorkforceContractWorkerCreateOrConnectWithoutWorkerInput[]
+  upsert?: Prisma.WorkforceContractWorkerUpsertWithWhereUniqueWithoutWorkerInput | Prisma.WorkforceContractWorkerUpsertWithWhereUniqueWithoutWorkerInput[]
+  createMany?: Prisma.WorkforceContractWorkerCreateManyWorkerInputEnvelope
+  set?: Prisma.WorkforceContractWorkerWhereUniqueInput | Prisma.WorkforceContractWorkerWhereUniqueInput[]
+  disconnect?: Prisma.WorkforceContractWorkerWhereUniqueInput | Prisma.WorkforceContractWorkerWhereUniqueInput[]
+  delete?: Prisma.WorkforceContractWorkerWhereUniqueInput | Prisma.WorkforceContractWorkerWhereUniqueInput[]
+  connect?: Prisma.WorkforceContractWorkerWhereUniqueInput | Prisma.WorkforceContractWorkerWhereUniqueInput[]
+  update?: Prisma.WorkforceContractWorkerUpdateWithWhereUniqueWithoutWorkerInput | Prisma.WorkforceContractWorkerUpdateWithWhereUniqueWithoutWorkerInput[]
+  updateMany?: Prisma.WorkforceContractWorkerUpdateManyWithWhereWithoutWorkerInput | Prisma.WorkforceContractWorkerUpdateManyWithWhereWithoutWorkerInput[]
+  deleteMany?: Prisma.WorkforceContractWorkerScalarWhereInput | Prisma.WorkforceContractWorkerScalarWhereInput[]
+}
+
+export type WorkforceContractWorkerUncheckedUpdateManyWithoutWorkerNestedInput = {
+  create?: Prisma.XOR<Prisma.WorkforceContractWorkerCreateWithoutWorkerInput, Prisma.WorkforceContractWorkerUncheckedCreateWithoutWorkerInput> | Prisma.WorkforceContractWorkerCreateWithoutWorkerInput[] | Prisma.WorkforceContractWorkerUncheckedCreateWithoutWorkerInput[]
+  connectOrCreate?: Prisma.WorkforceContractWorkerCreateOrConnectWithoutWorkerInput | Prisma.WorkforceContractWorkerCreateOrConnectWithoutWorkerInput[]
+  upsert?: Prisma.WorkforceContractWorkerUpsertWithWhereUniqueWithoutWorkerInput | Prisma.WorkforceContractWorkerUpsertWithWhereUniqueWithoutWorkerInput[]
+  createMany?: Prisma.WorkforceContractWorkerCreateManyWorkerInputEnvelope
+  set?: Prisma.WorkforceContractWorkerWhereUniqueInput | Prisma.WorkforceContractWorkerWhereUniqueInput[]
+  disconnect?: Prisma.WorkforceContractWorkerWhereUniqueInput | Prisma.WorkforceContractWorkerWhereUniqueInput[]
+  delete?: Prisma.WorkforceContractWorkerWhereUniqueInput | Prisma.WorkforceContractWorkerWhereUniqueInput[]
+  connect?: Prisma.WorkforceContractWorkerWhereUniqueInput | Prisma.WorkforceContractWorkerWhereUniqueInput[]
+  update?: Prisma.WorkforceContractWorkerUpdateWithWhereUniqueWithoutWorkerInput | Prisma.WorkforceContractWorkerUpdateWithWhereUniqueWithoutWorkerInput[]
+  updateMany?: Prisma.WorkforceContractWorkerUpdateManyWithWhereWithoutWorkerInput | Prisma.WorkforceContractWorkerUpdateManyWithWhereWithoutWorkerInput[]
   deleteMany?: Prisma.WorkforceContractWorkerScalarWhereInput | Prisma.WorkforceContractWorkerScalarWhereInput[]
 }
 
@@ -460,11 +532,13 @@ export type WorkforceContractWorkerCreateWithoutStaffInput = {
   assignedAt?: Date | string
   removedAt?: Date | string | null
   contract: Prisma.WorkforceContractCreateNestedOneWithoutWorkerAssignmentsInput
+  worker?: Prisma.ManpowerWorkerCreateNestedOneWithoutContractAssignmentsInput
 }
 
 export type WorkforceContractWorkerUncheckedCreateWithoutStaffInput = {
   id?: string
   contractId: string
+  workerId?: string | null
   role?: string | null
   notes?: string | null
   assignedAt?: Date | string
@@ -503,11 +577,58 @@ export type WorkforceContractWorkerScalarWhereInput = {
   NOT?: Prisma.WorkforceContractWorkerScalarWhereInput | Prisma.WorkforceContractWorkerScalarWhereInput[]
   id?: Prisma.StringFilter<"WorkforceContractWorker"> | string
   contractId?: Prisma.StringFilter<"WorkforceContractWorker"> | string
-  staffId?: Prisma.StringFilter<"WorkforceContractWorker"> | string
+  staffId?: Prisma.StringNullableFilter<"WorkforceContractWorker"> | string | null
+  workerId?: Prisma.StringNullableFilter<"WorkforceContractWorker"> | string | null
   role?: Prisma.StringNullableFilter<"WorkforceContractWorker"> | string | null
   notes?: Prisma.StringNullableFilter<"WorkforceContractWorker"> | string | null
   assignedAt?: Prisma.DateTimeFilter<"WorkforceContractWorker"> | Date | string
   removedAt?: Prisma.DateTimeNullableFilter<"WorkforceContractWorker"> | Date | string | null
+}
+
+export type WorkforceContractWorkerCreateWithoutWorkerInput = {
+  id?: string
+  role?: string | null
+  notes?: string | null
+  assignedAt?: Date | string
+  removedAt?: Date | string | null
+  contract: Prisma.WorkforceContractCreateNestedOneWithoutWorkerAssignmentsInput
+  staff?: Prisma.StaffCreateNestedOneWithoutWorkforceContractAssignmentsInput
+}
+
+export type WorkforceContractWorkerUncheckedCreateWithoutWorkerInput = {
+  id?: string
+  contractId: string
+  staffId?: string | null
+  role?: string | null
+  notes?: string | null
+  assignedAt?: Date | string
+  removedAt?: Date | string | null
+}
+
+export type WorkforceContractWorkerCreateOrConnectWithoutWorkerInput = {
+  where: Prisma.WorkforceContractWorkerWhereUniqueInput
+  create: Prisma.XOR<Prisma.WorkforceContractWorkerCreateWithoutWorkerInput, Prisma.WorkforceContractWorkerUncheckedCreateWithoutWorkerInput>
+}
+
+export type WorkforceContractWorkerCreateManyWorkerInputEnvelope = {
+  data: Prisma.WorkforceContractWorkerCreateManyWorkerInput | Prisma.WorkforceContractWorkerCreateManyWorkerInput[]
+  skipDuplicates?: boolean
+}
+
+export type WorkforceContractWorkerUpsertWithWhereUniqueWithoutWorkerInput = {
+  where: Prisma.WorkforceContractWorkerWhereUniqueInput
+  update: Prisma.XOR<Prisma.WorkforceContractWorkerUpdateWithoutWorkerInput, Prisma.WorkforceContractWorkerUncheckedUpdateWithoutWorkerInput>
+  create: Prisma.XOR<Prisma.WorkforceContractWorkerCreateWithoutWorkerInput, Prisma.WorkforceContractWorkerUncheckedCreateWithoutWorkerInput>
+}
+
+export type WorkforceContractWorkerUpdateWithWhereUniqueWithoutWorkerInput = {
+  where: Prisma.WorkforceContractWorkerWhereUniqueInput
+  data: Prisma.XOR<Prisma.WorkforceContractWorkerUpdateWithoutWorkerInput, Prisma.WorkforceContractWorkerUncheckedUpdateWithoutWorkerInput>
+}
+
+export type WorkforceContractWorkerUpdateManyWithWhereWithoutWorkerInput = {
+  where: Prisma.WorkforceContractWorkerScalarWhereInput
+  data: Prisma.XOR<Prisma.WorkforceContractWorkerUpdateManyMutationInput, Prisma.WorkforceContractWorkerUncheckedUpdateManyWithoutWorkerInput>
 }
 
 export type WorkforceContractWorkerCreateWithoutContractInput = {
@@ -516,12 +637,14 @@ export type WorkforceContractWorkerCreateWithoutContractInput = {
   notes?: string | null
   assignedAt?: Date | string
   removedAt?: Date | string | null
-  staff: Prisma.StaffCreateNestedOneWithoutWorkforceContractAssignmentsInput
+  staff?: Prisma.StaffCreateNestedOneWithoutWorkforceContractAssignmentsInput
+  worker?: Prisma.ManpowerWorkerCreateNestedOneWithoutContractAssignmentsInput
 }
 
 export type WorkforceContractWorkerUncheckedCreateWithoutContractInput = {
   id?: string
-  staffId: string
+  staffId?: string | null
+  workerId?: string | null
   role?: string | null
   notes?: string | null
   assignedAt?: Date | string
@@ -557,6 +680,7 @@ export type WorkforceContractWorkerUpdateManyWithWhereWithoutContractInput = {
 export type WorkforceContractWorkerCreateManyStaffInput = {
   id?: string
   contractId: string
+  workerId?: string | null
   role?: string | null
   notes?: string | null
   assignedAt?: Date | string
@@ -570,11 +694,13 @@ export type WorkforceContractWorkerUpdateWithoutStaffInput = {
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   contract?: Prisma.WorkforceContractUpdateOneRequiredWithoutWorkerAssignmentsNestedInput
+  worker?: Prisma.ManpowerWorkerUpdateOneWithoutContractAssignmentsNestedInput
 }
 
 export type WorkforceContractWorkerUncheckedUpdateWithoutStaffInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   contractId?: Prisma.StringFieldUpdateOperationsInput | string
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -584,6 +710,47 @@ export type WorkforceContractWorkerUncheckedUpdateWithoutStaffInput = {
 export type WorkforceContractWorkerUncheckedUpdateManyWithoutStaffInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   contractId?: Prisma.StringFieldUpdateOperationsInput | string
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type WorkforceContractWorkerCreateManyWorkerInput = {
+  id?: string
+  contractId: string
+  staffId?: string | null
+  role?: string | null
+  notes?: string | null
+  assignedAt?: Date | string
+  removedAt?: Date | string | null
+}
+
+export type WorkforceContractWorkerUpdateWithoutWorkerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  contract?: Prisma.WorkforceContractUpdateOneRequiredWithoutWorkerAssignmentsNestedInput
+  staff?: Prisma.StaffUpdateOneWithoutWorkforceContractAssignmentsNestedInput
+}
+
+export type WorkforceContractWorkerUncheckedUpdateWithoutWorkerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  contractId?: Prisma.StringFieldUpdateOperationsInput | string
+  staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type WorkforceContractWorkerUncheckedUpdateManyWithoutWorkerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  contractId?: Prisma.StringFieldUpdateOperationsInput | string
+  staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -592,7 +759,8 @@ export type WorkforceContractWorkerUncheckedUpdateManyWithoutStaffInput = {
 
 export type WorkforceContractWorkerCreateManyContractInput = {
   id?: string
-  staffId: string
+  staffId?: string | null
+  workerId?: string | null
   role?: string | null
   notes?: string | null
   assignedAt?: Date | string
@@ -605,12 +773,14 @@ export type WorkforceContractWorkerUpdateWithoutContractInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   removedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  staff?: Prisma.StaffUpdateOneRequiredWithoutWorkforceContractAssignmentsNestedInput
+  staff?: Prisma.StaffUpdateOneWithoutWorkforceContractAssignmentsNestedInput
+  worker?: Prisma.ManpowerWorkerUpdateOneWithoutContractAssignmentsNestedInput
 }
 
 export type WorkforceContractWorkerUncheckedUpdateWithoutContractInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  staffId?: Prisma.StringFieldUpdateOperationsInput | string
+  staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -619,7 +789,8 @@ export type WorkforceContractWorkerUncheckedUpdateWithoutContractInput = {
 
 export type WorkforceContractWorkerUncheckedUpdateManyWithoutContractInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  staffId?: Prisma.StringFieldUpdateOperationsInput | string
+  staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assignedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -632,72 +803,84 @@ export type WorkforceContractWorkerSelect<ExtArgs extends runtime.Types.Extensio
   id?: boolean
   contractId?: boolean
   staffId?: boolean
+  workerId?: boolean
   role?: boolean
   notes?: boolean
   assignedAt?: boolean
   removedAt?: boolean
   contract?: boolean | Prisma.WorkforceContractDefaultArgs<ExtArgs>
-  staff?: boolean | Prisma.StaffDefaultArgs<ExtArgs>
+  staff?: boolean | Prisma.WorkforceContractWorker$staffArgs<ExtArgs>
+  worker?: boolean | Prisma.WorkforceContractWorker$workerArgs<ExtArgs>
 }, ExtArgs["result"]["workforceContractWorker"]>
 
 export type WorkforceContractWorkerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   contractId?: boolean
   staffId?: boolean
+  workerId?: boolean
   role?: boolean
   notes?: boolean
   assignedAt?: boolean
   removedAt?: boolean
   contract?: boolean | Prisma.WorkforceContractDefaultArgs<ExtArgs>
-  staff?: boolean | Prisma.StaffDefaultArgs<ExtArgs>
+  staff?: boolean | Prisma.WorkforceContractWorker$staffArgs<ExtArgs>
+  worker?: boolean | Prisma.WorkforceContractWorker$workerArgs<ExtArgs>
 }, ExtArgs["result"]["workforceContractWorker"]>
 
 export type WorkforceContractWorkerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   contractId?: boolean
   staffId?: boolean
+  workerId?: boolean
   role?: boolean
   notes?: boolean
   assignedAt?: boolean
   removedAt?: boolean
   contract?: boolean | Prisma.WorkforceContractDefaultArgs<ExtArgs>
-  staff?: boolean | Prisma.StaffDefaultArgs<ExtArgs>
+  staff?: boolean | Prisma.WorkforceContractWorker$staffArgs<ExtArgs>
+  worker?: boolean | Prisma.WorkforceContractWorker$workerArgs<ExtArgs>
 }, ExtArgs["result"]["workforceContractWorker"]>
 
 export type WorkforceContractWorkerSelectScalar = {
   id?: boolean
   contractId?: boolean
   staffId?: boolean
+  workerId?: boolean
   role?: boolean
   notes?: boolean
   assignedAt?: boolean
   removedAt?: boolean
 }
 
-export type WorkforceContractWorkerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "contractId" | "staffId" | "role" | "notes" | "assignedAt" | "removedAt", ExtArgs["result"]["workforceContractWorker"]>
+export type WorkforceContractWorkerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "contractId" | "staffId" | "workerId" | "role" | "notes" | "assignedAt" | "removedAt", ExtArgs["result"]["workforceContractWorker"]>
 export type WorkforceContractWorkerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   contract?: boolean | Prisma.WorkforceContractDefaultArgs<ExtArgs>
-  staff?: boolean | Prisma.StaffDefaultArgs<ExtArgs>
+  staff?: boolean | Prisma.WorkforceContractWorker$staffArgs<ExtArgs>
+  worker?: boolean | Prisma.WorkforceContractWorker$workerArgs<ExtArgs>
 }
 export type WorkforceContractWorkerIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   contract?: boolean | Prisma.WorkforceContractDefaultArgs<ExtArgs>
-  staff?: boolean | Prisma.StaffDefaultArgs<ExtArgs>
+  staff?: boolean | Prisma.WorkforceContractWorker$staffArgs<ExtArgs>
+  worker?: boolean | Prisma.WorkforceContractWorker$workerArgs<ExtArgs>
 }
 export type WorkforceContractWorkerIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   contract?: boolean | Prisma.WorkforceContractDefaultArgs<ExtArgs>
-  staff?: boolean | Prisma.StaffDefaultArgs<ExtArgs>
+  staff?: boolean | Prisma.WorkforceContractWorker$staffArgs<ExtArgs>
+  worker?: boolean | Prisma.WorkforceContractWorker$workerArgs<ExtArgs>
 }
 
 export type $WorkforceContractWorkerPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "WorkforceContractWorker"
   objects: {
     contract: Prisma.$WorkforceContractPayload<ExtArgs>
-    staff: Prisma.$StaffPayload<ExtArgs>
+    staff: Prisma.$StaffPayload<ExtArgs> | null
+    worker: Prisma.$ManpowerWorkerPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     contractId: string
-    staffId: string
+    staffId: string | null
+    workerId: string | null
     role: string | null
     notes: string | null
     assignedAt: Date
@@ -1097,7 +1280,8 @@ readonly fields: WorkforceContractWorkerFieldRefs;
 export interface Prisma__WorkforceContractWorkerClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   contract<T extends Prisma.WorkforceContractDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WorkforceContractDefaultArgs<ExtArgs>>): Prisma.Prisma__WorkforceContractClient<runtime.Types.Result.GetResult<Prisma.$WorkforceContractPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  staff<T extends Prisma.StaffDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.StaffDefaultArgs<ExtArgs>>): Prisma.Prisma__StaffClient<runtime.Types.Result.GetResult<Prisma.$StaffPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  staff<T extends Prisma.WorkforceContractWorker$staffArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WorkforceContractWorker$staffArgs<ExtArgs>>): Prisma.Prisma__StaffClient<runtime.Types.Result.GetResult<Prisma.$StaffPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  worker<T extends Prisma.WorkforceContractWorker$workerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WorkforceContractWorker$workerArgs<ExtArgs>>): Prisma.Prisma__ManpowerWorkerClient<runtime.Types.Result.GetResult<Prisma.$ManpowerWorkerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1130,6 +1314,7 @@ export interface WorkforceContractWorkerFieldRefs {
   readonly id: Prisma.FieldRef<"WorkforceContractWorker", 'String'>
   readonly contractId: Prisma.FieldRef<"WorkforceContractWorker", 'String'>
   readonly staffId: Prisma.FieldRef<"WorkforceContractWorker", 'String'>
+  readonly workerId: Prisma.FieldRef<"WorkforceContractWorker", 'String'>
   readonly role: Prisma.FieldRef<"WorkforceContractWorker", 'String'>
   readonly notes: Prisma.FieldRef<"WorkforceContractWorker", 'String'>
   readonly assignedAt: Prisma.FieldRef<"WorkforceContractWorker", 'DateTime'>
@@ -1532,6 +1717,44 @@ export type WorkforceContractWorkerDeleteManyArgs<ExtArgs extends runtime.Types.
    * Limit how many WorkforceContractWorkers to delete.
    */
   limit?: number
+}
+
+/**
+ * WorkforceContractWorker.staff
+ */
+export type WorkforceContractWorker$staffArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Staff
+   */
+  select?: Prisma.StaffSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Staff
+   */
+  omit?: Prisma.StaffOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StaffInclude<ExtArgs> | null
+  where?: Prisma.StaffWhereInput
+}
+
+/**
+ * WorkforceContractWorker.worker
+ */
+export type WorkforceContractWorker$workerArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ManpowerWorker
+   */
+  select?: Prisma.ManpowerWorkerSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ManpowerWorker
+   */
+  omit?: Prisma.ManpowerWorkerOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ManpowerWorkerInclude<ExtArgs> | null
+  where?: Prisma.ManpowerWorkerWhereInput
 }
 
 /**

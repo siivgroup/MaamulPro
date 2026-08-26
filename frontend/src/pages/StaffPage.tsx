@@ -19,6 +19,9 @@ const StaffPage = () => {
     const canUpdate = hasPermission('users.update');
     const canDelete = hasPermission('users.delete');
     const canUseConstruction = Boolean(user?.constructionEnabled && user.entitlements?.features.construction) && (hasPermission('projects.read') || canCreate || canUpdate);
+    const constructionModuleEnabled = Boolean(user?.constructionEnabled && user.entitlements?.features.construction);
+    const realEstateModuleEnabled = Boolean(user?.realEstateEnabled && user.entitlements?.features.realEstate);
+    const materialManagementModuleEnabled = Boolean(user?.materialManagementEnabled && user.entitlements?.features.materials);
     const state = useApiRows<Staff>('/api/staff?limit=100');
     const [search, setSearch] = useState('');
     const [department, setDepartment] = useState('');
@@ -33,6 +36,7 @@ const StaffPage = () => {
     const [projects, setProjects] = useState<Record<string, any>[]>([]);
     const [activity, setActivity] = useState<Record<string, any>[]>([]);
     const [saving, setSaving] = useState(false);
+    const departmentOptions = Array.from(new Set(['GENERAL', ...(constructionModuleEnabled ? ['CONSTRUCTION'] : []), ...(realEstateModuleEnabled ? ['REAL_ESTATE'] : []), ...(materialManagementModuleEnabled ? ['MATERIAL_MANAGEMENT'] : []), form.department]));
     useEffect(() => { Promise.all([api<Role[]>('/api/rbac/roles'), canUseConstruction ? api<any>('/api/construction/projects/options') : Promise.resolve([])]).then(([roleRows, projectRows]) => { setRoles(roleRows.filter((role) => ACCOUNT_ROLE_KEYS.has(role.key))); setProjects(Array.isArray(projectRows) ? projectRows : projectRows.data || []); }).catch(() => undefined); }, [canUseConstruction]);
     useEffect(() => { if (selected?.user) api<Record<string, any>[]>(`/api/staff/${selected.id}/activity`).then(setActivity).catch(() => setActivity([])); else setActivity([]); }, [selected]);
     const filtered = useMemo(() => state.rows.filter((row) => {
@@ -93,7 +97,7 @@ const StaffPage = () => {
             {form.photoUrl && <AuthenticatedImage className="h-24 w-24 rounded-full object-cover md:col-span-2" src={form.photoUrl} alt="" />}<Field label="Staff photo"><input className="form-input mt-1" type="file" accept="image/*" onChange={(event) => upload(event.target.files?.[0])} /></Field>
             <Field label="First name" required><input className="form-input mt-1" required value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} /></Field><Field label="Last name" required><input className="form-input mt-1" required value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} /></Field>
             {['phone', 'position'].map((key) => <Field label={key[0].toUpperCase() + key.slice(1)} key={key}><input className="form-input mt-1" value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} /></Field>)}
-            <Field label="Department"><select className="form-select mt-1" value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })}>{['GENERAL', 'CONSTRUCTION', 'REAL_ESTATE', 'MATERIAL_MANAGEMENT'].map((value) => <option key={value} value={value}>{value.replace(/_/g, ' ')}</option>)}</select></Field><Field label="Status"><select className="form-select mt-1" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>{['ACTIVE', 'INACTIVE', 'ON_LEAVE', 'TERMINATED'].map((value) => <option key={value} value={value}>{value.replace(/_/g, ' ')}</option>)}</select></Field>
+            <Field label="Department"><select className="form-select mt-1" value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })}>{departmentOptions.map((value) => <option key={value} value={value}>{value.replace(/_/g, ' ')}</option>)}</select></Field><Field label="Status"><select className="form-select mt-1" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>{['ACTIVE', 'INACTIVE', 'ON_LEAVE', 'TERMINATED'].map((value) => <option key={value} value={value}>{value.replace(/_/g, ' ')}</option>)}</select></Field>
             <Field label="Salary"><CurrencyInput className="form-input mt-1" min="0" step=".01" value={form.salary} onChange={(e) => setForm({ ...form, salary: e.target.value })} /></Field><Field label="Hire date"><input className="form-input mt-1" type="date" value={form.hireDate} onChange={(e) => setForm({ ...form, hireDate: e.target.value })} /></Field>
             {canUseConstruction && form.department === 'CONSTRUCTION' && (
                 <Field label="Assigned project">

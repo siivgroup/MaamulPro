@@ -146,7 +146,18 @@ const Sidebar = () => {
             }))
             .filter((group) => group.items.length);
     }, [isPlatform, session, userPermissions, isOwner]);
-    const activeGroup = groups.find((group) => group.items.some((item) => location.pathname.startsWith(item.to)))?.label || '';
+    // A group whose items all share one URL prefix (e.g. every Construction item starts with
+    // /app/construction) stays expanded for ANY sub-route under that prefix, not just the ones
+    // literally listed here — otherwise a page reachable only via an in-page link (e.g. Worker
+    // Types, linked from Manpower) collapses the whole group when opened directly.
+    const groupDomain = (group: Group) => {
+        const domains = group.items.map((item) => item.to.split('/').slice(0, 3).join('/'));
+        return domains.every((domain) => domain === domains[0]) ? domains[0] : null;
+    };
+    const activeGroup = groups.find((group) => {
+        const domain = groupDomain(group);
+        return (domain && location.pathname.startsWith(domain)) || group.items.some((item) => location.pathname.startsWith(item.to));
+    })?.label || '';
     const [openGroup, setOpenGroup] = useState(activeGroup);
 
     useEffect(() => {

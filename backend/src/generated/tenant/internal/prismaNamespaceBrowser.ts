@@ -86,6 +86,7 @@ export const ModelName = {
   TransportationRecord: 'TransportationRecord',
   TransportationItem: 'TransportationItem',
   WorkerType: 'WorkerType',
+  ManpowerWorker: 'ManpowerWorker',
   DailyOperationalExpense: 'DailyOperationalExpense',
   WorkerLedgerEntry: 'WorkerLedgerEntry',
   Property: 'Property',
@@ -699,9 +700,29 @@ export const WorkerTypeScalarFieldEnum = {
 export type WorkerTypeScalarFieldEnum = (typeof WorkerTypeScalarFieldEnum)[keyof typeof WorkerTypeScalarFieldEnum]
 
 
+export const ManpowerWorkerScalarFieldEnum = {
+  id: 'id',
+  linkedStaffId: 'linkedStaffId',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  phone: 'phone',
+  position: 'position',
+  workerTypeId: 'workerTypeId',
+  assignedProjectId: 'assignedProjectId',
+  notes: 'notes',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type ManpowerWorkerScalarFieldEnum = (typeof ManpowerWorkerScalarFieldEnum)[keyof typeof ManpowerWorkerScalarFieldEnum]
+
+
 export const DailyOperationalExpenseScalarFieldEnum = {
   id: 'id',
   staffId: 'staffId',
+  workerId: 'workerId',
   projectId: 'projectId',
   recordedByUserId: 'recordedByUserId',
   amount: 'amount',
@@ -720,6 +741,7 @@ export const WorkerLedgerEntryScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   staffId: 'staffId',
+  workerId: 'workerId',
   projectId: 'projectId',
   type: 'type',
   amount: 'amount',
@@ -872,6 +894,7 @@ export const WorkforceContractWorkerScalarFieldEnum = {
   id: 'id',
   contractId: 'contractId',
   staffId: 'staffId',
+  workerId: 'workerId',
   role: 'role',
   notes: 'notes',
   assignedAt: 'assignedAt',
@@ -885,6 +908,7 @@ export const WorkforceContractPaymentScalarFieldEnum = {
   id: 'id',
   contractId: 'contractId',
   staffId: 'staffId',
+  workerId: 'workerId',
   payeeName: 'payeeName',
   amount: 'amount',
   date: 'date',

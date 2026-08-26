@@ -320,7 +320,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
             {!open && !error && <div className="panel"><LoadingState label="Opening record…" /></div>}
         </>}
         {open && <div className={standalone ? '' : 'fixed inset-0 z-[100] grid place-items-center bg-black/60 p-4'} onMouseDown={standalone ? undefined : (e) => { if (e.currentTarget === e.target) returnTo ? navigate(returnTo) : setOpen(false); }}>
-            <form className={`panel w-full max-w-2xl space-y-4 ${standalone ? 'mx-auto' : 'max-h-[90vh] overflow-y-auto'}`} noValidate onSubmit={submit}>
+            <form className={`panel w-full space-y-4 ${fields.some((field) => field.type === 'lineItems') ? 'max-w-5xl' : 'max-w-2xl'} ${standalone ? 'mx-auto' : 'max-h-[90vh] overflow-y-auto'}`} noValidate onSubmit={submit}>
                 <div className="flex items-center justify-between"><h2 className="text-xl font-bold">{editing ? `Edit ${noun}` : `Add ${noun}`}</h2><button aria-label="Close" className="btn btn-outline-dark btn-sm p-1.5" onClick={() => returnTo ? navigate(returnTo) : setOpen(false)} type="button"><X size={16} /></button></div>
                 {error && <ErrorAlert message={error} />}
                 <div className="grid gap-4 sm:grid-cols-2">{fields.filter((field) => !field.hideWhen?.(form)).map((field) => <div className={field.type === 'textarea' || field.type === 'json' || field.type === 'lineItems' || field.type === 'image' ? 'sm:col-span-2' : ''} key={field.name}>

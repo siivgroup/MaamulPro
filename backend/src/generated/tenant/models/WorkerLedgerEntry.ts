@@ -38,6 +38,7 @@ export type WorkerLedgerEntryMinAggregateOutputType = {
   id: string | null
   userId: string | null
   staffId: string | null
+  workerId: string | null
   projectId: string | null
   type: $Enums.TransactionType | null
   amount: runtime.Decimal | null
@@ -50,6 +51,7 @@ export type WorkerLedgerEntryMaxAggregateOutputType = {
   id: string | null
   userId: string | null
   staffId: string | null
+  workerId: string | null
   projectId: string | null
   type: $Enums.TransactionType | null
   amount: runtime.Decimal | null
@@ -62,6 +64,7 @@ export type WorkerLedgerEntryCountAggregateOutputType = {
   id: number
   userId: number
   staffId: number
+  workerId: number
   projectId: number
   type: number
   amount: number
@@ -84,6 +87,7 @@ export type WorkerLedgerEntryMinAggregateInputType = {
   id?: true
   userId?: true
   staffId?: true
+  workerId?: true
   projectId?: true
   type?: true
   amount?: true
@@ -96,6 +100,7 @@ export type WorkerLedgerEntryMaxAggregateInputType = {
   id?: true
   userId?: true
   staffId?: true
+  workerId?: true
   projectId?: true
   type?: true
   amount?: true
@@ -108,6 +113,7 @@ export type WorkerLedgerEntryCountAggregateInputType = {
   id?: true
   userId?: true
   staffId?: true
+  workerId?: true
   projectId?: true
   type?: true
   amount?: true
@@ -207,6 +213,7 @@ export type WorkerLedgerEntryGroupByOutputType = {
   id: string
   userId: string | null
   staffId: string | null
+  workerId: string | null
   projectId: string | null
   type: $Enums.TransactionType
   amount: runtime.Decimal
@@ -242,6 +249,7 @@ export type WorkerLedgerEntryWhereInput = {
   id?: Prisma.StringFilter<"WorkerLedgerEntry"> | string
   userId?: Prisma.StringNullableFilter<"WorkerLedgerEntry"> | string | null
   staffId?: Prisma.StringNullableFilter<"WorkerLedgerEntry"> | string | null
+  workerId?: Prisma.StringNullableFilter<"WorkerLedgerEntry"> | string | null
   projectId?: Prisma.StringNullableFilter<"WorkerLedgerEntry"> | string | null
   type?: Prisma.EnumTransactionTypeFilter<"WorkerLedgerEntry"> | $Enums.TransactionType
   amount?: Prisma.DecimalFilter<"WorkerLedgerEntry"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -250,6 +258,7 @@ export type WorkerLedgerEntryWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"WorkerLedgerEntry"> | Date | string
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   staff?: Prisma.XOR<Prisma.StaffNullableScalarRelationFilter, Prisma.StaffWhereInput> | null
+  worker?: Prisma.XOR<Prisma.ManpowerWorkerNullableScalarRelationFilter, Prisma.ManpowerWorkerWhereInput> | null
   project?: Prisma.XOR<Prisma.ProjectNullableScalarRelationFilter, Prisma.ProjectWhereInput> | null
 }
 
@@ -257,6 +266,7 @@ export type WorkerLedgerEntryOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrderInput | Prisma.SortOrder
   staffId?: Prisma.SortOrderInput | Prisma.SortOrder
+  workerId?: Prisma.SortOrderInput | Prisma.SortOrder
   projectId?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   amount?: Prisma.SortOrder
@@ -265,6 +275,7 @@ export type WorkerLedgerEntryOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
   staff?: Prisma.StaffOrderByWithRelationInput
+  worker?: Prisma.ManpowerWorkerOrderByWithRelationInput
   project?: Prisma.ProjectOrderByWithRelationInput
 }
 
@@ -275,6 +286,7 @@ export type WorkerLedgerEntryWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.WorkerLedgerEntryWhereInput | Prisma.WorkerLedgerEntryWhereInput[]
   userId?: Prisma.StringNullableFilter<"WorkerLedgerEntry"> | string | null
   staffId?: Prisma.StringNullableFilter<"WorkerLedgerEntry"> | string | null
+  workerId?: Prisma.StringNullableFilter<"WorkerLedgerEntry"> | string | null
   projectId?: Prisma.StringNullableFilter<"WorkerLedgerEntry"> | string | null
   type?: Prisma.EnumTransactionTypeFilter<"WorkerLedgerEntry"> | $Enums.TransactionType
   amount?: Prisma.DecimalFilter<"WorkerLedgerEntry"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -283,6 +295,7 @@ export type WorkerLedgerEntryWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"WorkerLedgerEntry"> | Date | string
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   staff?: Prisma.XOR<Prisma.StaffNullableScalarRelationFilter, Prisma.StaffWhereInput> | null
+  worker?: Prisma.XOR<Prisma.ManpowerWorkerNullableScalarRelationFilter, Prisma.ManpowerWorkerWhereInput> | null
   project?: Prisma.XOR<Prisma.ProjectNullableScalarRelationFilter, Prisma.ProjectWhereInput> | null
 }, "id">
 
@@ -290,6 +303,7 @@ export type WorkerLedgerEntryOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrderInput | Prisma.SortOrder
   staffId?: Prisma.SortOrderInput | Prisma.SortOrder
+  workerId?: Prisma.SortOrderInput | Prisma.SortOrder
   projectId?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   amount?: Prisma.SortOrder
@@ -310,6 +324,7 @@ export type WorkerLedgerEntryScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"WorkerLedgerEntry"> | string
   userId?: Prisma.StringNullableWithAggregatesFilter<"WorkerLedgerEntry"> | string | null
   staffId?: Prisma.StringNullableWithAggregatesFilter<"WorkerLedgerEntry"> | string | null
+  workerId?: Prisma.StringNullableWithAggregatesFilter<"WorkerLedgerEntry"> | string | null
   projectId?: Prisma.StringNullableWithAggregatesFilter<"WorkerLedgerEntry"> | string | null
   type?: Prisma.EnumTransactionTypeWithAggregatesFilter<"WorkerLedgerEntry"> | $Enums.TransactionType
   amount?: Prisma.DecimalWithAggregatesFilter<"WorkerLedgerEntry"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -327,6 +342,7 @@ export type WorkerLedgerEntryCreateInput = {
   createdAt?: Date | string
   user?: Prisma.UserCreateNestedOneWithoutWorkerLedgerEntriesInput
   staff?: Prisma.StaffCreateNestedOneWithoutWorkerLedgerEntriesInput
+  worker?: Prisma.ManpowerWorkerCreateNestedOneWithoutLedgerEntriesInput
   project?: Prisma.ProjectCreateNestedOneWithoutWorkerLedgerEntriesInput
 }
 
@@ -334,6 +350,7 @@ export type WorkerLedgerEntryUncheckedCreateInput = {
   id?: string
   userId?: string | null
   staffId?: string | null
+  workerId?: string | null
   projectId?: string | null
   type: $Enums.TransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -351,6 +368,7 @@ export type WorkerLedgerEntryUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneWithoutWorkerLedgerEntriesNestedInput
   staff?: Prisma.StaffUpdateOneWithoutWorkerLedgerEntriesNestedInput
+  worker?: Prisma.ManpowerWorkerUpdateOneWithoutLedgerEntriesNestedInput
   project?: Prisma.ProjectUpdateOneWithoutWorkerLedgerEntriesNestedInput
 }
 
@@ -358,6 +376,7 @@ export type WorkerLedgerEntryUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -370,6 +389,7 @@ export type WorkerLedgerEntryCreateManyInput = {
   id?: string
   userId?: string | null
   staffId?: string | null
+  workerId?: string | null
   projectId?: string | null
   type: $Enums.TransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -391,6 +411,7 @@ export type WorkerLedgerEntryUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -413,6 +434,7 @@ export type WorkerLedgerEntryCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   staffId?: Prisma.SortOrder
+  workerId?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   amount?: Prisma.SortOrder
@@ -429,6 +451,7 @@ export type WorkerLedgerEntryMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   staffId?: Prisma.SortOrder
+  workerId?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   amount?: Prisma.SortOrder
@@ -441,6 +464,7 @@ export type WorkerLedgerEntryMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   staffId?: Prisma.SortOrder
+  workerId?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   amount?: Prisma.SortOrder
@@ -579,6 +603,48 @@ export type WorkerLedgerEntryUncheckedUpdateManyWithoutProjectNestedInput = {
   deleteMany?: Prisma.WorkerLedgerEntryScalarWhereInput | Prisma.WorkerLedgerEntryScalarWhereInput[]
 }
 
+export type WorkerLedgerEntryCreateNestedManyWithoutWorkerInput = {
+  create?: Prisma.XOR<Prisma.WorkerLedgerEntryCreateWithoutWorkerInput, Prisma.WorkerLedgerEntryUncheckedCreateWithoutWorkerInput> | Prisma.WorkerLedgerEntryCreateWithoutWorkerInput[] | Prisma.WorkerLedgerEntryUncheckedCreateWithoutWorkerInput[]
+  connectOrCreate?: Prisma.WorkerLedgerEntryCreateOrConnectWithoutWorkerInput | Prisma.WorkerLedgerEntryCreateOrConnectWithoutWorkerInput[]
+  createMany?: Prisma.WorkerLedgerEntryCreateManyWorkerInputEnvelope
+  connect?: Prisma.WorkerLedgerEntryWhereUniqueInput | Prisma.WorkerLedgerEntryWhereUniqueInput[]
+}
+
+export type WorkerLedgerEntryUncheckedCreateNestedManyWithoutWorkerInput = {
+  create?: Prisma.XOR<Prisma.WorkerLedgerEntryCreateWithoutWorkerInput, Prisma.WorkerLedgerEntryUncheckedCreateWithoutWorkerInput> | Prisma.WorkerLedgerEntryCreateWithoutWorkerInput[] | Prisma.WorkerLedgerEntryUncheckedCreateWithoutWorkerInput[]
+  connectOrCreate?: Prisma.WorkerLedgerEntryCreateOrConnectWithoutWorkerInput | Prisma.WorkerLedgerEntryCreateOrConnectWithoutWorkerInput[]
+  createMany?: Prisma.WorkerLedgerEntryCreateManyWorkerInputEnvelope
+  connect?: Prisma.WorkerLedgerEntryWhereUniqueInput | Prisma.WorkerLedgerEntryWhereUniqueInput[]
+}
+
+export type WorkerLedgerEntryUpdateManyWithoutWorkerNestedInput = {
+  create?: Prisma.XOR<Prisma.WorkerLedgerEntryCreateWithoutWorkerInput, Prisma.WorkerLedgerEntryUncheckedCreateWithoutWorkerInput> | Prisma.WorkerLedgerEntryCreateWithoutWorkerInput[] | Prisma.WorkerLedgerEntryUncheckedCreateWithoutWorkerInput[]
+  connectOrCreate?: Prisma.WorkerLedgerEntryCreateOrConnectWithoutWorkerInput | Prisma.WorkerLedgerEntryCreateOrConnectWithoutWorkerInput[]
+  upsert?: Prisma.WorkerLedgerEntryUpsertWithWhereUniqueWithoutWorkerInput | Prisma.WorkerLedgerEntryUpsertWithWhereUniqueWithoutWorkerInput[]
+  createMany?: Prisma.WorkerLedgerEntryCreateManyWorkerInputEnvelope
+  set?: Prisma.WorkerLedgerEntryWhereUniqueInput | Prisma.WorkerLedgerEntryWhereUniqueInput[]
+  disconnect?: Prisma.WorkerLedgerEntryWhereUniqueInput | Prisma.WorkerLedgerEntryWhereUniqueInput[]
+  delete?: Prisma.WorkerLedgerEntryWhereUniqueInput | Prisma.WorkerLedgerEntryWhereUniqueInput[]
+  connect?: Prisma.WorkerLedgerEntryWhereUniqueInput | Prisma.WorkerLedgerEntryWhereUniqueInput[]
+  update?: Prisma.WorkerLedgerEntryUpdateWithWhereUniqueWithoutWorkerInput | Prisma.WorkerLedgerEntryUpdateWithWhereUniqueWithoutWorkerInput[]
+  updateMany?: Prisma.WorkerLedgerEntryUpdateManyWithWhereWithoutWorkerInput | Prisma.WorkerLedgerEntryUpdateManyWithWhereWithoutWorkerInput[]
+  deleteMany?: Prisma.WorkerLedgerEntryScalarWhereInput | Prisma.WorkerLedgerEntryScalarWhereInput[]
+}
+
+export type WorkerLedgerEntryUncheckedUpdateManyWithoutWorkerNestedInput = {
+  create?: Prisma.XOR<Prisma.WorkerLedgerEntryCreateWithoutWorkerInput, Prisma.WorkerLedgerEntryUncheckedCreateWithoutWorkerInput> | Prisma.WorkerLedgerEntryCreateWithoutWorkerInput[] | Prisma.WorkerLedgerEntryUncheckedCreateWithoutWorkerInput[]
+  connectOrCreate?: Prisma.WorkerLedgerEntryCreateOrConnectWithoutWorkerInput | Prisma.WorkerLedgerEntryCreateOrConnectWithoutWorkerInput[]
+  upsert?: Prisma.WorkerLedgerEntryUpsertWithWhereUniqueWithoutWorkerInput | Prisma.WorkerLedgerEntryUpsertWithWhereUniqueWithoutWorkerInput[]
+  createMany?: Prisma.WorkerLedgerEntryCreateManyWorkerInputEnvelope
+  set?: Prisma.WorkerLedgerEntryWhereUniqueInput | Prisma.WorkerLedgerEntryWhereUniqueInput[]
+  disconnect?: Prisma.WorkerLedgerEntryWhereUniqueInput | Prisma.WorkerLedgerEntryWhereUniqueInput[]
+  delete?: Prisma.WorkerLedgerEntryWhereUniqueInput | Prisma.WorkerLedgerEntryWhereUniqueInput[]
+  connect?: Prisma.WorkerLedgerEntryWhereUniqueInput | Prisma.WorkerLedgerEntryWhereUniqueInput[]
+  update?: Prisma.WorkerLedgerEntryUpdateWithWhereUniqueWithoutWorkerInput | Prisma.WorkerLedgerEntryUpdateWithWhereUniqueWithoutWorkerInput[]
+  updateMany?: Prisma.WorkerLedgerEntryUpdateManyWithWhereWithoutWorkerInput | Prisma.WorkerLedgerEntryUpdateManyWithWhereWithoutWorkerInput[]
+  deleteMany?: Prisma.WorkerLedgerEntryScalarWhereInput | Prisma.WorkerLedgerEntryScalarWhereInput[]
+}
+
 export type WorkerLedgerEntryCreateWithoutUserInput = {
   id?: string
   type: $Enums.TransactionType
@@ -587,12 +653,14 @@ export type WorkerLedgerEntryCreateWithoutUserInput = {
   date?: Date | string
   createdAt?: Date | string
   staff?: Prisma.StaffCreateNestedOneWithoutWorkerLedgerEntriesInput
+  worker?: Prisma.ManpowerWorkerCreateNestedOneWithoutLedgerEntriesInput
   project?: Prisma.ProjectCreateNestedOneWithoutWorkerLedgerEntriesInput
 }
 
 export type WorkerLedgerEntryUncheckedCreateWithoutUserInput = {
   id?: string
   staffId?: string | null
+  workerId?: string | null
   projectId?: string | null
   type: $Enums.TransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -634,6 +702,7 @@ export type WorkerLedgerEntryScalarWhereInput = {
   id?: Prisma.StringFilter<"WorkerLedgerEntry"> | string
   userId?: Prisma.StringNullableFilter<"WorkerLedgerEntry"> | string | null
   staffId?: Prisma.StringNullableFilter<"WorkerLedgerEntry"> | string | null
+  workerId?: Prisma.StringNullableFilter<"WorkerLedgerEntry"> | string | null
   projectId?: Prisma.StringNullableFilter<"WorkerLedgerEntry"> | string | null
   type?: Prisma.EnumTransactionTypeFilter<"WorkerLedgerEntry"> | $Enums.TransactionType
   amount?: Prisma.DecimalFilter<"WorkerLedgerEntry"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -650,12 +719,14 @@ export type WorkerLedgerEntryCreateWithoutStaffInput = {
   date?: Date | string
   createdAt?: Date | string
   user?: Prisma.UserCreateNestedOneWithoutWorkerLedgerEntriesInput
+  worker?: Prisma.ManpowerWorkerCreateNestedOneWithoutLedgerEntriesInput
   project?: Prisma.ProjectCreateNestedOneWithoutWorkerLedgerEntriesInput
 }
 
 export type WorkerLedgerEntryUncheckedCreateWithoutStaffInput = {
   id?: string
   userId?: string | null
+  workerId?: string | null
   projectId?: string | null
   type: $Enums.TransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -699,12 +770,14 @@ export type WorkerLedgerEntryCreateWithoutProjectInput = {
   createdAt?: Date | string
   user?: Prisma.UserCreateNestedOneWithoutWorkerLedgerEntriesInput
   staff?: Prisma.StaffCreateNestedOneWithoutWorkerLedgerEntriesInput
+  worker?: Prisma.ManpowerWorkerCreateNestedOneWithoutLedgerEntriesInput
 }
 
 export type WorkerLedgerEntryUncheckedCreateWithoutProjectInput = {
   id?: string
   userId?: string | null
   staffId?: string | null
+  workerId?: string | null
   type: $Enums.TransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   description: string
@@ -738,9 +811,60 @@ export type WorkerLedgerEntryUpdateManyWithWhereWithoutProjectInput = {
   data: Prisma.XOR<Prisma.WorkerLedgerEntryUpdateManyMutationInput, Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutProjectInput>
 }
 
+export type WorkerLedgerEntryCreateWithoutWorkerInput = {
+  id?: string
+  type: $Enums.TransactionType
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  description: string
+  date?: Date | string
+  createdAt?: Date | string
+  user?: Prisma.UserCreateNestedOneWithoutWorkerLedgerEntriesInput
+  staff?: Prisma.StaffCreateNestedOneWithoutWorkerLedgerEntriesInput
+  project?: Prisma.ProjectCreateNestedOneWithoutWorkerLedgerEntriesInput
+}
+
+export type WorkerLedgerEntryUncheckedCreateWithoutWorkerInput = {
+  id?: string
+  userId?: string | null
+  staffId?: string | null
+  projectId?: string | null
+  type: $Enums.TransactionType
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  description: string
+  date?: Date | string
+  createdAt?: Date | string
+}
+
+export type WorkerLedgerEntryCreateOrConnectWithoutWorkerInput = {
+  where: Prisma.WorkerLedgerEntryWhereUniqueInput
+  create: Prisma.XOR<Prisma.WorkerLedgerEntryCreateWithoutWorkerInput, Prisma.WorkerLedgerEntryUncheckedCreateWithoutWorkerInput>
+}
+
+export type WorkerLedgerEntryCreateManyWorkerInputEnvelope = {
+  data: Prisma.WorkerLedgerEntryCreateManyWorkerInput | Prisma.WorkerLedgerEntryCreateManyWorkerInput[]
+  skipDuplicates?: boolean
+}
+
+export type WorkerLedgerEntryUpsertWithWhereUniqueWithoutWorkerInput = {
+  where: Prisma.WorkerLedgerEntryWhereUniqueInput
+  update: Prisma.XOR<Prisma.WorkerLedgerEntryUpdateWithoutWorkerInput, Prisma.WorkerLedgerEntryUncheckedUpdateWithoutWorkerInput>
+  create: Prisma.XOR<Prisma.WorkerLedgerEntryCreateWithoutWorkerInput, Prisma.WorkerLedgerEntryUncheckedCreateWithoutWorkerInput>
+}
+
+export type WorkerLedgerEntryUpdateWithWhereUniqueWithoutWorkerInput = {
+  where: Prisma.WorkerLedgerEntryWhereUniqueInput
+  data: Prisma.XOR<Prisma.WorkerLedgerEntryUpdateWithoutWorkerInput, Prisma.WorkerLedgerEntryUncheckedUpdateWithoutWorkerInput>
+}
+
+export type WorkerLedgerEntryUpdateManyWithWhereWithoutWorkerInput = {
+  where: Prisma.WorkerLedgerEntryScalarWhereInput
+  data: Prisma.XOR<Prisma.WorkerLedgerEntryUpdateManyMutationInput, Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutWorkerInput>
+}
+
 export type WorkerLedgerEntryCreateManyUserInput = {
   id?: string
   staffId?: string | null
+  workerId?: string | null
   projectId?: string | null
   type: $Enums.TransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -757,12 +881,14 @@ export type WorkerLedgerEntryUpdateWithoutUserInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   staff?: Prisma.StaffUpdateOneWithoutWorkerLedgerEntriesNestedInput
+  worker?: Prisma.ManpowerWorkerUpdateOneWithoutLedgerEntriesNestedInput
   project?: Prisma.ProjectUpdateOneWithoutWorkerLedgerEntriesNestedInput
 }
 
 export type WorkerLedgerEntryUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -774,6 +900,7 @@ export type WorkerLedgerEntryUncheckedUpdateWithoutUserInput = {
 export type WorkerLedgerEntryUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -785,6 +912,7 @@ export type WorkerLedgerEntryUncheckedUpdateManyWithoutUserInput = {
 export type WorkerLedgerEntryCreateManyStaffInput = {
   id?: string
   userId?: string | null
+  workerId?: string | null
   projectId?: string | null
   type: $Enums.TransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -801,12 +929,14 @@ export type WorkerLedgerEntryUpdateWithoutStaffInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneWithoutWorkerLedgerEntriesNestedInput
+  worker?: Prisma.ManpowerWorkerUpdateOneWithoutLedgerEntriesNestedInput
   project?: Prisma.ProjectUpdateOneWithoutWorkerLedgerEntriesNestedInput
 }
 
 export type WorkerLedgerEntryUncheckedUpdateWithoutStaffInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -818,6 +948,7 @@ export type WorkerLedgerEntryUncheckedUpdateWithoutStaffInput = {
 export type WorkerLedgerEntryUncheckedUpdateManyWithoutStaffInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -830,6 +961,7 @@ export type WorkerLedgerEntryCreateManyProjectInput = {
   id?: string
   userId?: string | null
   staffId?: string | null
+  workerId?: string | null
   type: $Enums.TransactionType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   description: string
@@ -846,12 +978,14 @@ export type WorkerLedgerEntryUpdateWithoutProjectInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneWithoutWorkerLedgerEntriesNestedInput
   staff?: Prisma.StaffUpdateOneWithoutWorkerLedgerEntriesNestedInput
+  worker?: Prisma.ManpowerWorkerUpdateOneWithoutLedgerEntriesNestedInput
 }
 
 export type WorkerLedgerEntryUncheckedUpdateWithoutProjectInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -863,6 +997,55 @@ export type WorkerLedgerEntryUncheckedUpdateManyWithoutProjectInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type WorkerLedgerEntryCreateManyWorkerInput = {
+  id?: string
+  userId?: string | null
+  staffId?: string | null
+  projectId?: string | null
+  type: $Enums.TransactionType
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  description: string
+  date?: Date | string
+  createdAt?: Date | string
+}
+
+export type WorkerLedgerEntryUpdateWithoutWorkerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneWithoutWorkerLedgerEntriesNestedInput
+  staff?: Prisma.StaffUpdateOneWithoutWorkerLedgerEntriesNestedInput
+  project?: Prisma.ProjectUpdateOneWithoutWorkerLedgerEntriesNestedInput
+}
+
+export type WorkerLedgerEntryUncheckedUpdateWithoutWorkerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type WorkerLedgerEntryUncheckedUpdateManyWithoutWorkerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -876,6 +1059,7 @@ export type WorkerLedgerEntrySelect<ExtArgs extends runtime.Types.Extensions.Int
   id?: boolean
   userId?: boolean
   staffId?: boolean
+  workerId?: boolean
   projectId?: boolean
   type?: boolean
   amount?: boolean
@@ -884,6 +1068,7 @@ export type WorkerLedgerEntrySelect<ExtArgs extends runtime.Types.Extensions.Int
   createdAt?: boolean
   user?: boolean | Prisma.WorkerLedgerEntry$userArgs<ExtArgs>
   staff?: boolean | Prisma.WorkerLedgerEntry$staffArgs<ExtArgs>
+  worker?: boolean | Prisma.WorkerLedgerEntry$workerArgs<ExtArgs>
   project?: boolean | Prisma.WorkerLedgerEntry$projectArgs<ExtArgs>
 }, ExtArgs["result"]["workerLedgerEntry"]>
 
@@ -891,6 +1076,7 @@ export type WorkerLedgerEntrySelectCreateManyAndReturn<ExtArgs extends runtime.T
   id?: boolean
   userId?: boolean
   staffId?: boolean
+  workerId?: boolean
   projectId?: boolean
   type?: boolean
   amount?: boolean
@@ -899,6 +1085,7 @@ export type WorkerLedgerEntrySelectCreateManyAndReturn<ExtArgs extends runtime.T
   createdAt?: boolean
   user?: boolean | Prisma.WorkerLedgerEntry$userArgs<ExtArgs>
   staff?: boolean | Prisma.WorkerLedgerEntry$staffArgs<ExtArgs>
+  worker?: boolean | Prisma.WorkerLedgerEntry$workerArgs<ExtArgs>
   project?: boolean | Prisma.WorkerLedgerEntry$projectArgs<ExtArgs>
 }, ExtArgs["result"]["workerLedgerEntry"]>
 
@@ -906,6 +1093,7 @@ export type WorkerLedgerEntrySelectUpdateManyAndReturn<ExtArgs extends runtime.T
   id?: boolean
   userId?: boolean
   staffId?: boolean
+  workerId?: boolean
   projectId?: boolean
   type?: boolean
   amount?: boolean
@@ -914,6 +1102,7 @@ export type WorkerLedgerEntrySelectUpdateManyAndReturn<ExtArgs extends runtime.T
   createdAt?: boolean
   user?: boolean | Prisma.WorkerLedgerEntry$userArgs<ExtArgs>
   staff?: boolean | Prisma.WorkerLedgerEntry$staffArgs<ExtArgs>
+  worker?: boolean | Prisma.WorkerLedgerEntry$workerArgs<ExtArgs>
   project?: boolean | Prisma.WorkerLedgerEntry$projectArgs<ExtArgs>
 }, ExtArgs["result"]["workerLedgerEntry"]>
 
@@ -921,6 +1110,7 @@ export type WorkerLedgerEntrySelectScalar = {
   id?: boolean
   userId?: boolean
   staffId?: boolean
+  workerId?: boolean
   projectId?: boolean
   type?: boolean
   amount?: boolean
@@ -929,20 +1119,23 @@ export type WorkerLedgerEntrySelectScalar = {
   createdAt?: boolean
 }
 
-export type WorkerLedgerEntryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "staffId" | "projectId" | "type" | "amount" | "description" | "date" | "createdAt", ExtArgs["result"]["workerLedgerEntry"]>
+export type WorkerLedgerEntryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "staffId" | "workerId" | "projectId" | "type" | "amount" | "description" | "date" | "createdAt", ExtArgs["result"]["workerLedgerEntry"]>
 export type WorkerLedgerEntryInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.WorkerLedgerEntry$userArgs<ExtArgs>
   staff?: boolean | Prisma.WorkerLedgerEntry$staffArgs<ExtArgs>
+  worker?: boolean | Prisma.WorkerLedgerEntry$workerArgs<ExtArgs>
   project?: boolean | Prisma.WorkerLedgerEntry$projectArgs<ExtArgs>
 }
 export type WorkerLedgerEntryIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.WorkerLedgerEntry$userArgs<ExtArgs>
   staff?: boolean | Prisma.WorkerLedgerEntry$staffArgs<ExtArgs>
+  worker?: boolean | Prisma.WorkerLedgerEntry$workerArgs<ExtArgs>
   project?: boolean | Prisma.WorkerLedgerEntry$projectArgs<ExtArgs>
 }
 export type WorkerLedgerEntryIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.WorkerLedgerEntry$userArgs<ExtArgs>
   staff?: boolean | Prisma.WorkerLedgerEntry$staffArgs<ExtArgs>
+  worker?: boolean | Prisma.WorkerLedgerEntry$workerArgs<ExtArgs>
   project?: boolean | Prisma.WorkerLedgerEntry$projectArgs<ExtArgs>
 }
 
@@ -951,12 +1144,14 @@ export type $WorkerLedgerEntryPayload<ExtArgs extends runtime.Types.Extensions.I
   objects: {
     user: Prisma.$UserPayload<ExtArgs> | null
     staff: Prisma.$StaffPayload<ExtArgs> | null
+    worker: Prisma.$ManpowerWorkerPayload<ExtArgs> | null
     project: Prisma.$ProjectPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     userId: string | null
     staffId: string | null
+    workerId: string | null
     projectId: string | null
     type: $Enums.TransactionType
     amount: runtime.Decimal
@@ -1359,6 +1554,7 @@ export interface Prisma__WorkerLedgerEntryClient<T, Null = never, ExtArgs extend
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.WorkerLedgerEntry$userArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WorkerLedgerEntry$userArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   staff<T extends Prisma.WorkerLedgerEntry$staffArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WorkerLedgerEntry$staffArgs<ExtArgs>>): Prisma.Prisma__StaffClient<runtime.Types.Result.GetResult<Prisma.$StaffPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  worker<T extends Prisma.WorkerLedgerEntry$workerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WorkerLedgerEntry$workerArgs<ExtArgs>>): Prisma.Prisma__ManpowerWorkerClient<runtime.Types.Result.GetResult<Prisma.$ManpowerWorkerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   project<T extends Prisma.WorkerLedgerEntry$projectArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WorkerLedgerEntry$projectArgs<ExtArgs>>): Prisma.Prisma__ProjectClient<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1392,6 +1588,7 @@ export interface WorkerLedgerEntryFieldRefs {
   readonly id: Prisma.FieldRef<"WorkerLedgerEntry", 'String'>
   readonly userId: Prisma.FieldRef<"WorkerLedgerEntry", 'String'>
   readonly staffId: Prisma.FieldRef<"WorkerLedgerEntry", 'String'>
+  readonly workerId: Prisma.FieldRef<"WorkerLedgerEntry", 'String'>
   readonly projectId: Prisma.FieldRef<"WorkerLedgerEntry", 'String'>
   readonly type: Prisma.FieldRef<"WorkerLedgerEntry", 'TransactionType'>
   readonly amount: Prisma.FieldRef<"WorkerLedgerEntry", 'Decimal'>
@@ -1834,6 +2031,25 @@ export type WorkerLedgerEntry$staffArgs<ExtArgs extends runtime.Types.Extensions
    */
   include?: Prisma.StaffInclude<ExtArgs> | null
   where?: Prisma.StaffWhereInput
+}
+
+/**
+ * WorkerLedgerEntry.worker
+ */
+export type WorkerLedgerEntry$workerArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ManpowerWorker
+   */
+  select?: Prisma.ManpowerWorkerSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ManpowerWorker
+   */
+  omit?: Prisma.ManpowerWorkerOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ManpowerWorkerInclude<ExtArgs> | null
+  where?: Prisma.ManpowerWorkerWhereInput
 }
 
 /**

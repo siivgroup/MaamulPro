@@ -321,6 +321,7 @@ export type StaffWhereInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerListRelationFilter
   workforceContractPayments?: Prisma.WorkforceContractPaymentListRelationFilter
   payrollItems?: Prisma.PayrollItemListRelationFilter
+  manpowerWorker?: Prisma.XOR<Prisma.ManpowerWorkerNullableScalarRelationFilter, Prisma.ManpowerWorkerWhereInput> | null
 }
 
 export type StaffOrderByWithRelationInput = {
@@ -350,6 +351,7 @@ export type StaffOrderByWithRelationInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerOrderByRelationAggregateInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentOrderByRelationAggregateInput
   payrollItems?: Prisma.PayrollItemOrderByRelationAggregateInput
+  manpowerWorker?: Prisma.ManpowerWorkerOrderByWithRelationInput
 }
 
 export type StaffWhereUniqueInput = Prisma.AtLeast<{
@@ -382,6 +384,7 @@ export type StaffWhereUniqueInput = Prisma.AtLeast<{
   workforceContractAssignments?: Prisma.WorkforceContractWorkerListRelationFilter
   workforceContractPayments?: Prisma.WorkforceContractPaymentListRelationFilter
   payrollItems?: Prisma.PayrollItemListRelationFilter
+  manpowerWorker?: Prisma.XOR<Prisma.ManpowerWorkerNullableScalarRelationFilter, Prisma.ManpowerWorkerWhereInput> | null
 }, "id" | "userId">
 
 export type StaffOrderByWithAggregationInput = {
@@ -456,6 +459,7 @@ export type StaffCreateInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerCreateNestedManyWithoutStaffInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentCreateNestedManyWithoutStaffInput
   payrollItems?: Prisma.PayrollItemCreateNestedManyWithoutStaffInput
+  manpowerWorker?: Prisma.ManpowerWorkerCreateNestedOneWithoutLinkedStaffInput
 }
 
 export type StaffUncheckedCreateInput = {
@@ -482,6 +486,7 @@ export type StaffUncheckedCreateInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUncheckedCreateNestedManyWithoutStaffInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedCreateNestedManyWithoutStaffInput
   payrollItems?: Prisma.PayrollItemUncheckedCreateNestedManyWithoutStaffInput
+  manpowerWorker?: Prisma.ManpowerWorkerUncheckedCreateNestedOneWithoutLinkedStaffInput
 }
 
 export type StaffUpdateInput = {
@@ -508,6 +513,7 @@ export type StaffUpdateInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUpdateManyWithoutStaffNestedInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUpdateManyWithoutStaffNestedInput
   payrollItems?: Prisma.PayrollItemUpdateManyWithoutStaffNestedInput
+  manpowerWorker?: Prisma.ManpowerWorkerUpdateOneWithoutLinkedStaffNestedInput
 }
 
 export type StaffUncheckedUpdateInput = {
@@ -534,6 +540,7 @@ export type StaffUncheckedUpdateInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUncheckedUpdateManyWithoutStaffNestedInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedUpdateManyWithoutStaffNestedInput
   payrollItems?: Prisma.PayrollItemUncheckedUpdateManyWithoutStaffNestedInput
+  manpowerWorker?: Prisma.ManpowerWorkerUncheckedUpdateOneWithoutLinkedStaffNestedInput
 }
 
 export type StaffCreateManyInput = {
@@ -674,11 +681,6 @@ export type StaffListRelationFilter = {
 
 export type StaffOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
-}
-
-export type StaffScalarRelationFilter = {
-  is?: Prisma.StaffWhereInput
-  isNot?: Prisma.StaffWhereInput
 }
 
 export type StaffCreateNestedOneWithoutUserInput = {
@@ -829,6 +831,22 @@ export type StaffUncheckedUpdateManyWithoutWorkerTypeNestedInput = {
   deleteMany?: Prisma.StaffScalarWhereInput | Prisma.StaffScalarWhereInput[]
 }
 
+export type StaffCreateNestedOneWithoutManpowerWorkerInput = {
+  create?: Prisma.XOR<Prisma.StaffCreateWithoutManpowerWorkerInput, Prisma.StaffUncheckedCreateWithoutManpowerWorkerInput>
+  connectOrCreate?: Prisma.StaffCreateOrConnectWithoutManpowerWorkerInput
+  connect?: Prisma.StaffWhereUniqueInput
+}
+
+export type StaffUpdateOneWithoutManpowerWorkerNestedInput = {
+  create?: Prisma.XOR<Prisma.StaffCreateWithoutManpowerWorkerInput, Prisma.StaffUncheckedCreateWithoutManpowerWorkerInput>
+  connectOrCreate?: Prisma.StaffCreateOrConnectWithoutManpowerWorkerInput
+  upsert?: Prisma.StaffUpsertWithoutManpowerWorkerInput
+  disconnect?: Prisma.StaffWhereInput | boolean
+  delete?: Prisma.StaffWhereInput | boolean
+  connect?: Prisma.StaffWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.StaffUpdateToOneWithWhereWithoutManpowerWorkerInput, Prisma.StaffUpdateWithoutManpowerWorkerInput>, Prisma.StaffUncheckedUpdateWithoutManpowerWorkerInput>
+}
+
 export type StaffCreateNestedOneWithoutDailyExpensesInput = {
   create?: Prisma.XOR<Prisma.StaffCreateWithoutDailyExpensesInput, Prisma.StaffUncheckedCreateWithoutDailyExpensesInput>
   connectOrCreate?: Prisma.StaffCreateOrConnectWithoutDailyExpensesInput
@@ -867,10 +885,12 @@ export type StaffCreateNestedOneWithoutWorkforceContractAssignmentsInput = {
   connect?: Prisma.StaffWhereUniqueInput
 }
 
-export type StaffUpdateOneRequiredWithoutWorkforceContractAssignmentsNestedInput = {
+export type StaffUpdateOneWithoutWorkforceContractAssignmentsNestedInput = {
   create?: Prisma.XOR<Prisma.StaffCreateWithoutWorkforceContractAssignmentsInput, Prisma.StaffUncheckedCreateWithoutWorkforceContractAssignmentsInput>
   connectOrCreate?: Prisma.StaffCreateOrConnectWithoutWorkforceContractAssignmentsInput
   upsert?: Prisma.StaffUpsertWithoutWorkforceContractAssignmentsInput
+  disconnect?: Prisma.StaffWhereInput | boolean
+  delete?: Prisma.StaffWhereInput | boolean
   connect?: Prisma.StaffWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.StaffUpdateToOneWithWhereWithoutWorkforceContractAssignmentsInput, Prisma.StaffUpdateWithoutWorkforceContractAssignmentsInput>, Prisma.StaffUncheckedUpdateWithoutWorkforceContractAssignmentsInput>
 }
@@ -930,6 +950,7 @@ export type StaffCreateWithoutUserInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerCreateNestedManyWithoutStaffInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentCreateNestedManyWithoutStaffInput
   payrollItems?: Prisma.PayrollItemCreateNestedManyWithoutStaffInput
+  manpowerWorker?: Prisma.ManpowerWorkerCreateNestedOneWithoutLinkedStaffInput
 }
 
 export type StaffUncheckedCreateWithoutUserInput = {
@@ -955,6 +976,7 @@ export type StaffUncheckedCreateWithoutUserInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUncheckedCreateNestedManyWithoutStaffInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedCreateNestedManyWithoutStaffInput
   payrollItems?: Prisma.PayrollItemUncheckedCreateNestedManyWithoutStaffInput
+  manpowerWorker?: Prisma.ManpowerWorkerUncheckedCreateNestedOneWithoutLinkedStaffInput
 }
 
 export type StaffCreateOrConnectWithoutUserInput = {
@@ -996,6 +1018,7 @@ export type StaffUpdateWithoutUserInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUpdateManyWithoutStaffNestedInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUpdateManyWithoutStaffNestedInput
   payrollItems?: Prisma.PayrollItemUpdateManyWithoutStaffNestedInput
+  manpowerWorker?: Prisma.ManpowerWorkerUpdateOneWithoutLinkedStaffNestedInput
 }
 
 export type StaffUncheckedUpdateWithoutUserInput = {
@@ -1021,6 +1044,7 @@ export type StaffUncheckedUpdateWithoutUserInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUncheckedUpdateManyWithoutStaffNestedInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedUpdateManyWithoutStaffNestedInput
   payrollItems?: Prisma.PayrollItemUncheckedUpdateManyWithoutStaffNestedInput
+  manpowerWorker?: Prisma.ManpowerWorkerUncheckedUpdateOneWithoutLinkedStaffNestedInput
 }
 
 export type StaffCreateWithoutAssignedProjectInput = {
@@ -1046,6 +1070,7 @@ export type StaffCreateWithoutAssignedProjectInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerCreateNestedManyWithoutStaffInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentCreateNestedManyWithoutStaffInput
   payrollItems?: Prisma.PayrollItemCreateNestedManyWithoutStaffInput
+  manpowerWorker?: Prisma.ManpowerWorkerCreateNestedOneWithoutLinkedStaffInput
 }
 
 export type StaffUncheckedCreateWithoutAssignedProjectInput = {
@@ -1071,6 +1096,7 @@ export type StaffUncheckedCreateWithoutAssignedProjectInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUncheckedCreateNestedManyWithoutStaffInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedCreateNestedManyWithoutStaffInput
   payrollItems?: Prisma.PayrollItemUncheckedCreateNestedManyWithoutStaffInput
+  manpowerWorker?: Prisma.ManpowerWorkerUncheckedCreateNestedOneWithoutLinkedStaffInput
 }
 
 export type StaffCreateOrConnectWithoutAssignedProjectInput = {
@@ -1145,6 +1171,7 @@ export type StaffCreateWithoutProjectTasksInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerCreateNestedManyWithoutStaffInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentCreateNestedManyWithoutStaffInput
   payrollItems?: Prisma.PayrollItemCreateNestedManyWithoutStaffInput
+  manpowerWorker?: Prisma.ManpowerWorkerCreateNestedOneWithoutLinkedStaffInput
 }
 
 export type StaffUncheckedCreateWithoutProjectTasksInput = {
@@ -1170,6 +1197,7 @@ export type StaffUncheckedCreateWithoutProjectTasksInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUncheckedCreateNestedManyWithoutStaffInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedCreateNestedManyWithoutStaffInput
   payrollItems?: Prisma.PayrollItemUncheckedCreateNestedManyWithoutStaffInput
+  manpowerWorker?: Prisma.ManpowerWorkerUncheckedCreateNestedOneWithoutLinkedStaffInput
 }
 
 export type StaffCreateOrConnectWithoutProjectTasksInput = {
@@ -1211,6 +1239,7 @@ export type StaffUpdateWithoutProjectTasksInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUpdateManyWithoutStaffNestedInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUpdateManyWithoutStaffNestedInput
   payrollItems?: Prisma.PayrollItemUpdateManyWithoutStaffNestedInput
+  manpowerWorker?: Prisma.ManpowerWorkerUpdateOneWithoutLinkedStaffNestedInput
 }
 
 export type StaffUncheckedUpdateWithoutProjectTasksInput = {
@@ -1236,6 +1265,7 @@ export type StaffUncheckedUpdateWithoutProjectTasksInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUncheckedUpdateManyWithoutStaffNestedInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedUpdateManyWithoutStaffNestedInput
   payrollItems?: Prisma.PayrollItemUncheckedUpdateManyWithoutStaffNestedInput
+  manpowerWorker?: Prisma.ManpowerWorkerUncheckedUpdateOneWithoutLinkedStaffNestedInput
 }
 
 export type StaffCreateWithoutWorkerTypeInput = {
@@ -1261,6 +1291,7 @@ export type StaffCreateWithoutWorkerTypeInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerCreateNestedManyWithoutStaffInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentCreateNestedManyWithoutStaffInput
   payrollItems?: Prisma.PayrollItemCreateNestedManyWithoutStaffInput
+  manpowerWorker?: Prisma.ManpowerWorkerCreateNestedOneWithoutLinkedStaffInput
 }
 
 export type StaffUncheckedCreateWithoutWorkerTypeInput = {
@@ -1286,6 +1317,7 @@ export type StaffUncheckedCreateWithoutWorkerTypeInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUncheckedCreateNestedManyWithoutStaffInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedCreateNestedManyWithoutStaffInput
   payrollItems?: Prisma.PayrollItemUncheckedCreateNestedManyWithoutStaffInput
+  manpowerWorker?: Prisma.ManpowerWorkerUncheckedCreateNestedOneWithoutLinkedStaffInput
 }
 
 export type StaffCreateOrConnectWithoutWorkerTypeInput = {
@@ -1314,6 +1346,126 @@ export type StaffUpdateManyWithWhereWithoutWorkerTypeInput = {
   data: Prisma.XOR<Prisma.StaffUpdateManyMutationInput, Prisma.StaffUncheckedUpdateManyWithoutWorkerTypeInput>
 }
 
+export type StaffCreateWithoutManpowerWorkerInput = {
+  id?: string
+  firstName: string
+  lastName: string
+  phone?: string | null
+  department?: $Enums.Department
+  position?: string | null
+  salary?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  hireDate?: Date | string
+  status?: $Enums.StaffStatus
+  notes?: string | null
+  photoUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  user?: Prisma.UserCreateNestedOneWithoutStaffInput
+  projectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutStaffInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryCreateNestedManyWithoutStaffInput
+  dailyExpenses?: Prisma.DailyOperationalExpenseCreateNestedManyWithoutStaffInput
+  workerType?: Prisma.WorkerTypeCreateNestedOneWithoutStaffInput
+  assignedProject?: Prisma.ProjectCreateNestedOneWithoutAssignedStaffInput
+  workforceContractAssignments?: Prisma.WorkforceContractWorkerCreateNestedManyWithoutStaffInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentCreateNestedManyWithoutStaffInput
+  payrollItems?: Prisma.PayrollItemCreateNestedManyWithoutStaffInput
+}
+
+export type StaffUncheckedCreateWithoutManpowerWorkerInput = {
+  id?: string
+  userId?: string | null
+  firstName: string
+  lastName: string
+  phone?: string | null
+  department?: $Enums.Department
+  position?: string | null
+  salary?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  hireDate?: Date | string
+  status?: $Enums.StaffStatus
+  notes?: string | null
+  photoUrl?: string | null
+  workerTypeId?: string | null
+  assignedProjectId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  projectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutStaffInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedCreateNestedManyWithoutStaffInput
+  dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedCreateNestedManyWithoutStaffInput
+  workforceContractAssignments?: Prisma.WorkforceContractWorkerUncheckedCreateNestedManyWithoutStaffInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedCreateNestedManyWithoutStaffInput
+  payrollItems?: Prisma.PayrollItemUncheckedCreateNestedManyWithoutStaffInput
+}
+
+export type StaffCreateOrConnectWithoutManpowerWorkerInput = {
+  where: Prisma.StaffWhereUniqueInput
+  create: Prisma.XOR<Prisma.StaffCreateWithoutManpowerWorkerInput, Prisma.StaffUncheckedCreateWithoutManpowerWorkerInput>
+}
+
+export type StaffUpsertWithoutManpowerWorkerInput = {
+  update: Prisma.XOR<Prisma.StaffUpdateWithoutManpowerWorkerInput, Prisma.StaffUncheckedUpdateWithoutManpowerWorkerInput>
+  create: Prisma.XOR<Prisma.StaffCreateWithoutManpowerWorkerInput, Prisma.StaffUncheckedCreateWithoutManpowerWorkerInput>
+  where?: Prisma.StaffWhereInput
+}
+
+export type StaffUpdateToOneWithWhereWithoutManpowerWorkerInput = {
+  where?: Prisma.StaffWhereInput
+  data: Prisma.XOR<Prisma.StaffUpdateWithoutManpowerWorkerInput, Prisma.StaffUncheckedUpdateWithoutManpowerWorkerInput>
+}
+
+export type StaffUpdateWithoutManpowerWorkerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  department?: Prisma.EnumDepartmentFieldUpdateOperationsInput | $Enums.Department
+  position?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  salary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumStaffStatusFieldUpdateOperationsInput | $Enums.StaffStatus
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  user?: Prisma.UserUpdateOneWithoutStaffNestedInput
+  projectTasks?: Prisma.ProjectTaskUpdateManyWithoutStaffNestedInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUpdateManyWithoutStaffNestedInput
+  dailyExpenses?: Prisma.DailyOperationalExpenseUpdateManyWithoutStaffNestedInput
+  workerType?: Prisma.WorkerTypeUpdateOneWithoutStaffNestedInput
+  assignedProject?: Prisma.ProjectUpdateOneWithoutAssignedStaffNestedInput
+  workforceContractAssignments?: Prisma.WorkforceContractWorkerUpdateManyWithoutStaffNestedInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentUpdateManyWithoutStaffNestedInput
+  payrollItems?: Prisma.PayrollItemUpdateManyWithoutStaffNestedInput
+}
+
+export type StaffUncheckedUpdateWithoutManpowerWorkerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  department?: Prisma.EnumDepartmentFieldUpdateOperationsInput | $Enums.Department
+  position?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  salary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  hireDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumStaffStatusFieldUpdateOperationsInput | $Enums.StaffStatus
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  photoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerTypeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assignedProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  projectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutStaffNestedInput
+  workerLedgerEntries?: Prisma.WorkerLedgerEntryUncheckedUpdateManyWithoutStaffNestedInput
+  dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedUpdateManyWithoutStaffNestedInput
+  workforceContractAssignments?: Prisma.WorkforceContractWorkerUncheckedUpdateManyWithoutStaffNestedInput
+  workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedUpdateManyWithoutStaffNestedInput
+  payrollItems?: Prisma.PayrollItemUncheckedUpdateManyWithoutStaffNestedInput
+}
+
 export type StaffCreateWithoutDailyExpensesInput = {
   id?: string
   firstName: string
@@ -1337,6 +1489,7 @@ export type StaffCreateWithoutDailyExpensesInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerCreateNestedManyWithoutStaffInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentCreateNestedManyWithoutStaffInput
   payrollItems?: Prisma.PayrollItemCreateNestedManyWithoutStaffInput
+  manpowerWorker?: Prisma.ManpowerWorkerCreateNestedOneWithoutLinkedStaffInput
 }
 
 export type StaffUncheckedCreateWithoutDailyExpensesInput = {
@@ -1362,6 +1515,7 @@ export type StaffUncheckedCreateWithoutDailyExpensesInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUncheckedCreateNestedManyWithoutStaffInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedCreateNestedManyWithoutStaffInput
   payrollItems?: Prisma.PayrollItemUncheckedCreateNestedManyWithoutStaffInput
+  manpowerWorker?: Prisma.ManpowerWorkerUncheckedCreateNestedOneWithoutLinkedStaffInput
 }
 
 export type StaffCreateOrConnectWithoutDailyExpensesInput = {
@@ -1403,6 +1557,7 @@ export type StaffUpdateWithoutDailyExpensesInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUpdateManyWithoutStaffNestedInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUpdateManyWithoutStaffNestedInput
   payrollItems?: Prisma.PayrollItemUpdateManyWithoutStaffNestedInput
+  manpowerWorker?: Prisma.ManpowerWorkerUpdateOneWithoutLinkedStaffNestedInput
 }
 
 export type StaffUncheckedUpdateWithoutDailyExpensesInput = {
@@ -1428,6 +1583,7 @@ export type StaffUncheckedUpdateWithoutDailyExpensesInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUncheckedUpdateManyWithoutStaffNestedInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedUpdateManyWithoutStaffNestedInput
   payrollItems?: Prisma.PayrollItemUncheckedUpdateManyWithoutStaffNestedInput
+  manpowerWorker?: Prisma.ManpowerWorkerUncheckedUpdateOneWithoutLinkedStaffNestedInput
 }
 
 export type StaffCreateWithoutWorkerLedgerEntriesInput = {
@@ -1453,6 +1609,7 @@ export type StaffCreateWithoutWorkerLedgerEntriesInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerCreateNestedManyWithoutStaffInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentCreateNestedManyWithoutStaffInput
   payrollItems?: Prisma.PayrollItemCreateNestedManyWithoutStaffInput
+  manpowerWorker?: Prisma.ManpowerWorkerCreateNestedOneWithoutLinkedStaffInput
 }
 
 export type StaffUncheckedCreateWithoutWorkerLedgerEntriesInput = {
@@ -1478,6 +1635,7 @@ export type StaffUncheckedCreateWithoutWorkerLedgerEntriesInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUncheckedCreateNestedManyWithoutStaffInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedCreateNestedManyWithoutStaffInput
   payrollItems?: Prisma.PayrollItemUncheckedCreateNestedManyWithoutStaffInput
+  manpowerWorker?: Prisma.ManpowerWorkerUncheckedCreateNestedOneWithoutLinkedStaffInput
 }
 
 export type StaffCreateOrConnectWithoutWorkerLedgerEntriesInput = {
@@ -1519,6 +1677,7 @@ export type StaffUpdateWithoutWorkerLedgerEntriesInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUpdateManyWithoutStaffNestedInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUpdateManyWithoutStaffNestedInput
   payrollItems?: Prisma.PayrollItemUpdateManyWithoutStaffNestedInput
+  manpowerWorker?: Prisma.ManpowerWorkerUpdateOneWithoutLinkedStaffNestedInput
 }
 
 export type StaffUncheckedUpdateWithoutWorkerLedgerEntriesInput = {
@@ -1544,6 +1703,7 @@ export type StaffUncheckedUpdateWithoutWorkerLedgerEntriesInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUncheckedUpdateManyWithoutStaffNestedInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedUpdateManyWithoutStaffNestedInput
   payrollItems?: Prisma.PayrollItemUncheckedUpdateManyWithoutStaffNestedInput
+  manpowerWorker?: Prisma.ManpowerWorkerUncheckedUpdateOneWithoutLinkedStaffNestedInput
 }
 
 export type StaffCreateWithoutWorkforceContractAssignmentsInput = {
@@ -1569,6 +1729,7 @@ export type StaffCreateWithoutWorkforceContractAssignmentsInput = {
   assignedProject?: Prisma.ProjectCreateNestedOneWithoutAssignedStaffInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentCreateNestedManyWithoutStaffInput
   payrollItems?: Prisma.PayrollItemCreateNestedManyWithoutStaffInput
+  manpowerWorker?: Prisma.ManpowerWorkerCreateNestedOneWithoutLinkedStaffInput
 }
 
 export type StaffUncheckedCreateWithoutWorkforceContractAssignmentsInput = {
@@ -1594,6 +1755,7 @@ export type StaffUncheckedCreateWithoutWorkforceContractAssignmentsInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedCreateNestedManyWithoutStaffInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedCreateNestedManyWithoutStaffInput
   payrollItems?: Prisma.PayrollItemUncheckedCreateNestedManyWithoutStaffInput
+  manpowerWorker?: Prisma.ManpowerWorkerUncheckedCreateNestedOneWithoutLinkedStaffInput
 }
 
 export type StaffCreateOrConnectWithoutWorkforceContractAssignmentsInput = {
@@ -1635,6 +1797,7 @@ export type StaffUpdateWithoutWorkforceContractAssignmentsInput = {
   assignedProject?: Prisma.ProjectUpdateOneWithoutAssignedStaffNestedInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUpdateManyWithoutStaffNestedInput
   payrollItems?: Prisma.PayrollItemUpdateManyWithoutStaffNestedInput
+  manpowerWorker?: Prisma.ManpowerWorkerUpdateOneWithoutLinkedStaffNestedInput
 }
 
 export type StaffUncheckedUpdateWithoutWorkforceContractAssignmentsInput = {
@@ -1660,6 +1823,7 @@ export type StaffUncheckedUpdateWithoutWorkforceContractAssignmentsInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedUpdateManyWithoutStaffNestedInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedUpdateManyWithoutStaffNestedInput
   payrollItems?: Prisma.PayrollItemUncheckedUpdateManyWithoutStaffNestedInput
+  manpowerWorker?: Prisma.ManpowerWorkerUncheckedUpdateOneWithoutLinkedStaffNestedInput
 }
 
 export type StaffCreateWithoutWorkforceContractPaymentsInput = {
@@ -1685,6 +1849,7 @@ export type StaffCreateWithoutWorkforceContractPaymentsInput = {
   assignedProject?: Prisma.ProjectCreateNestedOneWithoutAssignedStaffInput
   workforceContractAssignments?: Prisma.WorkforceContractWorkerCreateNestedManyWithoutStaffInput
   payrollItems?: Prisma.PayrollItemCreateNestedManyWithoutStaffInput
+  manpowerWorker?: Prisma.ManpowerWorkerCreateNestedOneWithoutLinkedStaffInput
 }
 
 export type StaffUncheckedCreateWithoutWorkforceContractPaymentsInput = {
@@ -1710,6 +1875,7 @@ export type StaffUncheckedCreateWithoutWorkforceContractPaymentsInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedCreateNestedManyWithoutStaffInput
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUncheckedCreateNestedManyWithoutStaffInput
   payrollItems?: Prisma.PayrollItemUncheckedCreateNestedManyWithoutStaffInput
+  manpowerWorker?: Prisma.ManpowerWorkerUncheckedCreateNestedOneWithoutLinkedStaffInput
 }
 
 export type StaffCreateOrConnectWithoutWorkforceContractPaymentsInput = {
@@ -1751,6 +1917,7 @@ export type StaffUpdateWithoutWorkforceContractPaymentsInput = {
   assignedProject?: Prisma.ProjectUpdateOneWithoutAssignedStaffNestedInput
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUpdateManyWithoutStaffNestedInput
   payrollItems?: Prisma.PayrollItemUpdateManyWithoutStaffNestedInput
+  manpowerWorker?: Prisma.ManpowerWorkerUpdateOneWithoutLinkedStaffNestedInput
 }
 
 export type StaffUncheckedUpdateWithoutWorkforceContractPaymentsInput = {
@@ -1776,6 +1943,7 @@ export type StaffUncheckedUpdateWithoutWorkforceContractPaymentsInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedUpdateManyWithoutStaffNestedInput
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUncheckedUpdateManyWithoutStaffNestedInput
   payrollItems?: Prisma.PayrollItemUncheckedUpdateManyWithoutStaffNestedInput
+  manpowerWorker?: Prisma.ManpowerWorkerUncheckedUpdateOneWithoutLinkedStaffNestedInput
 }
 
 export type StaffCreateWithoutPayrollItemsInput = {
@@ -1801,6 +1969,7 @@ export type StaffCreateWithoutPayrollItemsInput = {
   assignedProject?: Prisma.ProjectCreateNestedOneWithoutAssignedStaffInput
   workforceContractAssignments?: Prisma.WorkforceContractWorkerCreateNestedManyWithoutStaffInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentCreateNestedManyWithoutStaffInput
+  manpowerWorker?: Prisma.ManpowerWorkerCreateNestedOneWithoutLinkedStaffInput
 }
 
 export type StaffUncheckedCreateWithoutPayrollItemsInput = {
@@ -1826,6 +1995,7 @@ export type StaffUncheckedCreateWithoutPayrollItemsInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedCreateNestedManyWithoutStaffInput
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUncheckedCreateNestedManyWithoutStaffInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedCreateNestedManyWithoutStaffInput
+  manpowerWorker?: Prisma.ManpowerWorkerUncheckedCreateNestedOneWithoutLinkedStaffInput
 }
 
 export type StaffCreateOrConnectWithoutPayrollItemsInput = {
@@ -1867,6 +2037,7 @@ export type StaffUpdateWithoutPayrollItemsInput = {
   assignedProject?: Prisma.ProjectUpdateOneWithoutAssignedStaffNestedInput
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUpdateManyWithoutStaffNestedInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUpdateManyWithoutStaffNestedInput
+  manpowerWorker?: Prisma.ManpowerWorkerUpdateOneWithoutLinkedStaffNestedInput
 }
 
 export type StaffUncheckedUpdateWithoutPayrollItemsInput = {
@@ -1892,6 +2063,7 @@ export type StaffUncheckedUpdateWithoutPayrollItemsInput = {
   dailyExpenses?: Prisma.DailyOperationalExpenseUncheckedUpdateManyWithoutStaffNestedInput
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUncheckedUpdateManyWithoutStaffNestedInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedUpdateManyWithoutStaffNestedInput
+  manpowerWorker?: Prisma.ManpowerWorkerUncheckedUpdateOneWithoutLinkedStaffNestedInput
 }
 
 export type StaffCreateManyAssignedProjectInput = {
@@ -1936,6 +2108,7 @@ export type StaffUpdateWithoutAssignedProjectInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUpdateManyWithoutStaffNestedInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUpdateManyWithoutStaffNestedInput
   payrollItems?: Prisma.PayrollItemUpdateManyWithoutStaffNestedInput
+  manpowerWorker?: Prisma.ManpowerWorkerUpdateOneWithoutLinkedStaffNestedInput
 }
 
 export type StaffUncheckedUpdateWithoutAssignedProjectInput = {
@@ -1961,6 +2134,7 @@ export type StaffUncheckedUpdateWithoutAssignedProjectInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUncheckedUpdateManyWithoutStaffNestedInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedUpdateManyWithoutStaffNestedInput
   payrollItems?: Prisma.PayrollItemUncheckedUpdateManyWithoutStaffNestedInput
+  manpowerWorker?: Prisma.ManpowerWorkerUncheckedUpdateOneWithoutLinkedStaffNestedInput
 }
 
 export type StaffUncheckedUpdateManyWithoutAssignedProjectInput = {
@@ -2024,6 +2198,7 @@ export type StaffUpdateWithoutWorkerTypeInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUpdateManyWithoutStaffNestedInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUpdateManyWithoutStaffNestedInput
   payrollItems?: Prisma.PayrollItemUpdateManyWithoutStaffNestedInput
+  manpowerWorker?: Prisma.ManpowerWorkerUpdateOneWithoutLinkedStaffNestedInput
 }
 
 export type StaffUncheckedUpdateWithoutWorkerTypeInput = {
@@ -2049,6 +2224,7 @@ export type StaffUncheckedUpdateWithoutWorkerTypeInput = {
   workforceContractAssignments?: Prisma.WorkforceContractWorkerUncheckedUpdateManyWithoutStaffNestedInput
   workforceContractPayments?: Prisma.WorkforceContractPaymentUncheckedUpdateManyWithoutStaffNestedInput
   payrollItems?: Prisma.PayrollItemUncheckedUpdateManyWithoutStaffNestedInput
+  manpowerWorker?: Prisma.ManpowerWorkerUncheckedUpdateOneWithoutLinkedStaffNestedInput
 }
 
 export type StaffUncheckedUpdateManyWithoutWorkerTypeInput = {
@@ -2173,6 +2349,7 @@ export type StaffSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   workforceContractAssignments?: boolean | Prisma.Staff$workforceContractAssignmentsArgs<ExtArgs>
   workforceContractPayments?: boolean | Prisma.Staff$workforceContractPaymentsArgs<ExtArgs>
   payrollItems?: boolean | Prisma.Staff$payrollItemsArgs<ExtArgs>
+  manpowerWorker?: boolean | Prisma.Staff$manpowerWorkerArgs<ExtArgs>
   _count?: boolean | Prisma.StaffCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["staff"]>
 
@@ -2253,6 +2430,7 @@ export type StaffInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   workforceContractAssignments?: boolean | Prisma.Staff$workforceContractAssignmentsArgs<ExtArgs>
   workforceContractPayments?: boolean | Prisma.Staff$workforceContractPaymentsArgs<ExtArgs>
   payrollItems?: boolean | Prisma.Staff$payrollItemsArgs<ExtArgs>
+  manpowerWorker?: boolean | Prisma.Staff$manpowerWorkerArgs<ExtArgs>
   _count?: boolean | Prisma.StaffCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type StaffIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2278,6 +2456,7 @@ export type $StaffPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     workforceContractAssignments: Prisma.$WorkforceContractWorkerPayload<ExtArgs>[]
     workforceContractPayments: Prisma.$WorkforceContractPaymentPayload<ExtArgs>[]
     payrollItems: Prisma.$PayrollItemPayload<ExtArgs>[]
+    manpowerWorker: Prisma.$ManpowerWorkerPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2700,6 +2879,7 @@ export interface Prisma__StaffClient<T, Null = never, ExtArgs extends runtime.Ty
   workforceContractAssignments<T extends Prisma.Staff$workforceContractAssignmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Staff$workforceContractAssignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkforceContractWorkerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   workforceContractPayments<T extends Prisma.Staff$workforceContractPaymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Staff$workforceContractPaymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkforceContractPaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   payrollItems<T extends Prisma.Staff$payrollItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Staff$payrollItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PayrollItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  manpowerWorker<T extends Prisma.Staff$manpowerWorkerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Staff$manpowerWorkerArgs<ExtArgs>>): Prisma.Prisma__ManpowerWorkerClient<runtime.Types.Result.GetResult<Prisma.$ManpowerWorkerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3345,6 +3525,25 @@ export type Staff$payrollItemsArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.PayrollItemScalarFieldEnum | Prisma.PayrollItemScalarFieldEnum[]
+}
+
+/**
+ * Staff.manpowerWorker
+ */
+export type Staff$manpowerWorkerArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ManpowerWorker
+   */
+  select?: Prisma.ManpowerWorkerSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ManpowerWorker
+   */
+  omit?: Prisma.ManpowerWorkerOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ManpowerWorkerInclude<ExtArgs> | null
+  where?: Prisma.ManpowerWorkerWhereInput
 }
 
 /**

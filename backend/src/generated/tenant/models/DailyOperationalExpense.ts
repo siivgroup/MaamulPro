@@ -37,6 +37,7 @@ export type DailyOperationalExpenseSumAggregateOutputType = {
 export type DailyOperationalExpenseMinAggregateOutputType = {
   id: string | null
   staffId: string | null
+  workerId: string | null
   projectId: string | null
   recordedByUserId: string | null
   amount: runtime.Decimal | null
@@ -51,6 +52,7 @@ export type DailyOperationalExpenseMinAggregateOutputType = {
 export type DailyOperationalExpenseMaxAggregateOutputType = {
   id: string | null
   staffId: string | null
+  workerId: string | null
   projectId: string | null
   recordedByUserId: string | null
   amount: runtime.Decimal | null
@@ -65,6 +67,7 @@ export type DailyOperationalExpenseMaxAggregateOutputType = {
 export type DailyOperationalExpenseCountAggregateOutputType = {
   id: number
   staffId: number
+  workerId: number
   projectId: number
   recordedByUserId: number
   amount: number
@@ -89,6 +92,7 @@ export type DailyOperationalExpenseSumAggregateInputType = {
 export type DailyOperationalExpenseMinAggregateInputType = {
   id?: true
   staffId?: true
+  workerId?: true
   projectId?: true
   recordedByUserId?: true
   amount?: true
@@ -103,6 +107,7 @@ export type DailyOperationalExpenseMinAggregateInputType = {
 export type DailyOperationalExpenseMaxAggregateInputType = {
   id?: true
   staffId?: true
+  workerId?: true
   projectId?: true
   recordedByUserId?: true
   amount?: true
@@ -117,6 +122,7 @@ export type DailyOperationalExpenseMaxAggregateInputType = {
 export type DailyOperationalExpenseCountAggregateInputType = {
   id?: true
   staffId?: true
+  workerId?: true
   projectId?: true
   recordedByUserId?: true
   amount?: true
@@ -218,6 +224,7 @@ export type DailyOperationalExpenseGroupByArgs<ExtArgs extends runtime.Types.Ext
 export type DailyOperationalExpenseGroupByOutputType = {
   id: string
   staffId: string | null
+  workerId: string | null
   projectId: string | null
   recordedByUserId: string | null
   amount: runtime.Decimal
@@ -255,6 +262,7 @@ export type DailyOperationalExpenseWhereInput = {
   NOT?: Prisma.DailyOperationalExpenseWhereInput | Prisma.DailyOperationalExpenseWhereInput[]
   id?: Prisma.StringFilter<"DailyOperationalExpense"> | string
   staffId?: Prisma.StringNullableFilter<"DailyOperationalExpense"> | string | null
+  workerId?: Prisma.StringNullableFilter<"DailyOperationalExpense"> | string | null
   projectId?: Prisma.StringNullableFilter<"DailyOperationalExpense"> | string | null
   recordedByUserId?: Prisma.StringNullableFilter<"DailyOperationalExpense"> | string | null
   amount?: Prisma.DecimalFilter<"DailyOperationalExpense"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -265,6 +273,7 @@ export type DailyOperationalExpenseWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"DailyOperationalExpense"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"DailyOperationalExpense"> | Date | string | null
   staff?: Prisma.XOR<Prisma.StaffNullableScalarRelationFilter, Prisma.StaffWhereInput> | null
+  worker?: Prisma.XOR<Prisma.ManpowerWorkerNullableScalarRelationFilter, Prisma.ManpowerWorkerWhereInput> | null
   project?: Prisma.XOR<Prisma.ProjectNullableScalarRelationFilter, Prisma.ProjectWhereInput> | null
   recordedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
@@ -272,6 +281,7 @@ export type DailyOperationalExpenseWhereInput = {
 export type DailyOperationalExpenseOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   staffId?: Prisma.SortOrderInput | Prisma.SortOrder
+  workerId?: Prisma.SortOrderInput | Prisma.SortOrder
   projectId?: Prisma.SortOrderInput | Prisma.SortOrder
   recordedByUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   amount?: Prisma.SortOrder
@@ -282,6 +292,7 @@ export type DailyOperationalExpenseOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   staff?: Prisma.StaffOrderByWithRelationInput
+  worker?: Prisma.ManpowerWorkerOrderByWithRelationInput
   project?: Prisma.ProjectOrderByWithRelationInput
   recordedBy?: Prisma.UserOrderByWithRelationInput
 }
@@ -292,6 +303,7 @@ export type DailyOperationalExpenseWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.DailyOperationalExpenseWhereInput[]
   NOT?: Prisma.DailyOperationalExpenseWhereInput | Prisma.DailyOperationalExpenseWhereInput[]
   staffId?: Prisma.StringNullableFilter<"DailyOperationalExpense"> | string | null
+  workerId?: Prisma.StringNullableFilter<"DailyOperationalExpense"> | string | null
   projectId?: Prisma.StringNullableFilter<"DailyOperationalExpense"> | string | null
   recordedByUserId?: Prisma.StringNullableFilter<"DailyOperationalExpense"> | string | null
   amount?: Prisma.DecimalFilter<"DailyOperationalExpense"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -302,6 +314,7 @@ export type DailyOperationalExpenseWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"DailyOperationalExpense"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"DailyOperationalExpense"> | Date | string | null
   staff?: Prisma.XOR<Prisma.StaffNullableScalarRelationFilter, Prisma.StaffWhereInput> | null
+  worker?: Prisma.XOR<Prisma.ManpowerWorkerNullableScalarRelationFilter, Prisma.ManpowerWorkerWhereInput> | null
   project?: Prisma.XOR<Prisma.ProjectNullableScalarRelationFilter, Prisma.ProjectWhereInput> | null
   recordedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id">
@@ -309,6 +322,7 @@ export type DailyOperationalExpenseWhereUniqueInput = Prisma.AtLeast<{
 export type DailyOperationalExpenseOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   staffId?: Prisma.SortOrderInput | Prisma.SortOrder
+  workerId?: Prisma.SortOrderInput | Prisma.SortOrder
   projectId?: Prisma.SortOrderInput | Prisma.SortOrder
   recordedByUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   amount?: Prisma.SortOrder
@@ -331,6 +345,7 @@ export type DailyOperationalExpenseScalarWhereWithAggregatesInput = {
   NOT?: Prisma.DailyOperationalExpenseScalarWhereWithAggregatesInput | Prisma.DailyOperationalExpenseScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"DailyOperationalExpense"> | string
   staffId?: Prisma.StringNullableWithAggregatesFilter<"DailyOperationalExpense"> | string | null
+  workerId?: Prisma.StringNullableWithAggregatesFilter<"DailyOperationalExpense"> | string | null
   projectId?: Prisma.StringNullableWithAggregatesFilter<"DailyOperationalExpense"> | string | null
   recordedByUserId?: Prisma.StringNullableWithAggregatesFilter<"DailyOperationalExpense"> | string | null
   amount?: Prisma.DecimalWithAggregatesFilter<"DailyOperationalExpense"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -352,6 +367,7 @@ export type DailyOperationalExpenseCreateInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   staff?: Prisma.StaffCreateNestedOneWithoutDailyExpensesInput
+  worker?: Prisma.ManpowerWorkerCreateNestedOneWithoutDailyExpensesInput
   project?: Prisma.ProjectCreateNestedOneWithoutDailyExpensesInput
   recordedBy?: Prisma.UserCreateNestedOneWithoutRecordedDailyExpensesInput
 }
@@ -359,6 +375,7 @@ export type DailyOperationalExpenseCreateInput = {
 export type DailyOperationalExpenseUncheckedCreateInput = {
   id?: string
   staffId?: string | null
+  workerId?: string | null
   projectId?: string | null
   recordedByUserId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -380,6 +397,7 @@ export type DailyOperationalExpenseUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   staff?: Prisma.StaffUpdateOneWithoutDailyExpensesNestedInput
+  worker?: Prisma.ManpowerWorkerUpdateOneWithoutDailyExpensesNestedInput
   project?: Prisma.ProjectUpdateOneWithoutDailyExpensesNestedInput
   recordedBy?: Prisma.UserUpdateOneWithoutRecordedDailyExpensesNestedInput
 }
@@ -387,6 +405,7 @@ export type DailyOperationalExpenseUpdateInput = {
 export type DailyOperationalExpenseUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recordedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -401,6 +420,7 @@ export type DailyOperationalExpenseUncheckedUpdateInput = {
 export type DailyOperationalExpenseCreateManyInput = {
   id?: string
   staffId?: string | null
+  workerId?: string | null
   projectId?: string | null
   recordedByUserId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -426,6 +446,7 @@ export type DailyOperationalExpenseUpdateManyMutationInput = {
 export type DailyOperationalExpenseUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recordedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -450,6 +471,7 @@ export type DailyOperationalExpenseOrderByRelationAggregateInput = {
 export type DailyOperationalExpenseCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   staffId?: Prisma.SortOrder
+  workerId?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   recordedByUserId?: Prisma.SortOrder
   amount?: Prisma.SortOrder
@@ -468,6 +490,7 @@ export type DailyOperationalExpenseAvgOrderByAggregateInput = {
 export type DailyOperationalExpenseMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   staffId?: Prisma.SortOrder
+  workerId?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   recordedByUserId?: Prisma.SortOrder
   amount?: Prisma.SortOrder
@@ -482,6 +505,7 @@ export type DailyOperationalExpenseMaxOrderByAggregateInput = {
 export type DailyOperationalExpenseMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   staffId?: Prisma.SortOrder
+  workerId?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   recordedByUserId?: Prisma.SortOrder
   amount?: Prisma.SortOrder
@@ -623,6 +647,48 @@ export type DailyOperationalExpenseUncheckedUpdateManyWithoutProjectNestedInput 
   deleteMany?: Prisma.DailyOperationalExpenseScalarWhereInput | Prisma.DailyOperationalExpenseScalarWhereInput[]
 }
 
+export type DailyOperationalExpenseCreateNestedManyWithoutWorkerInput = {
+  create?: Prisma.XOR<Prisma.DailyOperationalExpenseCreateWithoutWorkerInput, Prisma.DailyOperationalExpenseUncheckedCreateWithoutWorkerInput> | Prisma.DailyOperationalExpenseCreateWithoutWorkerInput[] | Prisma.DailyOperationalExpenseUncheckedCreateWithoutWorkerInput[]
+  connectOrCreate?: Prisma.DailyOperationalExpenseCreateOrConnectWithoutWorkerInput | Prisma.DailyOperationalExpenseCreateOrConnectWithoutWorkerInput[]
+  createMany?: Prisma.DailyOperationalExpenseCreateManyWorkerInputEnvelope
+  connect?: Prisma.DailyOperationalExpenseWhereUniqueInput | Prisma.DailyOperationalExpenseWhereUniqueInput[]
+}
+
+export type DailyOperationalExpenseUncheckedCreateNestedManyWithoutWorkerInput = {
+  create?: Prisma.XOR<Prisma.DailyOperationalExpenseCreateWithoutWorkerInput, Prisma.DailyOperationalExpenseUncheckedCreateWithoutWorkerInput> | Prisma.DailyOperationalExpenseCreateWithoutWorkerInput[] | Prisma.DailyOperationalExpenseUncheckedCreateWithoutWorkerInput[]
+  connectOrCreate?: Prisma.DailyOperationalExpenseCreateOrConnectWithoutWorkerInput | Prisma.DailyOperationalExpenseCreateOrConnectWithoutWorkerInput[]
+  createMany?: Prisma.DailyOperationalExpenseCreateManyWorkerInputEnvelope
+  connect?: Prisma.DailyOperationalExpenseWhereUniqueInput | Prisma.DailyOperationalExpenseWhereUniqueInput[]
+}
+
+export type DailyOperationalExpenseUpdateManyWithoutWorkerNestedInput = {
+  create?: Prisma.XOR<Prisma.DailyOperationalExpenseCreateWithoutWorkerInput, Prisma.DailyOperationalExpenseUncheckedCreateWithoutWorkerInput> | Prisma.DailyOperationalExpenseCreateWithoutWorkerInput[] | Prisma.DailyOperationalExpenseUncheckedCreateWithoutWorkerInput[]
+  connectOrCreate?: Prisma.DailyOperationalExpenseCreateOrConnectWithoutWorkerInput | Prisma.DailyOperationalExpenseCreateOrConnectWithoutWorkerInput[]
+  upsert?: Prisma.DailyOperationalExpenseUpsertWithWhereUniqueWithoutWorkerInput | Prisma.DailyOperationalExpenseUpsertWithWhereUniqueWithoutWorkerInput[]
+  createMany?: Prisma.DailyOperationalExpenseCreateManyWorkerInputEnvelope
+  set?: Prisma.DailyOperationalExpenseWhereUniqueInput | Prisma.DailyOperationalExpenseWhereUniqueInput[]
+  disconnect?: Prisma.DailyOperationalExpenseWhereUniqueInput | Prisma.DailyOperationalExpenseWhereUniqueInput[]
+  delete?: Prisma.DailyOperationalExpenseWhereUniqueInput | Prisma.DailyOperationalExpenseWhereUniqueInput[]
+  connect?: Prisma.DailyOperationalExpenseWhereUniqueInput | Prisma.DailyOperationalExpenseWhereUniqueInput[]
+  update?: Prisma.DailyOperationalExpenseUpdateWithWhereUniqueWithoutWorkerInput | Prisma.DailyOperationalExpenseUpdateWithWhereUniqueWithoutWorkerInput[]
+  updateMany?: Prisma.DailyOperationalExpenseUpdateManyWithWhereWithoutWorkerInput | Prisma.DailyOperationalExpenseUpdateManyWithWhereWithoutWorkerInput[]
+  deleteMany?: Prisma.DailyOperationalExpenseScalarWhereInput | Prisma.DailyOperationalExpenseScalarWhereInput[]
+}
+
+export type DailyOperationalExpenseUncheckedUpdateManyWithoutWorkerNestedInput = {
+  create?: Prisma.XOR<Prisma.DailyOperationalExpenseCreateWithoutWorkerInput, Prisma.DailyOperationalExpenseUncheckedCreateWithoutWorkerInput> | Prisma.DailyOperationalExpenseCreateWithoutWorkerInput[] | Prisma.DailyOperationalExpenseUncheckedCreateWithoutWorkerInput[]
+  connectOrCreate?: Prisma.DailyOperationalExpenseCreateOrConnectWithoutWorkerInput | Prisma.DailyOperationalExpenseCreateOrConnectWithoutWorkerInput[]
+  upsert?: Prisma.DailyOperationalExpenseUpsertWithWhereUniqueWithoutWorkerInput | Prisma.DailyOperationalExpenseUpsertWithWhereUniqueWithoutWorkerInput[]
+  createMany?: Prisma.DailyOperationalExpenseCreateManyWorkerInputEnvelope
+  set?: Prisma.DailyOperationalExpenseWhereUniqueInput | Prisma.DailyOperationalExpenseWhereUniqueInput[]
+  disconnect?: Prisma.DailyOperationalExpenseWhereUniqueInput | Prisma.DailyOperationalExpenseWhereUniqueInput[]
+  delete?: Prisma.DailyOperationalExpenseWhereUniqueInput | Prisma.DailyOperationalExpenseWhereUniqueInput[]
+  connect?: Prisma.DailyOperationalExpenseWhereUniqueInput | Prisma.DailyOperationalExpenseWhereUniqueInput[]
+  update?: Prisma.DailyOperationalExpenseUpdateWithWhereUniqueWithoutWorkerInput | Prisma.DailyOperationalExpenseUpdateWithWhereUniqueWithoutWorkerInput[]
+  updateMany?: Prisma.DailyOperationalExpenseUpdateManyWithWhereWithoutWorkerInput | Prisma.DailyOperationalExpenseUpdateManyWithWhereWithoutWorkerInput[]
+  deleteMany?: Prisma.DailyOperationalExpenseScalarWhereInput | Prisma.DailyOperationalExpenseScalarWhereInput[]
+}
+
 export type DailyOperationalExpenseCreateWithoutRecordedByInput = {
   id?: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -633,12 +699,14 @@ export type DailyOperationalExpenseCreateWithoutRecordedByInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   staff?: Prisma.StaffCreateNestedOneWithoutDailyExpensesInput
+  worker?: Prisma.ManpowerWorkerCreateNestedOneWithoutDailyExpensesInput
   project?: Prisma.ProjectCreateNestedOneWithoutDailyExpensesInput
 }
 
 export type DailyOperationalExpenseUncheckedCreateWithoutRecordedByInput = {
   id?: string
   staffId?: string | null
+  workerId?: string | null
   projectId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   description: string
@@ -681,6 +749,7 @@ export type DailyOperationalExpenseScalarWhereInput = {
   NOT?: Prisma.DailyOperationalExpenseScalarWhereInput | Prisma.DailyOperationalExpenseScalarWhereInput[]
   id?: Prisma.StringFilter<"DailyOperationalExpense"> | string
   staffId?: Prisma.StringNullableFilter<"DailyOperationalExpense"> | string | null
+  workerId?: Prisma.StringNullableFilter<"DailyOperationalExpense"> | string | null
   projectId?: Prisma.StringNullableFilter<"DailyOperationalExpense"> | string | null
   recordedByUserId?: Prisma.StringNullableFilter<"DailyOperationalExpense"> | string | null
   amount?: Prisma.DecimalFilter<"DailyOperationalExpense"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -701,12 +770,14 @@ export type DailyOperationalExpenseCreateWithoutStaffInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  worker?: Prisma.ManpowerWorkerCreateNestedOneWithoutDailyExpensesInput
   project?: Prisma.ProjectCreateNestedOneWithoutDailyExpensesInput
   recordedBy?: Prisma.UserCreateNestedOneWithoutRecordedDailyExpensesInput
 }
 
 export type DailyOperationalExpenseUncheckedCreateWithoutStaffInput = {
   id?: string
+  workerId?: string | null
   projectId?: string | null
   recordedByUserId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -754,12 +825,14 @@ export type DailyOperationalExpenseCreateWithoutProjectInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   staff?: Prisma.StaffCreateNestedOneWithoutDailyExpensesInput
+  worker?: Prisma.ManpowerWorkerCreateNestedOneWithoutDailyExpensesInput
   recordedBy?: Prisma.UserCreateNestedOneWithoutRecordedDailyExpensesInput
 }
 
 export type DailyOperationalExpenseUncheckedCreateWithoutProjectInput = {
   id?: string
   staffId?: string | null
+  workerId?: string | null
   recordedByUserId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   description: string
@@ -796,9 +869,64 @@ export type DailyOperationalExpenseUpdateManyWithWhereWithoutProjectInput = {
   data: Prisma.XOR<Prisma.DailyOperationalExpenseUpdateManyMutationInput, Prisma.DailyOperationalExpenseUncheckedUpdateManyWithoutProjectInput>
 }
 
+export type DailyOperationalExpenseCreateWithoutWorkerInput = {
+  id?: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  description: string
+  category?: string
+  date?: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  staff?: Prisma.StaffCreateNestedOneWithoutDailyExpensesInput
+  project?: Prisma.ProjectCreateNestedOneWithoutDailyExpensesInput
+  recordedBy?: Prisma.UserCreateNestedOneWithoutRecordedDailyExpensesInput
+}
+
+export type DailyOperationalExpenseUncheckedCreateWithoutWorkerInput = {
+  id?: string
+  staffId?: string | null
+  projectId?: string | null
+  recordedByUserId?: string | null
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  description: string
+  category?: string
+  date?: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+}
+
+export type DailyOperationalExpenseCreateOrConnectWithoutWorkerInput = {
+  where: Prisma.DailyOperationalExpenseWhereUniqueInput
+  create: Prisma.XOR<Prisma.DailyOperationalExpenseCreateWithoutWorkerInput, Prisma.DailyOperationalExpenseUncheckedCreateWithoutWorkerInput>
+}
+
+export type DailyOperationalExpenseCreateManyWorkerInputEnvelope = {
+  data: Prisma.DailyOperationalExpenseCreateManyWorkerInput | Prisma.DailyOperationalExpenseCreateManyWorkerInput[]
+  skipDuplicates?: boolean
+}
+
+export type DailyOperationalExpenseUpsertWithWhereUniqueWithoutWorkerInput = {
+  where: Prisma.DailyOperationalExpenseWhereUniqueInput
+  update: Prisma.XOR<Prisma.DailyOperationalExpenseUpdateWithoutWorkerInput, Prisma.DailyOperationalExpenseUncheckedUpdateWithoutWorkerInput>
+  create: Prisma.XOR<Prisma.DailyOperationalExpenseCreateWithoutWorkerInput, Prisma.DailyOperationalExpenseUncheckedCreateWithoutWorkerInput>
+}
+
+export type DailyOperationalExpenseUpdateWithWhereUniqueWithoutWorkerInput = {
+  where: Prisma.DailyOperationalExpenseWhereUniqueInput
+  data: Prisma.XOR<Prisma.DailyOperationalExpenseUpdateWithoutWorkerInput, Prisma.DailyOperationalExpenseUncheckedUpdateWithoutWorkerInput>
+}
+
+export type DailyOperationalExpenseUpdateManyWithWhereWithoutWorkerInput = {
+  where: Prisma.DailyOperationalExpenseScalarWhereInput
+  data: Prisma.XOR<Prisma.DailyOperationalExpenseUpdateManyMutationInput, Prisma.DailyOperationalExpenseUncheckedUpdateManyWithoutWorkerInput>
+}
+
 export type DailyOperationalExpenseCreateManyRecordedByInput = {
   id?: string
   staffId?: string | null
+  workerId?: string | null
   projectId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   description: string
@@ -819,12 +947,14 @@ export type DailyOperationalExpenseUpdateWithoutRecordedByInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   staff?: Prisma.StaffUpdateOneWithoutDailyExpensesNestedInput
+  worker?: Prisma.ManpowerWorkerUpdateOneWithoutDailyExpensesNestedInput
   project?: Prisma.ProjectUpdateOneWithoutDailyExpensesNestedInput
 }
 
 export type DailyOperationalExpenseUncheckedUpdateWithoutRecordedByInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -838,6 +968,7 @@ export type DailyOperationalExpenseUncheckedUpdateWithoutRecordedByInput = {
 export type DailyOperationalExpenseUncheckedUpdateManyWithoutRecordedByInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -850,6 +981,7 @@ export type DailyOperationalExpenseUncheckedUpdateManyWithoutRecordedByInput = {
 
 export type DailyOperationalExpenseCreateManyStaffInput = {
   id?: string
+  workerId?: string | null
   projectId?: string | null
   recordedByUserId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -870,12 +1002,14 @@ export type DailyOperationalExpenseUpdateWithoutStaffInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  worker?: Prisma.ManpowerWorkerUpdateOneWithoutDailyExpensesNestedInput
   project?: Prisma.ProjectUpdateOneWithoutDailyExpensesNestedInput
   recordedBy?: Prisma.UserUpdateOneWithoutRecordedDailyExpensesNestedInput
 }
 
 export type DailyOperationalExpenseUncheckedUpdateWithoutStaffInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recordedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -889,6 +1023,7 @@ export type DailyOperationalExpenseUncheckedUpdateWithoutStaffInput = {
 
 export type DailyOperationalExpenseUncheckedUpdateManyWithoutStaffInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recordedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -903,6 +1038,7 @@ export type DailyOperationalExpenseUncheckedUpdateManyWithoutStaffInput = {
 export type DailyOperationalExpenseCreateManyProjectInput = {
   id?: string
   staffId?: string | null
+  workerId?: string | null
   recordedByUserId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   description: string
@@ -923,12 +1059,14 @@ export type DailyOperationalExpenseUpdateWithoutProjectInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   staff?: Prisma.StaffUpdateOneWithoutDailyExpensesNestedInput
+  worker?: Prisma.ManpowerWorkerUpdateOneWithoutDailyExpensesNestedInput
   recordedBy?: Prisma.UserUpdateOneWithoutRecordedDailyExpensesNestedInput
 }
 
 export type DailyOperationalExpenseUncheckedUpdateWithoutProjectInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recordedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -942,6 +1080,63 @@ export type DailyOperationalExpenseUncheckedUpdateWithoutProjectInput = {
 export type DailyOperationalExpenseUncheckedUpdateManyWithoutProjectInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type DailyOperationalExpenseCreateManyWorkerInput = {
+  id?: string
+  staffId?: string | null
+  projectId?: string | null
+  recordedByUserId?: string | null
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  description: string
+  category?: string
+  date?: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+}
+
+export type DailyOperationalExpenseUpdateWithoutWorkerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  staff?: Prisma.StaffUpdateOneWithoutDailyExpensesNestedInput
+  project?: Prisma.ProjectUpdateOneWithoutDailyExpensesNestedInput
+  recordedBy?: Prisma.UserUpdateOneWithoutRecordedDailyExpensesNestedInput
+}
+
+export type DailyOperationalExpenseUncheckedUpdateWithoutWorkerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recordedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type DailyOperationalExpenseUncheckedUpdateManyWithoutWorkerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  staffId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recordedByUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -957,6 +1152,7 @@ export type DailyOperationalExpenseUncheckedUpdateManyWithoutProjectInput = {
 export type DailyOperationalExpenseSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   staffId?: boolean
+  workerId?: boolean
   projectId?: boolean
   recordedByUserId?: boolean
   amount?: boolean
@@ -967,6 +1163,7 @@ export type DailyOperationalExpenseSelect<ExtArgs extends runtime.Types.Extensio
   updatedAt?: boolean
   deletedAt?: boolean
   staff?: boolean | Prisma.DailyOperationalExpense$staffArgs<ExtArgs>
+  worker?: boolean | Prisma.DailyOperationalExpense$workerArgs<ExtArgs>
   project?: boolean | Prisma.DailyOperationalExpense$projectArgs<ExtArgs>
   recordedBy?: boolean | Prisma.DailyOperationalExpense$recordedByArgs<ExtArgs>
 }, ExtArgs["result"]["dailyOperationalExpense"]>
@@ -974,6 +1171,7 @@ export type DailyOperationalExpenseSelect<ExtArgs extends runtime.Types.Extensio
 export type DailyOperationalExpenseSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   staffId?: boolean
+  workerId?: boolean
   projectId?: boolean
   recordedByUserId?: boolean
   amount?: boolean
@@ -984,6 +1182,7 @@ export type DailyOperationalExpenseSelectCreateManyAndReturn<ExtArgs extends run
   updatedAt?: boolean
   deletedAt?: boolean
   staff?: boolean | Prisma.DailyOperationalExpense$staffArgs<ExtArgs>
+  worker?: boolean | Prisma.DailyOperationalExpense$workerArgs<ExtArgs>
   project?: boolean | Prisma.DailyOperationalExpense$projectArgs<ExtArgs>
   recordedBy?: boolean | Prisma.DailyOperationalExpense$recordedByArgs<ExtArgs>
 }, ExtArgs["result"]["dailyOperationalExpense"]>
@@ -991,6 +1190,7 @@ export type DailyOperationalExpenseSelectCreateManyAndReturn<ExtArgs extends run
 export type DailyOperationalExpenseSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   staffId?: boolean
+  workerId?: boolean
   projectId?: boolean
   recordedByUserId?: boolean
   amount?: boolean
@@ -1001,6 +1201,7 @@ export type DailyOperationalExpenseSelectUpdateManyAndReturn<ExtArgs extends run
   updatedAt?: boolean
   deletedAt?: boolean
   staff?: boolean | Prisma.DailyOperationalExpense$staffArgs<ExtArgs>
+  worker?: boolean | Prisma.DailyOperationalExpense$workerArgs<ExtArgs>
   project?: boolean | Prisma.DailyOperationalExpense$projectArgs<ExtArgs>
   recordedBy?: boolean | Prisma.DailyOperationalExpense$recordedByArgs<ExtArgs>
 }, ExtArgs["result"]["dailyOperationalExpense"]>
@@ -1008,6 +1209,7 @@ export type DailyOperationalExpenseSelectUpdateManyAndReturn<ExtArgs extends run
 export type DailyOperationalExpenseSelectScalar = {
   id?: boolean
   staffId?: boolean
+  workerId?: boolean
   projectId?: boolean
   recordedByUserId?: boolean
   amount?: boolean
@@ -1019,19 +1221,22 @@ export type DailyOperationalExpenseSelectScalar = {
   deletedAt?: boolean
 }
 
-export type DailyOperationalExpenseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "staffId" | "projectId" | "recordedByUserId" | "amount" | "description" | "category" | "date" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["dailyOperationalExpense"]>
+export type DailyOperationalExpenseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "staffId" | "workerId" | "projectId" | "recordedByUserId" | "amount" | "description" | "category" | "date" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["dailyOperationalExpense"]>
 export type DailyOperationalExpenseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   staff?: boolean | Prisma.DailyOperationalExpense$staffArgs<ExtArgs>
+  worker?: boolean | Prisma.DailyOperationalExpense$workerArgs<ExtArgs>
   project?: boolean | Prisma.DailyOperationalExpense$projectArgs<ExtArgs>
   recordedBy?: boolean | Prisma.DailyOperationalExpense$recordedByArgs<ExtArgs>
 }
 export type DailyOperationalExpenseIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   staff?: boolean | Prisma.DailyOperationalExpense$staffArgs<ExtArgs>
+  worker?: boolean | Prisma.DailyOperationalExpense$workerArgs<ExtArgs>
   project?: boolean | Prisma.DailyOperationalExpense$projectArgs<ExtArgs>
   recordedBy?: boolean | Prisma.DailyOperationalExpense$recordedByArgs<ExtArgs>
 }
 export type DailyOperationalExpenseIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   staff?: boolean | Prisma.DailyOperationalExpense$staffArgs<ExtArgs>
+  worker?: boolean | Prisma.DailyOperationalExpense$workerArgs<ExtArgs>
   project?: boolean | Prisma.DailyOperationalExpense$projectArgs<ExtArgs>
   recordedBy?: boolean | Prisma.DailyOperationalExpense$recordedByArgs<ExtArgs>
 }
@@ -1040,12 +1245,14 @@ export type $DailyOperationalExpensePayload<ExtArgs extends runtime.Types.Extens
   name: "DailyOperationalExpense"
   objects: {
     staff: Prisma.$StaffPayload<ExtArgs> | null
+    worker: Prisma.$ManpowerWorkerPayload<ExtArgs> | null
     project: Prisma.$ProjectPayload<ExtArgs> | null
     recordedBy: Prisma.$UserPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     staffId: string | null
+    workerId: string | null
     projectId: string | null
     recordedByUserId: string | null
     amount: runtime.Decimal
@@ -1450,6 +1657,7 @@ readonly fields: DailyOperationalExpenseFieldRefs;
 export interface Prisma__DailyOperationalExpenseClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   staff<T extends Prisma.DailyOperationalExpense$staffArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DailyOperationalExpense$staffArgs<ExtArgs>>): Prisma.Prisma__StaffClient<runtime.Types.Result.GetResult<Prisma.$StaffPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  worker<T extends Prisma.DailyOperationalExpense$workerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DailyOperationalExpense$workerArgs<ExtArgs>>): Prisma.Prisma__ManpowerWorkerClient<runtime.Types.Result.GetResult<Prisma.$ManpowerWorkerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   project<T extends Prisma.DailyOperationalExpense$projectArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DailyOperationalExpense$projectArgs<ExtArgs>>): Prisma.Prisma__ProjectClient<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   recordedBy<T extends Prisma.DailyOperationalExpense$recordedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.DailyOperationalExpense$recordedByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
@@ -1483,6 +1691,7 @@ export interface Prisma__DailyOperationalExpenseClient<T, Null = never, ExtArgs 
 export interface DailyOperationalExpenseFieldRefs {
   readonly id: Prisma.FieldRef<"DailyOperationalExpense", 'String'>
   readonly staffId: Prisma.FieldRef<"DailyOperationalExpense", 'String'>
+  readonly workerId: Prisma.FieldRef<"DailyOperationalExpense", 'String'>
   readonly projectId: Prisma.FieldRef<"DailyOperationalExpense", 'String'>
   readonly recordedByUserId: Prisma.FieldRef<"DailyOperationalExpense", 'String'>
   readonly amount: Prisma.FieldRef<"DailyOperationalExpense", 'Decimal'>
@@ -1909,6 +2118,25 @@ export type DailyOperationalExpense$staffArgs<ExtArgs extends runtime.Types.Exte
    */
   include?: Prisma.StaffInclude<ExtArgs> | null
   where?: Prisma.StaffWhereInput
+}
+
+/**
+ * DailyOperationalExpense.worker
+ */
+export type DailyOperationalExpense$workerArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ManpowerWorker
+   */
+  select?: Prisma.ManpowerWorkerSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ManpowerWorker
+   */
+  omit?: Prisma.ManpowerWorkerOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ManpowerWorkerInclude<ExtArgs> | null
+  where?: Prisma.ManpowerWorkerWhereInput
 }
 
 /**

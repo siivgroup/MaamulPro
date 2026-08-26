@@ -11,7 +11,7 @@
 import { Pool } from "pg";
 import { connectionTimeoutMillis, getDatabaseConnectionPair } from "./database-url";
 
-export const CURRENT_TENANT_SCHEMA_VERSION = 26;
+export const CURRENT_TENANT_SCHEMA_VERSION = 27;
 
 export const TENANT_SCHEMA_STATEMENTS: string[] = [
   // ── Enum types ─────────────────────────────────────────────
@@ -525,9 +525,26 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
     "deleted_at" TIMESTAMP(3)
   )`,
 
+  `CREATE TABLE IF NOT EXISTS "manpower_workers" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "linked_staff_id" TEXT UNIQUE,
+    "first_name" TEXT,
+    "last_name" TEXT,
+    "phone" TEXT,
+    "position" TEXT,
+    "worker_type_id" TEXT,
+    "assigned_project_id" TEXT,
+    "notes" TEXT,
+    "status" "StaffStatus" NOT NULL DEFAULT 'ACTIVE',
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" TIMESTAMP(3)
+  )`,
+
   `CREATE TABLE IF NOT EXISTS "daily_operational_expenses" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "staff_id" TEXT,
+    "worker_id" TEXT,
     "project_id" TEXT,
     "amount" DECIMAL(12,2) NOT NULL,
     "description" TEXT NOT NULL,
@@ -592,6 +609,7 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
     "id" TEXT NOT NULL PRIMARY KEY,
     "user_id" TEXT,
     "staff_id" TEXT,
+    "worker_id" TEXT,
     "project_id" TEXT,
     "type" "TransactionType" NOT NULL,
     "amount" DECIMAL(12,2) NOT NULL,
@@ -601,6 +619,14 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   )`,
 
   // ── Column Additions (idempotent) ────────────────────────────
+  `DO $$ BEGIN
+    ALTER TABLE "daily_operational_expenses" ADD COLUMN "worker_id" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "worker_ledger_entries" ADD COLUMN "worker_id" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
   `DO $$ BEGIN
     ALTER TABLE "users" ADD COLUMN "construction_access" BOOLEAN NOT NULL DEFAULT true;
   EXCEPTION WHEN duplicate_column THEN null; END $$`,
@@ -844,6 +870,11 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   EXCEPTION WHEN duplicate_object THEN null; END $$`,
 
   `DO $$ BEGIN
+    ALTER TABLE "worker_ledger_entries" ADD CONSTRAINT "worker_ledger_entries_worker_id_fkey"
+      FOREIGN KEY ("worker_id") REFERENCES "manpower_workers"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
     ALTER TABLE "worker_ledger_entries" ADD CONSTRAINT "worker_ledger_entries_project_id_fkey"
       FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE SET NULL;
   EXCEPTION WHEN duplicate_object THEN null; END $$`,
@@ -859,8 +890,28 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   EXCEPTION WHEN duplicate_object THEN null; END $$`,
 
   `DO $$ BEGIN
+    ALTER TABLE "manpower_workers" ADD CONSTRAINT "manpower_workers_linked_staff_id_fkey"
+      FOREIGN KEY ("linked_staff_id") REFERENCES "staff"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "manpower_workers" ADD CONSTRAINT "manpower_workers_worker_type_id_fkey"
+      FOREIGN KEY ("worker_type_id") REFERENCES "worker_types"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "manpower_workers" ADD CONSTRAINT "manpower_workers_assigned_project_id_fkey"
+      FOREIGN KEY ("assigned_project_id") REFERENCES "projects"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
     ALTER TABLE "daily_operational_expenses" ADD CONSTRAINT "daily_operational_expenses_staff_id_fkey"
       FOREIGN KEY ("staff_id") REFERENCES "staff"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "daily_operational_expenses" ADD CONSTRAINT "daily_operational_expenses_worker_id_fkey"
+      FOREIGN KEY ("worker_id") REFERENCES "manpower_workers"("id") ON DELETE SET NULL;
   EXCEPTION WHEN duplicate_object THEN null; END $$`,
 
   `DO $$ BEGIN
@@ -1108,7 +1159,8 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   `CREATE TABLE IF NOT EXISTS "workforce_contract_workers" (
     "id"          TEXT          NOT NULL PRIMARY KEY,
     "contract_id" TEXT          NOT NULL,
-    "staff_id"    TEXT          NOT NULL,
+    "staff_id"    TEXT,
+    "worker_id"   TEXT,
     "role"        TEXT,
     "notes"       TEXT,
     "assigned_at" TIMESTAMP(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1119,6 +1171,7 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
     "id"             TEXT          NOT NULL PRIMARY KEY,
     "contract_id"    TEXT          NOT NULL,
     "staff_id"       TEXT,
+    "worker_id"      TEXT,
     "payee_name"     TEXT,
     "amount"         DECIMAL(12,2) NOT NULL,
     "date"           TIMESTAMP(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1151,6 +1204,16 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   EXCEPTION WHEN duplicate_object THEN null; END $$`,
 
   `DO $$ BEGIN
+    ALTER TABLE "workforce_contract_workers" ADD COLUMN "worker_id" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `ALTER TABLE "workforce_contract_workers" ALTER COLUMN "staff_id" DROP NOT NULL`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "workforce_contract_payments" ADD COLUMN "worker_id" TEXT;
+  EXCEPTION WHEN duplicate_column THEN null; END $$`,
+
+  `DO $$ BEGIN
     ALTER TABLE "workforce_contract_workers" ADD CONSTRAINT "workforce_contract_workers_contract_id_fkey"
       FOREIGN KEY ("contract_id") REFERENCES "workforce_contracts"("id") ON DELETE CASCADE;
   EXCEPTION WHEN duplicate_object THEN null; END $$`,
@@ -1161,8 +1224,18 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   EXCEPTION WHEN duplicate_object THEN null; END $$`,
 
   `DO $$ BEGIN
+    ALTER TABLE "workforce_contract_workers" ADD CONSTRAINT "workforce_contract_workers_worker_id_fkey"
+      FOREIGN KEY ("worker_id") REFERENCES "manpower_workers"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
     ALTER TABLE "workforce_contract_payments" ADD CONSTRAINT "workforce_contract_payments_contract_id_fkey"
       FOREIGN KEY ("contract_id") REFERENCES "workforce_contracts"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "workforce_contract_payments" ADD CONSTRAINT "workforce_contract_payments_worker_id_fkey"
+      FOREIGN KEY ("worker_id") REFERENCES "manpower_workers"("id") ON DELETE SET NULL;
   EXCEPTION WHEN duplicate_object THEN null; END $$`,
 
   `DO $$ BEGIN
@@ -1201,12 +1274,21 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   `CREATE INDEX IF NOT EXISTS "workforce_contracts_project_id_idx" ON "workforce_contracts"("project_id")`,
   `CREATE INDEX IF NOT EXISTS "workforce_contracts_status_idx" ON "workforce_contracts"("status")`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "workforce_contract_workers_contract_id_staff_id_key" ON "workforce_contract_workers"("contract_id", "staff_id")`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "workforce_contract_workers_contract_id_worker_id_key" ON "workforce_contract_workers"("contract_id", "worker_id")`,
   `CREATE INDEX IF NOT EXISTS "workforce_contract_workers_staff_id_idx" ON "workforce_contract_workers"("staff_id")`,
+  `CREATE INDEX IF NOT EXISTS "workforce_contract_workers_worker_id_idx" ON "workforce_contract_workers"("worker_id")`,
   `CREATE INDEX IF NOT EXISTS "workforce_contract_payments_contract_id_idx" ON "workforce_contract_payments"("contract_id")`,
   `CREATE INDEX IF NOT EXISTS "workforce_contract_payments_staff_id_idx" ON "workforce_contract_payments"("staff_id")`,
+  `CREATE INDEX IF NOT EXISTS "workforce_contract_payments_worker_id_idx" ON "workforce_contract_payments"("worker_id")`,
   `CREATE INDEX IF NOT EXISTS "workforce_contract_payments_date_idx" ON "workforce_contract_payments"("date")`,
   `CREATE INDEX IF NOT EXISTS "workforce_contract_adjustments_contract_id_idx" ON "workforce_contract_adjustments"("contract_id")`,
   `CREATE INDEX IF NOT EXISTS "daily_operational_expenses_recorded_by_user_id_idx" ON "daily_operational_expenses"("recorded_by_user_id")`,
+  `CREATE INDEX IF NOT EXISTS "daily_operational_expenses_worker_id_idx" ON "daily_operational_expenses"("worker_id")`,
+  `CREATE INDEX IF NOT EXISTS "worker_ledger_entries_worker_id_idx" ON "worker_ledger_entries"("worker_id")`,
+  `CREATE INDEX IF NOT EXISTS "manpower_workers_worker_type_id_idx" ON "manpower_workers"("worker_type_id")`,
+  `CREATE INDEX IF NOT EXISTS "manpower_workers_assigned_project_id_idx" ON "manpower_workers"("assigned_project_id")`,
+  `CREATE INDEX IF NOT EXISTS "manpower_workers_status_idx" ON "manpower_workers"("status")`,
+  `CREATE INDEX IF NOT EXISTS "manpower_workers_deleted_at_idx" ON "manpower_workers"("deleted_at")`,
 
   `DO $$ BEGIN
     ALTER TABLE "workforce_contract_workers" DROP COLUMN IF EXISTS "daily_rate";

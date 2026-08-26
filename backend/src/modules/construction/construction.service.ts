@@ -7,6 +7,7 @@ import {
   ContractPaymentDto,
   DailyExpenseDto,
   InventoryMovementDto,
+  ManpowerWorkerDto,
   ProjectDto,
   TaskDto,
   WorkerLedgerDto,
@@ -184,19 +185,24 @@ export class ConstructionService {
     const where: any = { deletedAt: null };
     if (projectId) where.projectId = projectId;
 
-    return tenantDb.workforceContract.findMany({
+    const contracts = await tenantDb.workforceContract.findMany({
       where,
       include: {
         project: true,
-        payments: true,
+        payments: { include: { staff: true, worker: { include: { linkedStaff: true } } } },
         budgetAdjustments: true,
         workerAssignments: {
           where: { removedAt: null },
-          include: { staff: true },
+          include: { staff: true, worker: { include: { linkedStaff: true } } },
         },
       },
       orderBy: { createdAt: 'desc' },
     });
+    return contracts.map((contract: any) => ({
+      ...contract,
+      workerAssignments: contract.workerAssignments.map((row: any) => this.resolveWorker(row)),
+      payments: contract.payments.map((row: any) => this.resolveWorker(row)),
+    }));
   }
 
   async createWorkforceContract(tenantDb: any, data: WorkforceContractDto) {
@@ -224,12 +230,14 @@ export class ConstructionService {
       where: { id, deletedAt: null },
       include: {
         project: true,
-        workerAssignments: { include: { staff: true } },
-        payments: { include: { staff: true, recordedBy: true }, orderBy: { date: 'desc' } },
+        workerAssignments: { include: { staff: true, worker: { include: { linkedStaff: true } } } },
+        payments: { include: { staff: true, worker: { include: { linkedStaff: true } }, recordedBy: true }, orderBy: { date: 'desc' } },
         budgetAdjustments: { include: { adjustedBy: true }, orderBy: { createdAt: 'desc' } },
       },
     });
     if (!contract) throw new NotFoundException('Workforce contract not found');
+    contract.workerAssignments = contract.workerAssignments.map((row: any) => this.resolveWorker(row));
+    contract.payments = contract.payments.map((row: any) => this.resolveWorker(row));
     return contract;
   }
 
@@ -300,10 +308,10 @@ export class ConstructionService {
 
   async assignContractWorker(tenantDb: any, contractId: string, data: ContractAssignmentDto) {
     await this.getWorkforceContract(tenantDb, contractId);
-    const staff = await tenantDb.staff.findFirst({ where: { id: data.staffId, deletedAt: null } });
-    if (!staff) throw new NotFoundException('Staff member not found');
+    const worker = await tenantDb.manpowerWorker.findFirst({ where: { id: data.workerId, deletedAt: null } });
+    if (!worker) throw new NotFoundException('Worker not found');
     const existing = await tenantDb.workforceContractWorker.findUnique({
-      where: { contractId_staffId: { contractId, staffId: data.staffId } },
+      where: { contractId_workerId: { contractId, workerId: data.workerId } },
     });
     if (existing) {
       return tenantDb.workforceContractWorker.update({
@@ -312,13 +320,13 @@ export class ConstructionService {
       });
     }
     return tenantDb.workforceContractWorker.create({
-      data: { contractId, staffId: data.staffId, role: data.role, notes: data.notes },
+      data: { contractId, workerId: data.workerId, role: data.role, notes: data.notes },
     });
   }
 
-  async removeContractWorker(tenantDb: any, contractId: string, staffId: string) {
+  async removeContractWorker(tenantDb: any, contractId: string, workerId: string) {
     const result = await tenantDb.workforceContractWorker.updateMany({
-      where: { contractId, staffId, removedAt: null },
+      where: { contractId, workerId, removedAt: null },
       data: { removedAt: new Date() },
     });
     if (!result.count) throw new NotFoundException('Active worker assignment not found');
@@ -348,10 +356,16 @@ export class ConstructionService {
       if (!['ACTIVE', 'COMPLETED'].includes(contract.status)) {
         throw new BadRequestException('Payments can only be recorded for active or completed contracts');
       }
-      const assigned = await tx.workforceContractWorker.findFirst({
-        where: { contractId, staffId: data.staffId, removedAt: null },
-      });
-      if (!assigned) throw new BadRequestException('Worker is not actively assigned to this contract');
+      if (data.workerId || data.staffId) {
+        const assigned = await tx.workforceContractWorker.findFirst({
+          where: {
+            contractId,
+            removedAt: null,
+            OR: [data.workerId ? { workerId: data.workerId } : undefined, data.staffId ? { staffId: data.staffId } : undefined].filter(Boolean),
+          },
+        });
+        if (!assigned) throw new BadRequestException('Worker is not actively assigned to this contract');
+      }
       const adjustedBudget = contract.budgetAdjustments.reduce(
         (total: number, row: any) => total + Number(row.amount),
         Number(contract.originalBudget),
@@ -362,7 +376,9 @@ export class ConstructionService {
       const payment = await tx.workforceContractPayment.create({
         data: {
           contractId,
-          staffId: data.staffId,
+          workerId: data.workerId || undefined,
+          staffId: data.staffId || undefined,
+          payeeName: data.payeeName,
           amount: data.amount,
           date: data.date || new Date(),
           description: data.description,
@@ -378,7 +394,8 @@ export class ConstructionService {
       await tx.workerLedgerEntry.create({
         data: {
           userId,
-          staffId: data.staffId,
+          workerId: data.workerId || undefined,
+          staffId: data.staffId || undefined,
           projectId: contract.projectId,
           type: 'EXPENSE',
           amount: data.amount,
@@ -483,12 +500,127 @@ export class ConstructionService {
 
   async deleteWorkerType(tenantDb: any, id: string) {
     const assigned = await tenantDb.staff.count({ where: { workerTypeId: id, deletedAt: null } });
-    if (assigned) throw new ConflictException('Worker type is assigned to active staff');
+    const assignedWorkers = await tenantDb.manpowerWorker.count({ where: { workerTypeId: id, deletedAt: null } });
+    if (assigned || assignedWorkers) throw new ConflictException('Worker type is assigned to active staff');
     const result = await tenantDb.workerType.updateMany({
       where: { id, deletedAt: null },
       data: { deletedAt: new Date() },
     });
     if (!result.count) throw new NotFoundException('Worker type not found');
+    return { deleted: true };
+  }
+
+  // Resolves the display identity for a row that may carry either the
+  // legacy `staff` relation or the current `worker` relation (itself
+  // possibly linked to a Staff record) so every read path renders the
+  // same {worker: {firstName, lastName, phone, position}} shape
+  // regardless of which era the row was written in.
+  private resolveWorker<T extends { staff?: any; worker?: any }>(row: T): T {
+    if (row.worker) {
+      const linked = row.worker.linkedStaff;
+      return {
+        ...row,
+        worker: {
+          ...row.worker,
+          firstName: linked?.firstName ?? row.worker.firstName,
+          lastName: linked?.lastName ?? row.worker.lastName,
+          phone: linked?.phone ?? row.worker.phone,
+          position: linked?.position ?? row.worker.position,
+        },
+      };
+    }
+    if (row.staff) {
+      const { firstName, lastName, phone, position } = row.staff;
+      return { ...row, worker: { id: null, firstName, lastName, phone, position } };
+    }
+    return { ...row, worker: null };
+  }
+
+  private flattenManpowerWorker(worker: any) {
+    if (!worker) return worker;
+    const linked = worker.linkedStaff;
+    return {
+      ...worker,
+      firstName: linked?.firstName ?? worker.firstName,
+      lastName: linked?.lastName ?? worker.lastName,
+      phone: linked?.phone ?? worker.phone,
+      position: linked?.position ?? worker.position,
+    };
+  }
+
+  listManpowerWorkers(tenantDb: any) {
+    return tenantDb.manpowerWorker
+      .findMany({
+        where: { deletedAt: null },
+        include: { linkedStaff: true, workerType: true, assignedProject: true },
+        orderBy: { createdAt: 'desc' },
+      })
+      .then((rows: any[]) => rows.map((row) => this.flattenManpowerWorker(row)));
+  }
+
+  async getManpowerWorkerOptions(tenantDb: any) {
+    const workers = await tenantDb.manpowerWorker.findMany({
+      where: { deletedAt: null, status: 'ACTIVE' },
+      include: { linkedStaff: true },
+      orderBy: { createdAt: 'desc' },
+    });
+    return workers
+      .map((row: any) => this.flattenManpowerWorker(row))
+      .map((row: any) => ({ id: row.id, firstName: row.firstName, lastName: row.lastName, phone: row.phone, position: row.position }));
+  }
+
+  async createManpowerWorker(tenantDb: any, data: ManpowerWorkerDto) {
+    if (!data.linkedStaffId && !(data.firstName && data.lastName)) {
+      throw new BadRequestException('Provide either an existing staff member or a first and last name for the new worker');
+    }
+    if (data.linkedStaffId) {
+      const staff = await tenantDb.staff.findFirst({ where: { id: data.linkedStaffId, deletedAt: null } });
+      if (!staff) throw new NotFoundException('Staff member not found');
+    }
+    const worker = await tenantDb.manpowerWorker.create({
+      data: {
+        linkedStaffId: data.linkedStaffId,
+        firstName: data.linkedStaffId ? undefined : data.firstName,
+        lastName: data.linkedStaffId ? undefined : data.lastName,
+        phone: data.linkedStaffId ? undefined : data.phone,
+        position: data.linkedStaffId ? undefined : data.position,
+        workerTypeId: data.workerTypeId,
+        assignedProjectId: data.assignedProjectId,
+        notes: data.notes,
+        status: (data.status as any) || 'ACTIVE',
+      },
+      include: { linkedStaff: true },
+    });
+    return this.flattenManpowerWorker(worker);
+  }
+
+  async updateManpowerWorker(tenantDb: any, id: string, data: ManpowerWorkerDto) {
+    const current = await tenantDb.manpowerWorker.findFirst({ where: { id, deletedAt: null } });
+    if (!current) throw new NotFoundException('Worker not found');
+    const isLinked = Boolean(current.linkedStaffId);
+    const worker = await tenantDb.manpowerWorker.update({
+      where: { id },
+      data: {
+        firstName: isLinked ? undefined : data.firstName,
+        lastName: isLinked ? undefined : data.lastName,
+        phone: isLinked ? undefined : data.phone,
+        position: isLinked ? undefined : data.position,
+        workerTypeId: data.workerTypeId,
+        assignedProjectId: data.assignedProjectId,
+        notes: data.notes,
+        status: data.status as any,
+      },
+      include: { linkedStaff: true },
+    });
+    return this.flattenManpowerWorker(worker);
+  }
+
+  async deleteManpowerWorker(tenantDb: any, id: string) {
+    const result = await tenantDb.manpowerWorker.updateMany({
+      where: { id, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+    if (!result.count) throw new NotFoundException('Worker not found');
     return { deleted: true };
   }
 
@@ -499,22 +631,18 @@ export class ConstructionService {
       expenseWhere.projectId = projectId;
       ledgerWhere.projectId = projectId;
     }
-    const [workers, workerTypes, expenses, ledger, expenseTotals] = await Promise.all([
-      tenantDb.staff.findMany({
-        where: { deletedAt: null, department: 'CONSTRUCTION' },
-        include: { workerType: true, assignedProject: true },
-        orderBy: { firstName: 'asc' },
-      }),
+    const [workers, workerTypes, expensesRaw, ledgerRaw, expenseTotals] = await Promise.all([
+      this.listManpowerWorkers(tenantDb),
       this.listWorkerTypes(tenantDb),
       tenantDb.dailyOperationalExpense.findMany({
         where: expenseWhere,
-        include: { staff: true, project: true, recordedBy: true },
+        include: { staff: true, worker: { include: { linkedStaff: true } }, project: true, recordedBy: true },
         orderBy: { date: 'desc' },
         take: 100,
       }),
       tenantDb.workerLedgerEntry.findMany({
         where: ledgerWhere,
-        include: { staff: true, project: true, user: true },
+        include: { staff: true, worker: { include: { linkedStaff: true } }, project: true, user: true },
         orderBy: { date: 'desc' },
         take: 100,
       }),
@@ -523,8 +651,8 @@ export class ConstructionService {
     return {
       workers,
       workerTypes,
-      expenses,
-      ledger,
+      expenses: expensesRaw.map((row: any) => this.resolveWorker(row)),
+      ledger: ledgerRaw.map((row: any) => this.resolveWorker(row)),
       summary: {
         workerCount: workers.length,
         expenseCount: expenseTotals._count,
@@ -533,23 +661,24 @@ export class ConstructionService {
     };
   }
 
-  listDailyExpenses(tenantDb: any, projectId?: string) {
+  async listDailyExpenses(tenantDb: any, projectId?: string) {
     const where: any = { deletedAt: null };
     if (projectId) where.projectId = projectId;
-    return tenantDb.dailyOperationalExpense.findMany({
+    const rows = await tenantDb.dailyOperationalExpense.findMany({
       where,
-      include: { staff: true, project: true, recordedBy: true },
+      include: { staff: true, worker: { include: { linkedStaff: true } }, project: true, recordedBy: true },
       orderBy: { date: 'desc' },
     });
+    return rows.map((row: any) => this.resolveWorker(row));
   }
 
   async getDailyExpense(tenantDb: any, id: string) {
     const expense = await tenantDb.dailyOperationalExpense.findFirst({
       where: { id, deletedAt: null },
-      include: { staff: true, project: true, recordedBy: true },
+      include: { staff: true, worker: { include: { linkedStaff: true } }, project: true, recordedBy: true },
     });
     if (!expense) throw new NotFoundException('Operational expense not found');
-    return expense;
+    return this.resolveWorker(expense);
   }
 
   async createDailyExpense(tenantDb: any, userId: string, data: DailyExpenseDto) {
@@ -601,15 +730,16 @@ export class ConstructionService {
     });
   }
 
-  listWorkerLedger(tenantDb: any, projectId?: string, staffId?: string) {
+  async listWorkerLedger(tenantDb: any, projectId?: string, workerId?: string) {
     const where: any = {};
     if (projectId) where.projectId = projectId;
-    if (staffId) where.staffId = staffId;
-    return tenantDb.workerLedgerEntry.findMany({
+    if (workerId) where.workerId = workerId;
+    const rows = await tenantDb.workerLedgerEntry.findMany({
       where,
-      include: { staff: true, project: true, user: true },
+      include: { staff: true, worker: { include: { linkedStaff: true } }, project: true, user: true },
       orderBy: { date: 'desc' },
     });
+    return rows.map((row: any) => this.resolveWorker(row));
   }
 
   async createWorkerLedgerEntry(tenantDb: any, userId: string, data: WorkerLedgerDto) {

@@ -432,6 +432,7 @@ export const ModelName = {
   TransportationRecord: 'TransportationRecord',
   TransportationItem: 'TransportationItem',
   WorkerType: 'WorkerType',
+  ManpowerWorker: 'ManpowerWorker',
   DailyOperationalExpense: 'DailyOperationalExpense',
   WorkerLedgerEntry: 'WorkerLedgerEntry',
   Property: 'Property',
@@ -461,7 +462,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "systemConfig" | "user" | "rbacPermission" | "rbacRole" | "rbacRolePermission" | "rbacUserRole" | "rbacUserPermission" | "staff" | "category" | "transaction" | "activityLog" | "operationalAlert" | "operationalAlertRead" | "project" | "projectTask" | "material" | "inventoryTransaction" | "constructionMaterial" | "constructionInventoryTransaction" | "reportSchedule" | "accountingPeriod" | "documentAttachment" | "tenant" | "rentalContract" | "rentPayment" | "supplier" | "supplierTransaction" | "purchaseOrder" | "purchaseOrderItem" | "materialCustomer" | "materialSale" | "materialSaleItem" | "transportationRecord" | "transportationItem" | "workerType" | "dailyOperationalExpense" | "workerLedgerEntry" | "property" | "deal" | "account" | "journalBatch" | "journalEntry" | "accountMapping" | "workforceContract" | "workforceContractWorker" | "workforceContractPayment" | "workforceContractAdjustment" | "payroll" | "payrollItem"
+    modelProps: "systemConfig" | "user" | "rbacPermission" | "rbacRole" | "rbacRolePermission" | "rbacUserRole" | "rbacUserPermission" | "staff" | "category" | "transaction" | "activityLog" | "operationalAlert" | "operationalAlertRead" | "project" | "projectTask" | "material" | "inventoryTransaction" | "constructionMaterial" | "constructionInventoryTransaction" | "reportSchedule" | "accountingPeriod" | "documentAttachment" | "tenant" | "rentalContract" | "rentPayment" | "supplier" | "supplierTransaction" | "purchaseOrder" | "purchaseOrderItem" | "materialCustomer" | "materialSale" | "materialSaleItem" | "transportationRecord" | "transportationItem" | "workerType" | "manpowerWorker" | "dailyOperationalExpense" | "workerLedgerEntry" | "property" | "deal" | "account" | "journalBatch" | "journalEntry" | "accountMapping" | "workforceContract" | "workforceContractWorker" | "workforceContractPayment" | "workforceContractAdjustment" | "payroll" | "payrollItem"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3055,6 +3056,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ManpowerWorker: {
+      payload: Prisma.$ManpowerWorkerPayload<ExtArgs>
+      fields: Prisma.ManpowerWorkerFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ManpowerWorkerFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManpowerWorkerPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ManpowerWorkerFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManpowerWorkerPayload>
+        }
+        findFirst: {
+          args: Prisma.ManpowerWorkerFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManpowerWorkerPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ManpowerWorkerFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManpowerWorkerPayload>
+        }
+        findMany: {
+          args: Prisma.ManpowerWorkerFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManpowerWorkerPayload>[]
+        }
+        create: {
+          args: Prisma.ManpowerWorkerCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManpowerWorkerPayload>
+        }
+        createMany: {
+          args: Prisma.ManpowerWorkerCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ManpowerWorkerCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManpowerWorkerPayload>[]
+        }
+        delete: {
+          args: Prisma.ManpowerWorkerDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManpowerWorkerPayload>
+        }
+        update: {
+          args: Prisma.ManpowerWorkerUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManpowerWorkerPayload>
+        }
+        deleteMany: {
+          args: Prisma.ManpowerWorkerDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ManpowerWorkerUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ManpowerWorkerUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManpowerWorkerPayload>[]
+        }
+        upsert: {
+          args: Prisma.ManpowerWorkerUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ManpowerWorkerPayload>
+        }
+        aggregate: {
+          args: Prisma.ManpowerWorkerAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateManpowerWorker>
+        }
+        groupBy: {
+          args: Prisma.ManpowerWorkerGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ManpowerWorkerGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ManpowerWorkerCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ManpowerWorkerCountAggregateOutputType> | number
+        }
+      }
+    }
     DailyOperationalExpense: {
       payload: Prisma.$DailyOperationalExpensePayload<ExtArgs>
       fields: Prisma.DailyOperationalExpenseFieldRefs
@@ -4711,9 +4786,29 @@ export const WorkerTypeScalarFieldEnum = {
 export type WorkerTypeScalarFieldEnum = (typeof WorkerTypeScalarFieldEnum)[keyof typeof WorkerTypeScalarFieldEnum]
 
 
+export const ManpowerWorkerScalarFieldEnum = {
+  id: 'id',
+  linkedStaffId: 'linkedStaffId',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  phone: 'phone',
+  position: 'position',
+  workerTypeId: 'workerTypeId',
+  assignedProjectId: 'assignedProjectId',
+  notes: 'notes',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type ManpowerWorkerScalarFieldEnum = (typeof ManpowerWorkerScalarFieldEnum)[keyof typeof ManpowerWorkerScalarFieldEnum]
+
+
 export const DailyOperationalExpenseScalarFieldEnum = {
   id: 'id',
   staffId: 'staffId',
+  workerId: 'workerId',
   projectId: 'projectId',
   recordedByUserId: 'recordedByUserId',
   amount: 'amount',
@@ -4732,6 +4827,7 @@ export const WorkerLedgerEntryScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   staffId: 'staffId',
+  workerId: 'workerId',
   projectId: 'projectId',
   type: 'type',
   amount: 'amount',
@@ -4884,6 +4980,7 @@ export const WorkforceContractWorkerScalarFieldEnum = {
   id: 'id',
   contractId: 'contractId',
   staffId: 'staffId',
+  workerId: 'workerId',
   role: 'role',
   notes: 'notes',
   assignedAt: 'assignedAt',
@@ -4897,6 +4994,7 @@ export const WorkforceContractPaymentScalarFieldEnum = {
   id: 'id',
   contractId: 'contractId',
   staffId: 'staffId',
+  workerId: 'workerId',
   payeeName: 'payeeName',
   amount: 'amount',
   date: 'date',
@@ -5587,6 +5685,7 @@ export type GlobalOmitConfig = {
   transportationRecord?: Prisma.TransportationRecordOmit
   transportationItem?: Prisma.TransportationItemOmit
   workerType?: Prisma.WorkerTypeOmit
+  manpowerWorker?: Prisma.ManpowerWorkerOmit
   dailyOperationalExpense?: Prisma.DailyOperationalExpenseOmit
   workerLedgerEntry?: Prisma.WorkerLedgerEntryOmit
   property?: Prisma.PropertyOmit

@@ -215,6 +215,11 @@ export type TransportationItem = Prisma.TransportationItemModel
  */
 export type WorkerType = Prisma.WorkerTypeModel
 /**
+ * Model ManpowerWorker
+ * 
+ */
+export type ManpowerWorker = Prisma.ManpowerWorkerModel
+/**
  * Model DailyOperationalExpense
  * 
  */

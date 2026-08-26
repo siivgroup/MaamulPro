@@ -12,7 +12,7 @@ const Footer = () => {
                 : '/assets/images/siiv-light-theme.png'
         }
         alt="SIIV"
-        className="h-4 w-auto"
+        className="h-6 w-auto"
     />
 
     <span className="whitespace-nowrap text-sm font-medium text-gray-600 dark:text-gray-400">

@@ -1,11 +1,9 @@
-import { Controller, Get, Post, Body, Query, UseGuards, Param, Patch, Delete, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, UseGuards, Param, Patch, Delete } from '@nestjs/common';
 import { ConstructionService } from './construction.service';
 import { GetTenantContext, GetTenantDb } from '../../common/decorators/tenant-context.decorator';
 import { TenantAccessGuard } from '../../common/guards/tenant-access.guard';
 import { RequireAnyPermission, RequirePermissions } from '../../common/decorators/permissions.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { StaffService } from '../staff/staff.service';
-import { CreateStaffDto, UpdateStaffDto } from '../staff/dto/staff.dto';
 import {
   ConstructionMaterialDto,
   ContractAdjustmentDto,
@@ -14,6 +12,7 @@ import {
   ContractStatusDto,
   DailyExpenseDto,
   InventoryMovementDto,
+  ManpowerWorkerDto,
   ProjectDto,
   TaskDto,
   WorkerLedgerDto,
@@ -26,14 +25,7 @@ import {
 export class ConstructionController {
   constructor(
     private readonly constructionService: ConstructionService,
-    private readonly staffService: StaffService,
   ) {}
-
-  private async requireConstructionWorker(db: any, id: string) {
-    const staff = await this.staffService.getStaffById(db, id);
-    if (staff.department !== 'CONSTRUCTION') throw new ForbiddenException('Not a construction worker');
-    return staff;
-  }
 
   @Get('projects')
   @RequirePermissions('projects.read')
@@ -133,12 +125,12 @@ export class ConstructionController {
     const isOwner = user?.isImpersonating || ['COMPANY_OWNER', 'SUPER_ADMIN'].includes(user?.role);
     const canEdit = isOwner || permissions.includes('workforce_contracts.create') || permissions.includes('workforce_contracts.update');
     const canAssign = isOwner || permissions.includes('workforce_contracts.update');
-    const [contracts, projects, staff] = await Promise.all([
+    const [contracts, projects, workers] = await Promise.all([
       this.constructionService.getWorkforceContracts(db),
       canEdit ? this.constructionService.getProjectOptions(db) : [],
-      canAssign ? this.staffService.getStaffOptions(db, 'CONSTRUCTION') : [],
+      canAssign ? this.constructionService.getManpowerWorkerOptions(db) : [],
     ]);
-    return { contracts, projects, staff };
+    return { contracts, projects, workers };
   }
 
   @Post('contracts')
@@ -189,14 +181,14 @@ export class ConstructionController {
     return this.constructionService.assignContractWorker(db, id, body);
   }
 
-  @Delete('contracts/:id/workers/:staffId')
+  @Delete('contracts/:id/workers/:workerId')
   @RequirePermissions('workforce_contracts.update')
   removeContractWorker(
     @GetTenantDb() db: any,
     @Param('id') id: string,
-    @Param('staffId') staffId: string,
+    @Param('workerId') workerId: string,
   ) {
-    return this.constructionService.removeContractWorker(db, id, staffId);
+    return this.constructionService.removeContractWorker(db, id, workerId);
   }
 
   @Post('contracts/:id/payments')
@@ -251,28 +243,28 @@ export class ConstructionController {
     return this.constructionService.getManpowerDashboard(db, projectId);
   }
 
+  @Get('manpower/workers/options')
+  @RequireAnyPermission('manpower.read', 'construction_expenses.read', 'construction_expenses.create', 'workforce_contracts.read', 'workforce_contracts.create', 'workforce_contracts.update')
+  getManpowerWorkerOptions(@GetTenantDb() db: any) {
+    return this.constructionService.getManpowerWorkerOptions(db);
+  }
+
   @Post('manpower/workers')
   @RequirePermissions('manpower.create')
-  createManpowerWorker(
-    @GetTenantDb() db: any,
-    @GetTenantContext('companyId') companyId: string,
-    @Body() body: CreateStaffDto,
-  ) {
-    return this.staffService.createStaff(db, companyId, { ...body, department: 'CONSTRUCTION' });
+  createManpowerWorker(@GetTenantDb() db: any, @Body() body: ManpowerWorkerDto) {
+    return this.constructionService.createManpowerWorker(db, body);
   }
 
   @Patch('manpower/workers/:id')
   @RequirePermissions('manpower.update')
-  async updateManpowerWorker(@GetTenantDb() db: any, @Param('id') id: string, @Body() body: UpdateStaffDto) {
-    await this.requireConstructionWorker(db, id);
-    return this.staffService.updateStaff(db, id, { ...body, department: 'CONSTRUCTION' });
+  updateManpowerWorker(@GetTenantDb() db: any, @Param('id') id: string, @Body() body: ManpowerWorkerDto) {
+    return this.constructionService.updateManpowerWorker(db, id, body);
   }
 
   @Delete('manpower/workers/:id')
   @RequirePermissions('manpower.delete')
-  async deleteManpowerWorker(@GetTenantDb() db: any, @Param('id') id: string, @CurrentUser('id') userId: string) {
-    await this.requireConstructionWorker(db, id);
-    return this.staffService.deleteStaff(db, id, userId);
+  deleteManpowerWorker(@GetTenantDb() db: any, @Param('id') id: string) {
+    return this.constructionService.deleteManpowerWorker(db, id);
   }
 
   @Get('expenses')
@@ -319,9 +311,9 @@ export class ConstructionController {
   listWorkerLedger(
     @GetTenantDb() db: any,
     @Query('projectId') projectId?: string,
-    @Query('staffId') staffId?: string,
+    @Query('workerId') workerId?: string,
   ) {
-    return this.constructionService.listWorkerLedger(db, projectId, staffId);
+    return this.constructionService.listWorkerLedger(db, projectId, workerId);
   }
 
   @Post('worker-ledger')

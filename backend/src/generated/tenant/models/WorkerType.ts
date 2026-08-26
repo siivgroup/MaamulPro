@@ -199,6 +199,7 @@ export type WorkerTypeWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"WorkerType"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"WorkerType"> | Date | string | null
   staff?: Prisma.StaffListRelationFilter
+  manpowerWorkers?: Prisma.ManpowerWorkerListRelationFilter
 }
 
 export type WorkerTypeOrderByWithRelationInput = {
@@ -210,6 +211,7 @@ export type WorkerTypeOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   staff?: Prisma.StaffOrderByRelationAggregateInput
+  manpowerWorkers?: Prisma.ManpowerWorkerOrderByRelationAggregateInput
 }
 
 export type WorkerTypeWhereUniqueInput = Prisma.AtLeast<{
@@ -224,6 +226,7 @@ export type WorkerTypeWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"WorkerType"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"WorkerType"> | Date | string | null
   staff?: Prisma.StaffListRelationFilter
+  manpowerWorkers?: Prisma.ManpowerWorkerListRelationFilter
 }, "id" | "name">
 
 export type WorkerTypeOrderByWithAggregationInput = {
@@ -261,6 +264,7 @@ export type WorkerTypeCreateInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   staff?: Prisma.StaffCreateNestedManyWithoutWorkerTypeInput
+  manpowerWorkers?: Prisma.ManpowerWorkerCreateNestedManyWithoutWorkerTypeInput
 }
 
 export type WorkerTypeUncheckedCreateInput = {
@@ -272,6 +276,7 @@ export type WorkerTypeUncheckedCreateInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   staff?: Prisma.StaffUncheckedCreateNestedManyWithoutWorkerTypeInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUncheckedCreateNestedManyWithoutWorkerTypeInput
 }
 
 export type WorkerTypeUpdateInput = {
@@ -283,6 +288,7 @@ export type WorkerTypeUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   staff?: Prisma.StaffUpdateManyWithoutWorkerTypeNestedInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUpdateManyWithoutWorkerTypeNestedInput
 }
 
 export type WorkerTypeUncheckedUpdateInput = {
@@ -294,6 +300,7 @@ export type WorkerTypeUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   staff?: Prisma.StaffUncheckedUpdateManyWithoutWorkerTypeNestedInput
+  manpowerWorkers?: Prisma.ManpowerWorkerUncheckedUpdateManyWithoutWorkerTypeNestedInput
 }
 
 export type WorkerTypeCreateManyInput = {
@@ -377,6 +384,22 @@ export type WorkerTypeUpdateOneWithoutStaffNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.WorkerTypeUpdateToOneWithWhereWithoutStaffInput, Prisma.WorkerTypeUpdateWithoutStaffInput>, Prisma.WorkerTypeUncheckedUpdateWithoutStaffInput>
 }
 
+export type WorkerTypeCreateNestedOneWithoutManpowerWorkersInput = {
+  create?: Prisma.XOR<Prisma.WorkerTypeCreateWithoutManpowerWorkersInput, Prisma.WorkerTypeUncheckedCreateWithoutManpowerWorkersInput>
+  connectOrCreate?: Prisma.WorkerTypeCreateOrConnectWithoutManpowerWorkersInput
+  connect?: Prisma.WorkerTypeWhereUniqueInput
+}
+
+export type WorkerTypeUpdateOneWithoutManpowerWorkersNestedInput = {
+  create?: Prisma.XOR<Prisma.WorkerTypeCreateWithoutManpowerWorkersInput, Prisma.WorkerTypeUncheckedCreateWithoutManpowerWorkersInput>
+  connectOrCreate?: Prisma.WorkerTypeCreateOrConnectWithoutManpowerWorkersInput
+  upsert?: Prisma.WorkerTypeUpsertWithoutManpowerWorkersInput
+  disconnect?: Prisma.WorkerTypeWhereInput | boolean
+  delete?: Prisma.WorkerTypeWhereInput | boolean
+  connect?: Prisma.WorkerTypeWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.WorkerTypeUpdateToOneWithWhereWithoutManpowerWorkersInput, Prisma.WorkerTypeUpdateWithoutManpowerWorkersInput>, Prisma.WorkerTypeUncheckedUpdateWithoutManpowerWorkersInput>
+}
+
 export type WorkerTypeCreateWithoutStaffInput = {
   id?: string
   name: string
@@ -385,6 +408,7 @@ export type WorkerTypeCreateWithoutStaffInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  manpowerWorkers?: Prisma.ManpowerWorkerCreateNestedManyWithoutWorkerTypeInput
 }
 
 export type WorkerTypeUncheckedCreateWithoutStaffInput = {
@@ -395,6 +419,7 @@ export type WorkerTypeUncheckedCreateWithoutStaffInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  manpowerWorkers?: Prisma.ManpowerWorkerUncheckedCreateNestedManyWithoutWorkerTypeInput
 }
 
 export type WorkerTypeCreateOrConnectWithoutStaffInput = {
@@ -421,6 +446,7 @@ export type WorkerTypeUpdateWithoutStaffInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  manpowerWorkers?: Prisma.ManpowerWorkerUpdateManyWithoutWorkerTypeNestedInput
 }
 
 export type WorkerTypeUncheckedUpdateWithoutStaffInput = {
@@ -431,6 +457,67 @@ export type WorkerTypeUncheckedUpdateWithoutStaffInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  manpowerWorkers?: Prisma.ManpowerWorkerUncheckedUpdateManyWithoutWorkerTypeNestedInput
+}
+
+export type WorkerTypeCreateWithoutManpowerWorkersInput = {
+  id?: string
+  name: string
+  description?: string | null
+  color?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  staff?: Prisma.StaffCreateNestedManyWithoutWorkerTypeInput
+}
+
+export type WorkerTypeUncheckedCreateWithoutManpowerWorkersInput = {
+  id?: string
+  name: string
+  description?: string | null
+  color?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  staff?: Prisma.StaffUncheckedCreateNestedManyWithoutWorkerTypeInput
+}
+
+export type WorkerTypeCreateOrConnectWithoutManpowerWorkersInput = {
+  where: Prisma.WorkerTypeWhereUniqueInput
+  create: Prisma.XOR<Prisma.WorkerTypeCreateWithoutManpowerWorkersInput, Prisma.WorkerTypeUncheckedCreateWithoutManpowerWorkersInput>
+}
+
+export type WorkerTypeUpsertWithoutManpowerWorkersInput = {
+  update: Prisma.XOR<Prisma.WorkerTypeUpdateWithoutManpowerWorkersInput, Prisma.WorkerTypeUncheckedUpdateWithoutManpowerWorkersInput>
+  create: Prisma.XOR<Prisma.WorkerTypeCreateWithoutManpowerWorkersInput, Prisma.WorkerTypeUncheckedCreateWithoutManpowerWorkersInput>
+  where?: Prisma.WorkerTypeWhereInput
+}
+
+export type WorkerTypeUpdateToOneWithWhereWithoutManpowerWorkersInput = {
+  where?: Prisma.WorkerTypeWhereInput
+  data: Prisma.XOR<Prisma.WorkerTypeUpdateWithoutManpowerWorkersInput, Prisma.WorkerTypeUncheckedUpdateWithoutManpowerWorkersInput>
+}
+
+export type WorkerTypeUpdateWithoutManpowerWorkersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  color?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  staff?: Prisma.StaffUpdateManyWithoutWorkerTypeNestedInput
+}
+
+export type WorkerTypeUncheckedUpdateWithoutManpowerWorkersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  color?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  staff?: Prisma.StaffUncheckedUpdateManyWithoutWorkerTypeNestedInput
 }
 
 
@@ -440,10 +527,12 @@ export type WorkerTypeUncheckedUpdateWithoutStaffInput = {
 
 export type WorkerTypeCountOutputType = {
   staff: number
+  manpowerWorkers: number
 }
 
 export type WorkerTypeCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   staff?: boolean | WorkerTypeCountOutputTypeCountStaffArgs
+  manpowerWorkers?: boolean | WorkerTypeCountOutputTypeCountManpowerWorkersArgs
 }
 
 /**
@@ -463,6 +552,13 @@ export type WorkerTypeCountOutputTypeCountStaffArgs<ExtArgs extends runtime.Type
   where?: Prisma.StaffWhereInput
 }
 
+/**
+ * WorkerTypeCountOutputType without action
+ */
+export type WorkerTypeCountOutputTypeCountManpowerWorkersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ManpowerWorkerWhereInput
+}
+
 
 export type WorkerTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -473,6 +569,7 @@ export type WorkerTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   updatedAt?: boolean
   deletedAt?: boolean
   staff?: boolean | Prisma.WorkerType$staffArgs<ExtArgs>
+  manpowerWorkers?: boolean | Prisma.WorkerType$manpowerWorkersArgs<ExtArgs>
   _count?: boolean | Prisma.WorkerTypeCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["workerType"]>
 
@@ -509,6 +606,7 @@ export type WorkerTypeSelectScalar = {
 export type WorkerTypeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "color" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["workerType"]>
 export type WorkerTypeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   staff?: boolean | Prisma.WorkerType$staffArgs<ExtArgs>
+  manpowerWorkers?: boolean | Prisma.WorkerType$manpowerWorkersArgs<ExtArgs>
   _count?: boolean | Prisma.WorkerTypeCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type WorkerTypeIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -518,6 +616,7 @@ export type $WorkerTypePayload<ExtArgs extends runtime.Types.Extensions.Internal
   name: "WorkerType"
   objects: {
     staff: Prisma.$StaffPayload<ExtArgs>[]
+    manpowerWorkers: Prisma.$ManpowerWorkerPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -922,6 +1021,7 @@ readonly fields: WorkerTypeFieldRefs;
 export interface Prisma__WorkerTypeClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   staff<T extends Prisma.WorkerType$staffArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WorkerType$staffArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StaffPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  manpowerWorkers<T extends Prisma.WorkerType$manpowerWorkersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WorkerType$manpowerWorkersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ManpowerWorkerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1372,6 +1472,30 @@ export type WorkerType$staffArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.StaffScalarFieldEnum | Prisma.StaffScalarFieldEnum[]
+}
+
+/**
+ * WorkerType.manpowerWorkers
+ */
+export type WorkerType$manpowerWorkersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ManpowerWorker
+   */
+  select?: Prisma.ManpowerWorkerSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ManpowerWorker
+   */
+  omit?: Prisma.ManpowerWorkerOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ManpowerWorkerInclude<ExtArgs> | null
+  where?: Prisma.ManpowerWorkerWhereInput
+  orderBy?: Prisma.ManpowerWorkerOrderByWithRelationInput | Prisma.ManpowerWorkerOrderByWithRelationInput[]
+  cursor?: Prisma.ManpowerWorkerWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ManpowerWorkerScalarFieldEnum | Prisma.ManpowerWorkerScalarFieldEnum[]
 }
 
 /**
