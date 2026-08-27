@@ -86,6 +86,7 @@ model Company {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   users CompanyUser[]
+  onboarding CompanyOnboarding?
   subscriptionTransactions SubscriptionTransaction[]
   subscriptions TenantSubscription[]
   invoices      Invoice[]
@@ -101,6 +102,8 @@ model Company {
 // ──────────────────────────────────────────────────────────────
 
 model SubscriptionTransaction {
+  requestId   String? @unique @map("request_id")
+  requestHash String? @map("request_hash")
   id                String             @id @default(cuid())
   companyId         String             @map("company_id")
   transactionType   String             @map("transaction_type") // APPROVAL, RENEWAL, SUSPENSION, EXPIRATION
@@ -130,6 +133,8 @@ model SubscriptionTransaction {
 // ──────────────────────────────────────────────────────────────
 
 model CompanyUser {
+  identitySyncPending Boolean   @default(false) @map("identity_sync_pending")
+  identitySyncAfter   DateTime? @map("identity_sync_after")
   id           String    @id @default(cuid())
   email        String    @unique
   passwordHash String    @map("password_hash")
@@ -153,6 +158,7 @@ model CompanyUser {
   @@index([email])
   @@index([companyId])
   @@map("company_users")
+  @@index([identitySyncPending, identitySyncAfter])
 }
 
 // ──────────────────────────────────────────────────────────────
@@ -177,6 +183,37 @@ model CentralAdmin {
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
   @@map("central_admins")
+}
+
+// Durable provisioning journal. Credentials remain encrypted on Company. The
+// original password hash allows request replay after an owner password change.
+model CompanyOnboarding {
+  id String @id
+  companyId String? @unique @map("company_id")
+  company Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  ownerId String @map("owner_id")
+  passwordHash String @map("password_hash")
+  adminId String @map("admin_id")
+  verificationId String @map("verification_id")
+  verifiedAt DateTime @map("verified_at")
+  inputs Json
+  databaseIdentity String @unique @map("database_identity")
+  databaseName String @map("database_name")
+  projectId String? @map("project_id")
+  branchId String? @map("branch_id")
+  databaseOwner String? @map("database_owner")
+  createRequestedAt DateTime? @map("create_requested_at")
+  databaseConfirmed Boolean @default(false) @map("database_confirmed")
+  status String @default("QUEUED")
+  stage String @default("DATABASE")
+  retryCount Int @default(0) @map("retry_count")
+  nextAttemptAt DateTime @default(now()) @map("next_attempt_at")
+  error Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([status, nextAttemptAt])
+  @@map("company_onboarding")
 }
 
 model ImpersonationGrant {

@@ -39,8 +39,8 @@ const PasswordRecoveryPage = () => {
         setError('');
         setWorking(true);
         try {
-            await api('/api/auth/password/reset', { method: 'POST', body: JSON.stringify({ email, code, newPassword }) });
-            navigate(signInPath, { replace: true, state: { message: 'Password reset. Sign in with your new password.' } });
+            const result = await api<{ message?: string }>('/api/auth/password/reset', { method: 'POST', silent: true, body: JSON.stringify({ email, code, newPassword }) });
+            navigate(signInPath, { replace: true, state: { message: result.message || 'Password reset. Sign in with your new password.' } });
         } catch (reason) {
             setError(reason instanceof Error ? reason.message : 'Unable to reset password');
         } finally {

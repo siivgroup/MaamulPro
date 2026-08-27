@@ -401,6 +401,7 @@ export const ModelName = {
   SubscriptionTransaction: 'SubscriptionTransaction',
   CompanyUser: 'CompanyUser',
   CentralAdmin: 'CentralAdmin',
+  CompanyOnboarding: 'CompanyOnboarding',
   ImpersonationGrant: 'ImpersonationGrant',
   EmailVerification: 'EmailVerification',
   SubscriptionPlan: 'SubscriptionPlan',
@@ -421,7 +422,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "company" | "subscriptionTransaction" | "companyUser" | "centralAdmin" | "impersonationGrant" | "emailVerification" | "subscriptionPlan" | "tenantSubscription" | "invoice"
+    modelProps: "company" | "subscriptionTransaction" | "companyUser" | "centralAdmin" | "companyOnboarding" | "impersonationGrant" | "emailVerification" | "subscriptionPlan" | "tenantSubscription" | "invoice"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -718,6 +719,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.CentralAdminCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.CentralAdminCountAggregateOutputType> | number
+        }
+      }
+    }
+    CompanyOnboarding: {
+      payload: Prisma.$CompanyOnboardingPayload<ExtArgs>
+      fields: Prisma.CompanyOnboardingFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CompanyOnboardingFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanyOnboardingPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CompanyOnboardingFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanyOnboardingPayload>
+        }
+        findFirst: {
+          args: Prisma.CompanyOnboardingFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanyOnboardingPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CompanyOnboardingFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanyOnboardingPayload>
+        }
+        findMany: {
+          args: Prisma.CompanyOnboardingFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanyOnboardingPayload>[]
+        }
+        create: {
+          args: Prisma.CompanyOnboardingCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanyOnboardingPayload>
+        }
+        createMany: {
+          args: Prisma.CompanyOnboardingCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CompanyOnboardingCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanyOnboardingPayload>[]
+        }
+        delete: {
+          args: Prisma.CompanyOnboardingDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanyOnboardingPayload>
+        }
+        update: {
+          args: Prisma.CompanyOnboardingUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanyOnboardingPayload>
+        }
+        deleteMany: {
+          args: Prisma.CompanyOnboardingDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CompanyOnboardingUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CompanyOnboardingUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanyOnboardingPayload>[]
+        }
+        upsert: {
+          args: Prisma.CompanyOnboardingUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CompanyOnboardingPayload>
+        }
+        aggregate: {
+          args: Prisma.CompanyOnboardingAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCompanyOnboarding>
+        }
+        groupBy: {
+          args: Prisma.CompanyOnboardingGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CompanyOnboardingGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CompanyOnboardingCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CompanyOnboardingCountAggregateOutputType> | number
         }
       }
     }
@@ -1168,6 +1243,8 @@ export type CompanyScalarFieldEnum = (typeof CompanyScalarFieldEnum)[keyof typeo
 
 
 export const SubscriptionTransactionScalarFieldEnum = {
+  requestId: 'requestId',
+  requestHash: 'requestHash',
   id: 'id',
   companyId: 'companyId',
   transactionType: 'transactionType',
@@ -1186,6 +1263,8 @@ export type SubscriptionTransactionScalarFieldEnum = (typeof SubscriptionTransac
 
 
 export const CompanyUserScalarFieldEnum = {
+  identitySyncPending: 'identitySyncPending',
+  identitySyncAfter: 'identitySyncAfter',
   id: 'id',
   email: 'email',
   passwordHash: 'passwordHash',
@@ -1222,6 +1301,34 @@ export const CentralAdminScalarFieldEnum = {
 } as const
 
 export type CentralAdminScalarFieldEnum = (typeof CentralAdminScalarFieldEnum)[keyof typeof CentralAdminScalarFieldEnum]
+
+
+export const CompanyOnboardingScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  ownerId: 'ownerId',
+  passwordHash: 'passwordHash',
+  adminId: 'adminId',
+  verificationId: 'verificationId',
+  verifiedAt: 'verifiedAt',
+  inputs: 'inputs',
+  databaseIdentity: 'databaseIdentity',
+  databaseName: 'databaseName',
+  projectId: 'projectId',
+  branchId: 'branchId',
+  databaseOwner: 'databaseOwner',
+  createRequestedAt: 'createRequestedAt',
+  databaseConfirmed: 'databaseConfirmed',
+  status: 'status',
+  stage: 'stage',
+  retryCount: 'retryCount',
+  nextAttemptAt: 'nextAttemptAt',
+  error: 'error',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CompanyOnboardingScalarFieldEnum = (typeof CompanyOnboardingScalarFieldEnum)[keyof typeof CompanyOnboardingScalarFieldEnum]
 
 
 export const ImpersonationGrantScalarFieldEnum = {
@@ -1335,6 +1442,14 @@ export const JsonNullValueInput = {
 } as const
 
 export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {
@@ -1711,6 +1826,7 @@ export type GlobalOmitConfig = {
   subscriptionTransaction?: Prisma.SubscriptionTransactionOmit
   companyUser?: Prisma.CompanyUserOmit
   centralAdmin?: Prisma.CentralAdminOmit
+  companyOnboarding?: Prisma.CompanyOnboardingOmit
   impersonationGrant?: Prisma.ImpersonationGrantOmit
   emailVerification?: Prisma.EmailVerificationOmit
   subscriptionPlan?: Prisma.SubscriptionPlanOmit

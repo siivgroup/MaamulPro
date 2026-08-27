@@ -3,6 +3,7 @@ import { applyCompanySchema } from './tenant-schema-sql';
 import { syncPermissionsToDb } from './rbac-sync';
 import { TenantConnectionManager } from './tenant-connection.manager';
 import { DatabaseConnectionPair, getDatabaseConnectionPair } from './database-url';
+import { setupDiagnostic, setupFailure } from './onboarding-errors';
 
 @Injectable()
 export class TenantProvisioningService {
@@ -38,11 +39,9 @@ export class TenantProvisioningService {
       await syncPermissionsToDb(tenantDb as any);
       this.logger.log('Tenant schema and RBAC registry provisioned successfully');
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      this.logger.error(`Tenant provisioning failed: ${message}`);
-      throw new BadRequestException(
-        'Tenant database could not be reached or migrated. Verify the PostgreSQL URL and database permissions.',
-      );
+      const failure = setupFailure(error, 'SCHEMA');
+      this.logger.error(JSON.stringify({ event: 'tenant_provisioning_failed', ...failure, diagnostic: setupDiagnostic(error) }));
+      throw new BadRequestException(failure);
     }
   }
 

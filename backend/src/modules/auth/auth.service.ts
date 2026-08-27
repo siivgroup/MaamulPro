@@ -1,3 +1,4 @@
+import { IdentitySyncService, identityChange } from '../../common/database/identity-sync.service';
 import {
   Injectable,
   UnauthorizedException,
@@ -31,6 +32,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly email: ResendEmailService,
     private readonly entitlements: SubscriptionEntitlementService,
+    private readonly identities: IdentitySyncService,
   ) {}
 
   private get central(): any {
@@ -80,6 +82,10 @@ export class AuthService {
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid email or password credentials');
+    }
+
+    if (companyUser.identitySyncPending) {
+      throw new ServiceUnavailableException('Your account update is saved and still synchronizing. Please try signing in again shortly.');
     }
 
     // 3. Resolve permissions from Tenant DB
@@ -521,35 +527,30 @@ export class AuthService {
     });
     const admin = user ? null : await this.central.centralAdmin.findFirst({ where: { email: normalizedEmail } });
     if (!user && !admin) throw new NotFoundException('Account not found');
+    const setup = user && await this.central.companyOnboarding.findUnique({ where: { companyId: user.companyId } });
+    if (setup && setup.status !== 'SUCCEEDED') throw new BadRequestException('Finish company setup before resetting its owner password.');
     const passwordHash = await argon2.hash(newPassword);
     await this.central.$transaction(async (tx: any) => {
-      if (user) {
-        await tx.companyUser.update({
-          where: { id: user.id },
-          data: { passwordHash, sessionVersion: { increment: 1 } },
-        });
-      } else {
-        await tx.centralAdmin.update({
-          where: { id: admin.id },
-          data: {
-            passwordHash,
-            passwordResetAt: new Date(),
-            sessionVersion: { increment: 1 },
-          },
-        });
-      }
-      await tx.emailVerification.update({
-        where: { id: verification.id },
+      const consumed = await tx.emailVerification.updateMany({
+        where: { id: verification.id, status: 'PENDING', expiresAt: { gt: new Date() } },
         data: { status: 'VERIFIED', verifiedAt: new Date() },
       });
+      if (!consumed.count) throw new BadRequestException('Reset code has already been used or expired');
+      if (user) {
+        await tx.companyUser.update({ where: { id: user.id }, data: {
+          passwordHash, passwordResetAt: new Date(), resetTokenHash: null,
+          resetTokenExpiresAt: null, resetRequestedAt: null, ...identityChange(),
+        } });
+      } else {
+        await tx.centralAdmin.update({ where: { id: admin.id }, data: {
+          passwordHash, passwordResetAt: new Date(), sessionVersion: { increment: 1 },
+        } });
+      }
     });
-    if (user?.company.dbUrl) {
-      const tenantDb = this.tenantManager.getTenantDb(revealDatabaseUrl(user.company.dbUrl));
-      await tenantDb.user.updateMany({
-        where: { OR: [{ id: user.id }, { email: normalizedEmail }] },
-        data: { passwordHash },
-      });
-    }
-    return { reset: true };
+    const syncPending = user ? await this.identities.sync(user.id) : false;
+    return { reset: true, syncPending, message: syncPending
+      ? 'Password saved. Access is paused while the workspace synchronizes; please sign in again shortly.'
+      : 'Password reset successfully.' };
+
   }
 }

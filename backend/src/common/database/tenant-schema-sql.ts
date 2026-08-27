@@ -8,10 +8,12 @@
 // IMPORTANT: Keep in sync with prisma/tenant/schema.prisma.
 // ──────────────────────────────────────────────────────────────
 
-import { Pool } from "pg";
+import { Pool, PoolClient } from "pg";
+import { assertEmptyOrOwned } from './onboarding-database';
+import { setupDiagnostic } from './onboarding-errors';
 import { connectionTimeoutMillis, getDatabaseConnectionPair } from "./database-url";
 
-export const CURRENT_TENANT_SCHEMA_VERSION = 27;
+export const CURRENT_TENANT_SCHEMA_VERSION = 28;
 
 export const TENANT_SCHEMA_STATEMENTS: string[] = [
   // ── Enum types ─────────────────────────────────────────────
@@ -173,6 +175,7 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
     "updated_at"             TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at"             TIMESTAMP(3)
   )`,
+  `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "identity_version" INTEGER NOT NULL DEFAULT 0`,
 
   `CREATE TABLE IF NOT EXISTS "staff" (
     "id"         TEXT          NOT NULL PRIMARY KEY,
@@ -266,6 +269,7 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
     "updated_at"   TIMESTAMP(3)        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at"   TIMESTAMP(3)
   )`,
+  `ALTER TABLE "transactions" ADD COLUMN IF NOT EXISTS "request_hash" TEXT`,
 
   `CREATE TABLE IF NOT EXISTS "activity_logs" (
     "id"         TEXT         NOT NULL PRIMARY KEY,
@@ -1773,7 +1777,7 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
  * Uses pure SQL via pg.Pool — no Prisma CLI binary required.
  * All statements are idempotent (IF NOT EXISTS + DO...EXCEPTION blocks).
  */
-export async function applyCompanySchema(companyDbUrl: string) {
+export async function applyCompanySchema(companyDbUrl: string, onboardingId?: string) {
   const { directUrl } = getDatabaseConnectionPair(companyDbUrl);
   const pool = new Pool({
     connectionString: directUrl,
@@ -1782,10 +1786,14 @@ export async function applyCompanySchema(companyDbUrl: string) {
     keepAlive: true,
   });
 
-  const client = await pool.connect();
+  let client: PoolClient | undefined;
   try {
+    client = await pool.connect();
     console.log(`[applyCompanySchema] Applying ${TENANT_SCHEMA_STATEMENTS.length} DDL statements in a single batch...`);
     await client.query("BEGIN");
+    await client.query("SET LOCAL statement_timeout = '120s'");
+    await client.query("SELECT pg_advisory_xact_lock(hashtext('maamulpro-schema'))");
+    if (onboardingId) await assertEmptyOrOwned(client, onboardingId);
 
     const batchSql = TENANT_SCHEMA_STATEMENTS
       .map(stmt => {
@@ -1803,18 +1811,18 @@ export async function applyCompanySchema(companyDbUrl: string) {
       ON CONFLICT ("key") DO UPDATE SET "value" = $3, "updated_at" = CURRENT_TIMESTAMP
     `, ["schema_version_record", "schema_version", String(CURRENT_TENANT_SCHEMA_VERSION)]);
 
+    if (onboardingId) {
+      await client.query(`INSERT INTO "system_config" ("id","key","value","created_at","updated_at")
+        VALUES ($1,'onboarding_attempt_id',$1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
+        ON CONFLICT ("key") DO NOTHING`, [onboardingId]);
+    }
     await client.query("COMMIT");
     console.log(`[applyCompanySchema] Schema (v${CURRENT_TENANT_SCHEMA_VERSION}) applied successfully.`);
   } catch (err) {
-    await client.query("ROLLBACK").catch(() => undefined);
-    const message = err instanceof Error ? err.message : String(err);
-    console.error("[applyCompanySchema] DDL failed, rolled back:", message);
-    throw new Error(
-      `Company schema initialization failed. [Ref: SCHEMA_INIT_FAILED]\n` +
-      `Internal: ${message.slice(0, 500)}`
-    );
+    await client?.query("ROLLBACK").catch(cleanupError => console.error(JSON.stringify({ event: 'schema_rollback_failed', onboardingId, original: setupDiagnostic(err), cleanup: setupDiagnostic(cleanupError) })));
+    throw err;
   } finally {
-    client.release();
-    await pool.end().catch(() => undefined);
+    client?.release();
+    await pool.end().catch(cleanupError => console.error(JSON.stringify({ event: 'schema_pool_close_failed', onboardingId, cleanup: setupDiagnostic(cleanupError) })));
   }
 }

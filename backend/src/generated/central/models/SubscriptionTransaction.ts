@@ -37,6 +37,8 @@ export type SubscriptionTransactionSumAggregateOutputType = {
 }
 
 export type SubscriptionTransactionMinAggregateOutputType = {
+  requestId: string | null
+  requestHash: string | null
   id: string | null
   companyId: string | null
   transactionType: string | null
@@ -52,6 +54,8 @@ export type SubscriptionTransactionMinAggregateOutputType = {
 }
 
 export type SubscriptionTransactionMaxAggregateOutputType = {
+  requestId: string | null
+  requestHash: string | null
   id: string | null
   companyId: string | null
   transactionType: string | null
@@ -67,6 +71,8 @@ export type SubscriptionTransactionMaxAggregateOutputType = {
 }
 
 export type SubscriptionTransactionCountAggregateOutputType = {
+  requestId: number
+  requestHash: number
   id: number
   companyId: number
   transactionType: number
@@ -94,6 +100,8 @@ export type SubscriptionTransactionSumAggregateInputType = {
 }
 
 export type SubscriptionTransactionMinAggregateInputType = {
+  requestId?: true
+  requestHash?: true
   id?: true
   companyId?: true
   transactionType?: true
@@ -109,6 +117,8 @@ export type SubscriptionTransactionMinAggregateInputType = {
 }
 
 export type SubscriptionTransactionMaxAggregateInputType = {
+  requestId?: true
+  requestHash?: true
   id?: true
   companyId?: true
   transactionType?: true
@@ -124,6 +134,8 @@ export type SubscriptionTransactionMaxAggregateInputType = {
 }
 
 export type SubscriptionTransactionCountAggregateInputType = {
+  requestId?: true
+  requestHash?: true
   id?: true
   companyId?: true
   transactionType?: true
@@ -226,6 +238,8 @@ export type SubscriptionTransactionGroupByArgs<ExtArgs extends runtime.Types.Ext
 }
 
 export type SubscriptionTransactionGroupByOutputType = {
+  requestId: string | null
+  requestHash: string | null
   id: string
   companyId: string
   transactionType: string
@@ -264,6 +278,8 @@ export type SubscriptionTransactionWhereInput = {
   AND?: Prisma.SubscriptionTransactionWhereInput | Prisma.SubscriptionTransactionWhereInput[]
   OR?: Prisma.SubscriptionTransactionWhereInput[]
   NOT?: Prisma.SubscriptionTransactionWhereInput | Prisma.SubscriptionTransactionWhereInput[]
+  requestId?: Prisma.StringNullableFilter<"SubscriptionTransaction"> | string | null
+  requestHash?: Prisma.StringNullableFilter<"SubscriptionTransaction"> | string | null
   id?: Prisma.StringFilter<"SubscriptionTransaction"> | string
   companyId?: Prisma.StringFilter<"SubscriptionTransaction"> | string
   transactionType?: Prisma.StringFilter<"SubscriptionTransaction"> | string
@@ -280,6 +296,8 @@ export type SubscriptionTransactionWhereInput = {
 }
 
 export type SubscriptionTransactionOrderByWithRelationInput = {
+  requestId?: Prisma.SortOrderInput | Prisma.SortOrder
+  requestHash?: Prisma.SortOrderInput | Prisma.SortOrder
   id?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
   transactionType?: Prisma.SortOrder
@@ -296,10 +314,12 @@ export type SubscriptionTransactionOrderByWithRelationInput = {
 }
 
 export type SubscriptionTransactionWhereUniqueInput = Prisma.AtLeast<{
+  requestId?: string
   id?: string
   AND?: Prisma.SubscriptionTransactionWhereInput | Prisma.SubscriptionTransactionWhereInput[]
   OR?: Prisma.SubscriptionTransactionWhereInput[]
   NOT?: Prisma.SubscriptionTransactionWhereInput | Prisma.SubscriptionTransactionWhereInput[]
+  requestHash?: Prisma.StringNullableFilter<"SubscriptionTransaction"> | string | null
   companyId?: Prisma.StringFilter<"SubscriptionTransaction"> | string
   transactionType?: Prisma.StringFilter<"SubscriptionTransaction"> | string
   amount?: Prisma.FloatNullableFilter<"SubscriptionTransaction"> | number | null
@@ -312,9 +332,11 @@ export type SubscriptionTransactionWhereUniqueInput = Prisma.AtLeast<{
   notes?: Prisma.StringNullableFilter<"SubscriptionTransaction"> | string | null
   createdAt?: Prisma.DateTimeFilter<"SubscriptionTransaction"> | Date | string
   company?: Prisma.XOR<Prisma.CompanyScalarRelationFilter, Prisma.CompanyWhereInput>
-}, "id">
+}, "id" | "requestId">
 
 export type SubscriptionTransactionOrderByWithAggregationInput = {
+  requestId?: Prisma.SortOrderInput | Prisma.SortOrder
+  requestHash?: Prisma.SortOrderInput | Prisma.SortOrder
   id?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
   transactionType?: Prisma.SortOrder
@@ -338,6 +360,8 @@ export type SubscriptionTransactionScalarWhereWithAggregatesInput = {
   AND?: Prisma.SubscriptionTransactionScalarWhereWithAggregatesInput | Prisma.SubscriptionTransactionScalarWhereWithAggregatesInput[]
   OR?: Prisma.SubscriptionTransactionScalarWhereWithAggregatesInput[]
   NOT?: Prisma.SubscriptionTransactionScalarWhereWithAggregatesInput | Prisma.SubscriptionTransactionScalarWhereWithAggregatesInput[]
+  requestId?: Prisma.StringNullableWithAggregatesFilter<"SubscriptionTransaction"> | string | null
+  requestHash?: Prisma.StringNullableWithAggregatesFilter<"SubscriptionTransaction"> | string | null
   id?: Prisma.StringWithAggregatesFilter<"SubscriptionTransaction"> | string
   companyId?: Prisma.StringWithAggregatesFilter<"SubscriptionTransaction"> | string
   transactionType?: Prisma.StringWithAggregatesFilter<"SubscriptionTransaction"> | string
@@ -353,6 +377,8 @@ export type SubscriptionTransactionScalarWhereWithAggregatesInput = {
 }
 
 export type SubscriptionTransactionCreateInput = {
+  requestId?: string | null
+  requestHash?: string | null
   id?: string
   transactionType: string
   amount?: number | null
@@ -368,6 +394,8 @@ export type SubscriptionTransactionCreateInput = {
 }
 
 export type SubscriptionTransactionUncheckedCreateInput = {
+  requestId?: string | null
+  requestHash?: string | null
   id?: string
   companyId: string
   transactionType: string
@@ -383,6 +411,8 @@ export type SubscriptionTransactionUncheckedCreateInput = {
 }
 
 export type SubscriptionTransactionUpdateInput = {
+  requestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   transactionType?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -398,6 +428,8 @@ export type SubscriptionTransactionUpdateInput = {
 }
 
 export type SubscriptionTransactionUncheckedUpdateInput = {
+  requestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   companyId?: Prisma.StringFieldUpdateOperationsInput | string
   transactionType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -413,6 +445,8 @@ export type SubscriptionTransactionUncheckedUpdateInput = {
 }
 
 export type SubscriptionTransactionCreateManyInput = {
+  requestId?: string | null
+  requestHash?: string | null
   id?: string
   companyId: string
   transactionType: string
@@ -428,6 +462,8 @@ export type SubscriptionTransactionCreateManyInput = {
 }
 
 export type SubscriptionTransactionUpdateManyMutationInput = {
+  requestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   transactionType?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -442,6 +478,8 @@ export type SubscriptionTransactionUpdateManyMutationInput = {
 }
 
 export type SubscriptionTransactionUncheckedUpdateManyInput = {
+  requestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   companyId?: Prisma.StringFieldUpdateOperationsInput | string
   transactionType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -467,6 +505,8 @@ export type SubscriptionTransactionOrderByRelationAggregateInput = {
 }
 
 export type SubscriptionTransactionCountOrderByAggregateInput = {
+  requestId?: Prisma.SortOrder
+  requestHash?: Prisma.SortOrder
   id?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
   transactionType?: Prisma.SortOrder
@@ -487,6 +527,8 @@ export type SubscriptionTransactionAvgOrderByAggregateInput = {
 }
 
 export type SubscriptionTransactionMaxOrderByAggregateInput = {
+  requestId?: Prisma.SortOrder
+  requestHash?: Prisma.SortOrder
   id?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
   transactionType?: Prisma.SortOrder
@@ -502,6 +544,8 @@ export type SubscriptionTransactionMaxOrderByAggregateInput = {
 }
 
 export type SubscriptionTransactionMinOrderByAggregateInput = {
+  requestId?: Prisma.SortOrder
+  requestHash?: Prisma.SortOrder
   id?: Prisma.SortOrder
   companyId?: Prisma.SortOrder
   transactionType?: Prisma.SortOrder
@@ -564,6 +608,8 @@ export type SubscriptionTransactionUncheckedUpdateManyWithoutCompanyNestedInput 
 }
 
 export type SubscriptionTransactionCreateWithoutCompanyInput = {
+  requestId?: string | null
+  requestHash?: string | null
   id?: string
   transactionType: string
   amount?: number | null
@@ -578,6 +624,8 @@ export type SubscriptionTransactionCreateWithoutCompanyInput = {
 }
 
 export type SubscriptionTransactionUncheckedCreateWithoutCompanyInput = {
+  requestId?: string | null
+  requestHash?: string | null
   id?: string
   transactionType: string
   amount?: number | null
@@ -621,6 +669,8 @@ export type SubscriptionTransactionScalarWhereInput = {
   AND?: Prisma.SubscriptionTransactionScalarWhereInput | Prisma.SubscriptionTransactionScalarWhereInput[]
   OR?: Prisma.SubscriptionTransactionScalarWhereInput[]
   NOT?: Prisma.SubscriptionTransactionScalarWhereInput | Prisma.SubscriptionTransactionScalarWhereInput[]
+  requestId?: Prisma.StringNullableFilter<"SubscriptionTransaction"> | string | null
+  requestHash?: Prisma.StringNullableFilter<"SubscriptionTransaction"> | string | null
   id?: Prisma.StringFilter<"SubscriptionTransaction"> | string
   companyId?: Prisma.StringFilter<"SubscriptionTransaction"> | string
   transactionType?: Prisma.StringFilter<"SubscriptionTransaction"> | string
@@ -636,6 +686,8 @@ export type SubscriptionTransactionScalarWhereInput = {
 }
 
 export type SubscriptionTransactionCreateManyCompanyInput = {
+  requestId?: string | null
+  requestHash?: string | null
   id?: string
   transactionType: string
   amount?: number | null
@@ -650,6 +702,8 @@ export type SubscriptionTransactionCreateManyCompanyInput = {
 }
 
 export type SubscriptionTransactionUpdateWithoutCompanyInput = {
+  requestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   transactionType?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -664,6 +718,8 @@ export type SubscriptionTransactionUpdateWithoutCompanyInput = {
 }
 
 export type SubscriptionTransactionUncheckedUpdateWithoutCompanyInput = {
+  requestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   transactionType?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -678,6 +734,8 @@ export type SubscriptionTransactionUncheckedUpdateWithoutCompanyInput = {
 }
 
 export type SubscriptionTransactionUncheckedUpdateManyWithoutCompanyInput = {
+  requestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   transactionType?: Prisma.StringFieldUpdateOperationsInput | string
   amount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -694,6 +752,8 @@ export type SubscriptionTransactionUncheckedUpdateManyWithoutCompanyInput = {
 
 
 export type SubscriptionTransactionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  requestId?: boolean
+  requestHash?: boolean
   id?: boolean
   companyId?: boolean
   transactionType?: boolean
@@ -710,6 +770,8 @@ export type SubscriptionTransactionSelect<ExtArgs extends runtime.Types.Extensio
 }, ExtArgs["result"]["subscriptionTransaction"]>
 
 export type SubscriptionTransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  requestId?: boolean
+  requestHash?: boolean
   id?: boolean
   companyId?: boolean
   transactionType?: boolean
@@ -726,6 +788,8 @@ export type SubscriptionTransactionSelectCreateManyAndReturn<ExtArgs extends run
 }, ExtArgs["result"]["subscriptionTransaction"]>
 
 export type SubscriptionTransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  requestId?: boolean
+  requestHash?: boolean
   id?: boolean
   companyId?: boolean
   transactionType?: boolean
@@ -742,6 +806,8 @@ export type SubscriptionTransactionSelectUpdateManyAndReturn<ExtArgs extends run
 }, ExtArgs["result"]["subscriptionTransaction"]>
 
 export type SubscriptionTransactionSelectScalar = {
+  requestId?: boolean
+  requestHash?: boolean
   id?: boolean
   companyId?: boolean
   transactionType?: boolean
@@ -756,7 +822,7 @@ export type SubscriptionTransactionSelectScalar = {
   createdAt?: boolean
 }
 
-export type SubscriptionTransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "companyId" | "transactionType" | "amount" | "termDurationMonths" | "previousStatus" | "newStatus" | "startAt" | "expiresAt" | "approvedBy" | "notes" | "createdAt", ExtArgs["result"]["subscriptionTransaction"]>
+export type SubscriptionTransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"requestId" | "requestHash" | "id" | "companyId" | "transactionType" | "amount" | "termDurationMonths" | "previousStatus" | "newStatus" | "startAt" | "expiresAt" | "approvedBy" | "notes" | "createdAt", ExtArgs["result"]["subscriptionTransaction"]>
 export type SubscriptionTransactionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
 }
@@ -773,6 +839,8 @@ export type $SubscriptionTransactionPayload<ExtArgs extends runtime.Types.Extens
     company: Prisma.$CompanyPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
+    requestId: string | null
+    requestHash: string | null
     id: string
     companyId: string
     transactionType: string
@@ -868,8 +936,8 @@ export interface SubscriptionTransactionDelegate<ExtArgs extends runtime.Types.E
    * // Get first 10 SubscriptionTransactions
    * const subscriptionTransactions = await prisma.subscriptionTransaction.findMany({ take: 10 })
    * 
-   * // Only select the `id`
-   * const subscriptionTransactionWithIdOnly = await prisma.subscriptionTransaction.findMany({ select: { id: true } })
+   * // Only select the `requestId`
+   * const subscriptionTransactionWithRequestIdOnly = await prisma.subscriptionTransaction.findMany({ select: { requestId: true } })
    * 
    */
   findMany<T extends SubscriptionTransactionFindManyArgs>(args?: Prisma.SelectSubset<T, SubscriptionTransactionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubscriptionTransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
@@ -913,9 +981,9 @@ export interface SubscriptionTransactionDelegate<ExtArgs extends runtime.Types.E
    *   ]
    * })
    * 
-   * // Create many SubscriptionTransactions and only return the `id`
-   * const subscriptionTransactionWithIdOnly = await prisma.subscriptionTransaction.createManyAndReturn({
-   *   select: { id: true },
+   * // Create many SubscriptionTransactions and only return the `requestId`
+   * const subscriptionTransactionWithRequestIdOnly = await prisma.subscriptionTransaction.createManyAndReturn({
+   *   select: { requestId: true },
    *   data: [
    *     // ... provide data here
    *   ]
@@ -1004,9 +1072,9 @@ export interface SubscriptionTransactionDelegate<ExtArgs extends runtime.Types.E
    *   ]
    * })
    * 
-   * // Update zero or more SubscriptionTransactions and only return the `id`
-   * const subscriptionTransactionWithIdOnly = await prisma.subscriptionTransaction.updateManyAndReturn({
-   *   select: { id: true },
+   * // Update zero or more SubscriptionTransactions and only return the `requestId`
+   * const subscriptionTransactionWithRequestIdOnly = await prisma.subscriptionTransaction.updateManyAndReturn({
+   *   select: { requestId: true },
    *   where: {
    *     // ... provide filter here
    *   },
@@ -1209,6 +1277,8 @@ export interface Prisma__SubscriptionTransactionClient<T, Null = never, ExtArgs 
  * Fields of the SubscriptionTransaction model
  */
 export interface SubscriptionTransactionFieldRefs {
+  readonly requestId: Prisma.FieldRef<"SubscriptionTransaction", 'String'>
+  readonly requestHash: Prisma.FieldRef<"SubscriptionTransaction", 'String'>
   readonly id: Prisma.FieldRef<"SubscriptionTransaction", 'String'>
   readonly companyId: Prisma.FieldRef<"SubscriptionTransaction", 'String'>
   readonly transactionType: Prisma.FieldRef<"SubscriptionTransaction", 'String'>

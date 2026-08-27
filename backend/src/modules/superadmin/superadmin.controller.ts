@@ -63,6 +63,7 @@ export class SuperAdminController {
   }
 
   @Post('companies')
+  @HttpCode(HttpStatus.ACCEPTED)
   async createCompany(@Body() body: CreateCompanyDto, @CurrentUser('id') adminId: string) {
     return this.superAdminService.createCompany(body, adminId);
   }
@@ -135,6 +136,13 @@ export class SuperAdminController {
   generateCompanyOwnerTemporaryPassword(@Param('id') id: string) {
     return this.superAdminService.generateCompanyOwnerTemporaryPassword(id);
   }
+
+  @Get('onboarding/:id')
+  getOnboarding(@Param('id') id: string) { return this.superAdminService.getOnboarding(id); }
+
+  @Post('onboarding/:id/retry')
+  @HttpCode(HttpStatus.ACCEPTED)
+  retryOnboarding(@Param('id') id: string) { return this.superAdminService.retryOnboarding(id); }
 
   @Post('companies/:id/impersonation')
   @HttpCode(HttpStatus.OK)

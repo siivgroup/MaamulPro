@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
     AlertTriangle,
@@ -6,7 +6,6 @@ import {
     Boxes,
     Building2,
     CheckCircle2,
-    Copy,
     Eye,
     EyeOff,
     Hammer,
@@ -18,10 +17,11 @@ import {
 } from 'lucide-react';
 import AppShell from '../components/maamulpro/AppShell';
 import { ErrorAlert, Field, Modal, PasswordInput } from '../components/maamulpro/PageKit';
-import { api } from '../lib/api';
-import { tenantUrl } from '../lib/tenant-domain';
+import { api, ApiError } from '../lib/api';
+import OnboardingProgress from '../components/maamulpro/OnboardingProgress';
+import { clearOnboardingReference, loadOnboardingReference, saveOnboardingReference } from '../lib/onboarding';
 
-type NeonStatus = { automaticProvisioning: boolean };
+type NeonStatus = { automaticProvisioning: boolean; configurationError?: string };
 type CompanyType = 'general' | 'construction' | 'real_estate' | 'material_management';
 type ModuleKey = 'constructionEnabled' | 'realEstateEnabled' | 'materialManagementEnabled';
 
@@ -36,17 +36,6 @@ type FormState = {
 };
 
 type ModuleState = Record<ModuleKey, boolean>;
-
-type OnboardingResult = {
-    id: string;
-    name: string;
-    onboarding?: {
-        adminEmail: string;
-        dbName: string;
-        loginUrl: string;
-        modulesEnabled: string[];
-    };
-};
 
 const initialForm: FormState = {
     companyName: '',
@@ -97,20 +86,6 @@ const moduleChoices: Array<{
     },
 ];
 
-const loadingMessages = [
-    'Provisioning database…',
-    'Applying company schema…',
-    'Configuring modules…',
-    'Creating the company owner…',
-    'Almost ready…',
-];
-
-const moduleLabels = (modules: ModuleState) => [
-    modules.constructionEnabled && 'Construction',
-    modules.realEstateEnabled && 'Real estate',
-    modules.materialManagementEnabled && 'Materials',
-].filter(Boolean) as string[];
-
 const slugify = (value: string) => value
     .toLowerCase()
     .trim()
@@ -156,7 +131,12 @@ const CompanyOnboardingPage = () => {
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [submitError, setSubmitError] = useState('');
     const [saving, setSaving] = useState(false);
-    const [loadingIndex, setLoadingIndex] = useState(0);
+    const requestId = useRef(loadOnboardingReference() || crypto.randomUUID());
+    const [attemptId, setAttemptId] = useState(loadOnboardingReference);
+    const submitting = useRef(false);
+    useEffect(() => {
+        if (attemptId) navigate(`?onboarding=${attemptId}`, { replace: true });
+    }, [attemptId, navigate]);
     const [showPassword, setShowPassword] = useState(false);
     const [neonStatus, setNeonStatus] = useState<NeonStatus | null>(null);
     const [neonChecked, setNeonChecked] = useState(false);
@@ -166,31 +146,11 @@ const CompanyOnboardingPage = () => {
     const [verificationError, setVerificationError] = useState('');
     const [verifying, setVerifying] = useState(false);
     const [sendingVerification, setSendingVerification] = useState(false);
-    const [success, setSuccess] = useState<{
-        companyId: string;
-        companyName: string;
-        adminEmail: string;
-        password: string;
-        dbName: string;
-        loginUrl: string;
-        modulesEnabled: string[];
-    } | null>(null);
-
     useEffect(() => {
-        api<NeonStatus>('/api/superadmin/neon/status')
-            .then(setNeonStatus)
-            .catch(() => setNeonStatus({ automaticProvisioning: false }))
-            .finally(() => setNeonChecked(true));
+        api<NeonStatus>('/api/superadmin/neon/status', { silent: true })
+            .then((status) => { setNeonStatus(status); setNeonChecked(true); })
+            .catch(() => setSubmitError('Unable to check database setup configuration. Reload this page before submitting.'));
     }, []);
-
-    useEffect(() => {
-        if (!saving) return;
-        const timer = window.setInterval(
-            () => setLoadingIndex((value) => (value + 1) % loadingMessages.length),
-            2800,
-        );
-        return () => window.clearInterval(timer);
-    }, [saving]);
 
     const automaticNeon = neonStatus?.automaticProvisioning === true;
     const requiresDatabaseUrl = neonChecked && !automaticNeon;
@@ -223,7 +183,7 @@ const CompanyOnboardingPage = () => {
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.adminEmail.trim())) return;
         try {
             const result = await api<{ available: boolean; error?: string }>(
-                `/api/superadmin/companies/email-availability?email=${encodeURIComponent(form.adminEmail.trim())}`,
+                `/api/superadmin/companies/email-availability?email=${encodeURIComponent(form.adminEmail.trim())}`, { silent: true },
             );
             if (!result.available) {
                 setErrors((current) => ({
@@ -244,7 +204,7 @@ const CompanyOnboardingPage = () => {
         try {
             await api<{ sent: boolean }>(
                 '/api/superadmin/companies/email-verification/send',
-                { method: 'POST', body: JSON.stringify({ email: form.adminEmail.trim() }) },
+                { method: 'POST', body: JSON.stringify({ email: form.adminEmail.trim() }), silent: true },
             );
             setVerificationCode('');
             setVerificationError('');
@@ -259,7 +219,7 @@ const CompanyOnboardingPage = () => {
         setVerifying(true);
         setVerificationError('');
         try {
-            await api('/api/superadmin/companies/email-verification/verify', {
+            await api('/api/superadmin/companies/email-verification/verify', { silent: true,
                 method: 'POST',
                 body: JSON.stringify({ email: form.adminEmail.trim(), code: verificationCode }),
             });
@@ -273,42 +233,39 @@ const CompanyOnboardingPage = () => {
     };
 
     const provision = async () => {
-        setLoadingIndex(0);
+        if (submitting.current) return;
+        submitting.current = true;
         setSaving(true);
+        saveOnboardingReference(requestId.current);
         try {
             const payload = {
-                name: form.companyName.trim(),
-                subdomain: form.companySlug.trim(),
-                companyType: form.companyType,
-                adminName: form.adminName.trim(),
-                adminEmail: form.adminEmail.trim(),
-                adminPassword: form.adminPassword,
-                ...(form.dbUrl.trim() ? { dbUrl: form.dbUrl.trim() } : {}),
-                ...modules,
+                onboardingRequestId: requestId.current,
+                name: form.companyName.trim(), subdomain: form.companySlug.trim(), companyType: form.companyType,
+                adminName: form.adminName.trim(), adminEmail: form.adminEmail.trim(), adminPassword: form.adminPassword,
+                ...(form.dbUrl.trim() ? { dbUrl: form.dbUrl.trim() } : {}), ...modules,
             };
-            const result = await api<OnboardingResult>('/api/superadmin/companies', {
-                method: 'POST',
-                body: JSON.stringify(payload),
-            });
-            const onboarding = result.onboarding;
-            setSuccess({
-                companyId: result.id,
-                companyName: result.name || form.companyName.trim(),
-                adminEmail: onboarding?.adminEmail || form.adminEmail.trim(),
-                password: form.adminPassword,
-                dbName: onboarding?.dbName || `maamulpro_${form.companySlug.replace(/[^a-z0-9]/g, '_')}`,
-                loginUrl: onboarding?.loginUrl || tenantUrl(form.companySlug, '/sign-in'),
-                modulesEnabled: onboarding?.modulesEnabled || moduleLabels(modules),
-            });
+            await api('/api/superadmin/companies', { method: 'POST', body: JSON.stringify(payload), silent: true, signal: AbortSignal.timeout(15000) });
+            setAttemptId(requestId.current);
         } catch (reason) {
-            setSubmitError(reason instanceof Error ? reason.message : 'Company onboarding failed.');
-        } finally {
-            setSaving(false);
-        }
+            if (reason instanceof ApiError && reason.onboardingId) {
+                setForm(current => ({ ...current, adminPassword: '' }));
+                requestId.current = reason.onboardingId;
+                saveOnboardingReference(reason.onboardingId);
+                setAttemptId(reason.onboardingId);
+            } else if (reason instanceof ApiError && [400, 409, 401, 403].includes(reason.status)) {
+                setSubmitError([reason.message, reason.nextAction, reason.requestId && ('Reference: ' + reason.requestId)].filter(Boolean).join(' '));
+                clearOnboardingReference(requestId.current);
+                requestId.current = crypto.randomUUID();
+            } else {
+                // An unreadable/lost response is not proof that creation failed.
+                setAttemptId(requestId.current);
+            }
+        } finally { setSaving(false); submitting.current = false; }
     };
 
     const submit = async (event: FormEvent) => {
         event.preventDefault();
+        if (saving || attemptId || !neonChecked || neonStatus?.configurationError) return;
         const nextErrors = validate(form, modules, requiresDatabaseUrl);
         setErrors(nextErrors);
         setSubmitError('');
@@ -327,6 +284,8 @@ const CompanyOnboardingPage = () => {
         await provision();
     };
 
+    if (attemptId) return <AppShell><OnboardingProgress id={attemptId} password={form.adminPassword} onMissing={() => setAttemptId('')} /></AppShell>;
+
     return <AppShell>
         <div className="mx-auto max-w-5xl">
             <Link
@@ -341,6 +300,7 @@ const CompanyOnboardingPage = () => {
                 <p className="mt-2 text-sm text-white-dark">Create the tenant, choose its modules and add the company owner.</p>
             </div>
 
+            {neonStatus?.configurationError && <div className="mb-5"><ErrorAlert message={neonStatus.configurationError} /></div>}
             {submitError && <div className="mb-5"><ErrorAlert message={submitError} /></div>}
 
             <form
@@ -513,19 +473,13 @@ const CompanyOnboardingPage = () => {
                     </p>
                     <div className="flex items-center gap-3">
                         <Link className="btn btn-outline-dark" to="/superadmin/companies">Cancel</Link>
-                        <button className="btn btn-primary min-w-40" disabled={saving || sendingVerification || !neonChecked}>
+                        <button className="btn btn-primary min-w-40" disabled={saving || sendingVerification || !neonChecked || Boolean(neonStatus?.configurationError)}>
                             {saving ? 'Creating company…' : sendingVerification ? <><LoaderCircle className="mr-2 animate-spin" size={16} /> Sending verification…</> : verifiedEmail ? 'Create company' : 'Verify & create'}
                         </button>
                     </div>
                 </footer>
             </form>
         </div>
-
-        {saving && <div className="fixed inset-0 z-[120] flex flex-col items-center justify-center bg-white/90 p-6 text-center backdrop-blur-sm dark:bg-black/90">
-            <LoaderCircle className="animate-spin text-primary" size={44} />
-            <p className="mt-5 text-lg font-bold">{loadingMessages[loadingIndex]}</p>
-            <p className="mt-2 max-w-md text-sm text-white-dark">Keep this page open while the tenant workspace is prepared.</p>
-        </div>}
 
         <Modal title="Verify company owner email" open={verificationOpen} onClose={() => setVerificationOpen(false)}>
             <p className="text-sm text-white-dark">Enter the 6-digit code sent to <strong>{form.adminEmail}</strong>.</p>
@@ -552,33 +506,7 @@ const CompanyOnboardingPage = () => {
             </div>
         </Modal>
 
-        <Modal title="Company is ready" open={Boolean(success)} onClose={() => success && navigate(`/superadmin/companies/${success.companyId}`)}>
-            {success && <div className="space-y-4">
-                <p className="text-sm text-white-dark">{success.companyName} has been onboarded. Share these credentials through a secure channel.</p>
-                <div className="flex gap-3 rounded-md bg-warning-light p-4 text-warning">
-                    <AlertTriangle className="shrink-0" size={20} />
-                    <p className="text-sm"><strong>Copy the password now.</strong> It will not be shown again.</p>
-                </div>
-                {[
-                    ['Admin email', success.adminEmail],
-                    ['Password', success.password],
-                    ['Login URL', success.loginUrl],
-                    ['Database', success.dbName],
-                    ['Modules', success.modulesEnabled.join(', ')],
-                ].map(([label, value]) => <div key={label}>
-                    <p className="mb-1 text-xs font-bold uppercase text-white-dark">{label}</p>
-                    <div className="flex items-center gap-2">
-                        <code className="min-w-0 flex-1 overflow-hidden text-ellipsis rounded-md bg-gray-100 px-3 py-2 text-xs dark:bg-dark">{value}</code>
-                        <button className="btn btn-sm btn-outline-primary" type="button" onClick={() => navigator.clipboard.writeText(value)}>
-                            <Copy size={14} />
-                        </button>
-                    </div>
-                </div>)}
-                <button className="btn btn-primary ml-auto" type="button" onClick={() => navigate('/superadmin/companies')}>
-                    Continue to company list
-                </button>
-            </div>}
-        </Modal>
+
     </AppShell>;
 };
 

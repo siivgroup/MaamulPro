@@ -14,6 +14,10 @@ const parseDatabaseUrl = (rawUrl: string) => {
   if (!['postgres:', 'postgresql:'].includes(parsed.protocol) || !parsed.hostname || !parsed.pathname.slice(1)) {
     throw new Error('Database URL must identify a PostgreSQL database');
   }
+  // pg accepts query-string host/role overrides. They bypass target and ownership checks.
+  if (['host', 'hostaddr', 'port', 'user', 'password', 'database', 'dbname', 'db', 'options', 'sslcert', 'sslkey', 'sslrootcert'].some(key => parsed.searchParams.has(key))) {
+    throw new Error('Database URL must identify its host, port, database and credentials directly, without query overrides or local certificate paths');
+  }
   return parsed;
 };
 
@@ -75,6 +79,12 @@ export const withDatabaseName = (rawUrl: string, databaseName: string) => {
 export const databaseEndpointLabel = (rawUrl: string) => {
   const parsed = parseDatabaseUrl(rawUrl);
   return `${parsed.hostname}/${decodeURIComponent(parsed.pathname.slice(1))}`;
+};
+
+// Credentials, pooler mode and connection options do not identify a database.
+export const databaseIdentity = (rawUrl: string) => {
+  const parsed = new URL(getDatabaseConnectionPair(rawUrl).directUrl);
+  return `${parsed.hostname.toLowerCase()}:${parsed.port || '5432'}/${decodeURIComponent(parsed.pathname.slice(1))}`;
 };
 
 export const poolSetting = (name: string, fallback: number, maximum = 20) => {

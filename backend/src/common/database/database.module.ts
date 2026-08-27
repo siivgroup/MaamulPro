@@ -1,4 +1,5 @@
 import { Global, Module } from '@nestjs/common';
+import { IdentitySyncService } from './identity-sync.service';
 import { CentralPrismaService } from './central-prisma.service';
 import { NeonManagementService } from './neon-management.service';
 import { TenantConnectionManager } from './tenant-connection.manager';
@@ -9,6 +10,7 @@ import { SubscriptionLifecycleService } from '../subscriptions/subscription-life
 @Global()
 @Module({
   providers: [
+    IdentitySyncService,
     CentralPrismaService,
     TenantConnectionManager,
     TenantProvisioningService,
@@ -17,6 +19,7 @@ import { SubscriptionLifecycleService } from '../subscriptions/subscription-life
     SubscriptionLifecycleService,
   ],
   exports: [
+    IdentitySyncService,
     CentralPrismaService,
     TenantConnectionManager,
     TenantProvisioningService,

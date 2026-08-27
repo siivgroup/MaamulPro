@@ -35,6 +35,8 @@ export type CompanyUserSumAggregateOutputType = {
 }
 
 export type CompanyUserMinAggregateOutputType = {
+  identitySyncPending: boolean | null
+  identitySyncAfter: Date | null
   id: string | null
   email: string | null
   passwordHash: string | null
@@ -53,6 +55,8 @@ export type CompanyUserMinAggregateOutputType = {
 }
 
 export type CompanyUserMaxAggregateOutputType = {
+  identitySyncPending: boolean | null
+  identitySyncAfter: Date | null
   id: string | null
   email: string | null
   passwordHash: string | null
@@ -71,6 +75,8 @@ export type CompanyUserMaxAggregateOutputType = {
 }
 
 export type CompanyUserCountAggregateOutputType = {
+  identitySyncPending: number
+  identitySyncAfter: number
   id: number
   email: number
   passwordHash: number
@@ -99,6 +105,8 @@ export type CompanyUserSumAggregateInputType = {
 }
 
 export type CompanyUserMinAggregateInputType = {
+  identitySyncPending?: true
+  identitySyncAfter?: true
   id?: true
   email?: true
   passwordHash?: true
@@ -117,6 +125,8 @@ export type CompanyUserMinAggregateInputType = {
 }
 
 export type CompanyUserMaxAggregateInputType = {
+  identitySyncPending?: true
+  identitySyncAfter?: true
   id?: true
   email?: true
   passwordHash?: true
@@ -135,6 +145,8 @@ export type CompanyUserMaxAggregateInputType = {
 }
 
 export type CompanyUserCountAggregateInputType = {
+  identitySyncPending?: true
+  identitySyncAfter?: true
   id?: true
   email?: true
   passwordHash?: true
@@ -240,6 +252,8 @@ export type CompanyUserGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
 }
 
 export type CompanyUserGroupByOutputType = {
+  identitySyncPending: boolean
+  identitySyncAfter: Date | null
   id: string
   email: string
   passwordHash: string
@@ -281,6 +295,8 @@ export type CompanyUserWhereInput = {
   AND?: Prisma.CompanyUserWhereInput | Prisma.CompanyUserWhereInput[]
   OR?: Prisma.CompanyUserWhereInput[]
   NOT?: Prisma.CompanyUserWhereInput | Prisma.CompanyUserWhereInput[]
+  identitySyncPending?: Prisma.BoolFilter<"CompanyUser"> | boolean
+  identitySyncAfter?: Prisma.DateTimeNullableFilter<"CompanyUser"> | Date | string | null
   id?: Prisma.StringFilter<"CompanyUser"> | string
   email?: Prisma.StringFilter<"CompanyUser"> | string
   passwordHash?: Prisma.StringFilter<"CompanyUser"> | string
@@ -300,6 +316,8 @@ export type CompanyUserWhereInput = {
 }
 
 export type CompanyUserOrderByWithRelationInput = {
+  identitySyncPending?: Prisma.SortOrder
+  identitySyncAfter?: Prisma.SortOrderInput | Prisma.SortOrder
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
@@ -324,6 +342,8 @@ export type CompanyUserWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.CompanyUserWhereInput | Prisma.CompanyUserWhereInput[]
   OR?: Prisma.CompanyUserWhereInput[]
   NOT?: Prisma.CompanyUserWhereInput | Prisma.CompanyUserWhereInput[]
+  identitySyncPending?: Prisma.BoolFilter<"CompanyUser"> | boolean
+  identitySyncAfter?: Prisma.DateTimeNullableFilter<"CompanyUser"> | Date | string | null
   passwordHash?: Prisma.StringFilter<"CompanyUser"> | string
   companyId?: Prisma.StringFilter<"CompanyUser"> | string
   role?: Prisma.StringFilter<"CompanyUser"> | string
@@ -341,6 +361,8 @@ export type CompanyUserWhereUniqueInput = Prisma.AtLeast<{
 }, "id" | "email">
 
 export type CompanyUserOrderByWithAggregationInput = {
+  identitySyncPending?: Prisma.SortOrder
+  identitySyncAfter?: Prisma.SortOrderInput | Prisma.SortOrder
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
@@ -367,6 +389,8 @@ export type CompanyUserScalarWhereWithAggregatesInput = {
   AND?: Prisma.CompanyUserScalarWhereWithAggregatesInput | Prisma.CompanyUserScalarWhereWithAggregatesInput[]
   OR?: Prisma.CompanyUserScalarWhereWithAggregatesInput[]
   NOT?: Prisma.CompanyUserScalarWhereWithAggregatesInput | Prisma.CompanyUserScalarWhereWithAggregatesInput[]
+  identitySyncPending?: Prisma.BoolWithAggregatesFilter<"CompanyUser"> | boolean
+  identitySyncAfter?: Prisma.DateTimeNullableWithAggregatesFilter<"CompanyUser"> | Date | string | null
   id?: Prisma.StringWithAggregatesFilter<"CompanyUser"> | string
   email?: Prisma.StringWithAggregatesFilter<"CompanyUser"> | string
   passwordHash?: Prisma.StringWithAggregatesFilter<"CompanyUser"> | string
@@ -385,6 +409,8 @@ export type CompanyUserScalarWhereWithAggregatesInput = {
 }
 
 export type CompanyUserCreateInput = {
+  identitySyncPending?: boolean
+  identitySyncAfter?: Date | string | null
   id?: string
   email: string
   passwordHash: string
@@ -403,6 +429,8 @@ export type CompanyUserCreateInput = {
 }
 
 export type CompanyUserUncheckedCreateInput = {
+  identitySyncPending?: boolean
+  identitySyncAfter?: Date | string | null
   id?: string
   email: string
   passwordHash: string
@@ -421,6 +449,8 @@ export type CompanyUserUncheckedCreateInput = {
 }
 
 export type CompanyUserUpdateInput = {
+  identitySyncPending?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  identitySyncAfter?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -439,6 +469,8 @@ export type CompanyUserUpdateInput = {
 }
 
 export type CompanyUserUncheckedUpdateInput = {
+  identitySyncPending?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  identitySyncAfter?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -457,6 +489,8 @@ export type CompanyUserUncheckedUpdateInput = {
 }
 
 export type CompanyUserCreateManyInput = {
+  identitySyncPending?: boolean
+  identitySyncAfter?: Date | string | null
   id?: string
   email: string
   passwordHash: string
@@ -475,6 +509,8 @@ export type CompanyUserCreateManyInput = {
 }
 
 export type CompanyUserUpdateManyMutationInput = {
+  identitySyncPending?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  identitySyncAfter?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -492,6 +528,8 @@ export type CompanyUserUpdateManyMutationInput = {
 }
 
 export type CompanyUserUncheckedUpdateManyInput = {
+  identitySyncPending?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  identitySyncAfter?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -520,6 +558,8 @@ export type CompanyUserOrderByRelationAggregateInput = {
 }
 
 export type CompanyUserCountOrderByAggregateInput = {
+  identitySyncPending?: Prisma.SortOrder
+  identitySyncAfter?: Prisma.SortOrder
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
@@ -542,6 +582,8 @@ export type CompanyUserAvgOrderByAggregateInput = {
 }
 
 export type CompanyUserMaxOrderByAggregateInput = {
+  identitySyncPending?: Prisma.SortOrder
+  identitySyncAfter?: Prisma.SortOrder
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
@@ -560,6 +602,8 @@ export type CompanyUserMaxOrderByAggregateInput = {
 }
 
 export type CompanyUserMinOrderByAggregateInput = {
+  identitySyncPending?: Prisma.SortOrder
+  identitySyncAfter?: Prisma.SortOrder
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
@@ -624,6 +668,8 @@ export type CompanyUserUncheckedUpdateManyWithoutCompanyNestedInput = {
 }
 
 export type CompanyUserCreateWithoutCompanyInput = {
+  identitySyncPending?: boolean
+  identitySyncAfter?: Date | string | null
   id?: string
   email: string
   passwordHash: string
@@ -641,6 +687,8 @@ export type CompanyUserCreateWithoutCompanyInput = {
 }
 
 export type CompanyUserUncheckedCreateWithoutCompanyInput = {
+  identitySyncPending?: boolean
+  identitySyncAfter?: Date | string | null
   id?: string
   email: string
   passwordHash: string
@@ -687,6 +735,8 @@ export type CompanyUserScalarWhereInput = {
   AND?: Prisma.CompanyUserScalarWhereInput | Prisma.CompanyUserScalarWhereInput[]
   OR?: Prisma.CompanyUserScalarWhereInput[]
   NOT?: Prisma.CompanyUserScalarWhereInput | Prisma.CompanyUserScalarWhereInput[]
+  identitySyncPending?: Prisma.BoolFilter<"CompanyUser"> | boolean
+  identitySyncAfter?: Prisma.DateTimeNullableFilter<"CompanyUser"> | Date | string | null
   id?: Prisma.StringFilter<"CompanyUser"> | string
   email?: Prisma.StringFilter<"CompanyUser"> | string
   passwordHash?: Prisma.StringFilter<"CompanyUser"> | string
@@ -705,6 +755,8 @@ export type CompanyUserScalarWhereInput = {
 }
 
 export type CompanyUserCreateManyCompanyInput = {
+  identitySyncPending?: boolean
+  identitySyncAfter?: Date | string | null
   id?: string
   email: string
   passwordHash: string
@@ -722,6 +774,8 @@ export type CompanyUserCreateManyCompanyInput = {
 }
 
 export type CompanyUserUpdateWithoutCompanyInput = {
+  identitySyncPending?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  identitySyncAfter?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -739,6 +793,8 @@ export type CompanyUserUpdateWithoutCompanyInput = {
 }
 
 export type CompanyUserUncheckedUpdateWithoutCompanyInput = {
+  identitySyncPending?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  identitySyncAfter?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -756,6 +812,8 @@ export type CompanyUserUncheckedUpdateWithoutCompanyInput = {
 }
 
 export type CompanyUserUncheckedUpdateManyWithoutCompanyInput = {
+  identitySyncPending?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  identitySyncAfter?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -775,6 +833,8 @@ export type CompanyUserUncheckedUpdateManyWithoutCompanyInput = {
 
 
 export type CompanyUserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  identitySyncPending?: boolean
+  identitySyncAfter?: boolean
   id?: boolean
   email?: boolean
   passwordHash?: boolean
@@ -794,6 +854,8 @@ export type CompanyUserSelect<ExtArgs extends runtime.Types.Extensions.InternalA
 }, ExtArgs["result"]["companyUser"]>
 
 export type CompanyUserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  identitySyncPending?: boolean
+  identitySyncAfter?: boolean
   id?: boolean
   email?: boolean
   passwordHash?: boolean
@@ -813,6 +875,8 @@ export type CompanyUserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
 }, ExtArgs["result"]["companyUser"]>
 
 export type CompanyUserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  identitySyncPending?: boolean
+  identitySyncAfter?: boolean
   id?: boolean
   email?: boolean
   passwordHash?: boolean
@@ -832,6 +896,8 @@ export type CompanyUserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
 }, ExtArgs["result"]["companyUser"]>
 
 export type CompanyUserSelectScalar = {
+  identitySyncPending?: boolean
+  identitySyncAfter?: boolean
   id?: boolean
   email?: boolean
   passwordHash?: boolean
@@ -849,7 +915,7 @@ export type CompanyUserSelectScalar = {
   deletedAt?: boolean
 }
 
-export type CompanyUserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "companyId" | "role" | "isActive" | "sessionVersion" | "resetTokenHash" | "resetTokenExpiresAt" | "resetRequestedAt" | "passwordResetAt" | "lastLoginAt" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["companyUser"]>
+export type CompanyUserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"identitySyncPending" | "identitySyncAfter" | "id" | "email" | "passwordHash" | "companyId" | "role" | "isActive" | "sessionVersion" | "resetTokenHash" | "resetTokenExpiresAt" | "resetRequestedAt" | "passwordResetAt" | "lastLoginAt" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["companyUser"]>
 export type CompanyUserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   company?: boolean | Prisma.CompanyDefaultArgs<ExtArgs>
 }
@@ -866,6 +932,8 @@ export type $CompanyUserPayload<ExtArgs extends runtime.Types.Extensions.Interna
     company: Prisma.$CompanyPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
+    identitySyncPending: boolean
+    identitySyncAfter: Date | null
     id: string
     email: string
     passwordHash: string
@@ -964,8 +1032,8 @@ export interface CompanyUserDelegate<ExtArgs extends runtime.Types.Extensions.In
    * // Get first 10 CompanyUsers
    * const companyUsers = await prisma.companyUser.findMany({ take: 10 })
    * 
-   * // Only select the `id`
-   * const companyUserWithIdOnly = await prisma.companyUser.findMany({ select: { id: true } })
+   * // Only select the `identitySyncPending`
+   * const companyUserWithIdentitySyncPendingOnly = await prisma.companyUser.findMany({ select: { identitySyncPending: true } })
    * 
    */
   findMany<T extends CompanyUserFindManyArgs>(args?: Prisma.SelectSubset<T, CompanyUserFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CompanyUserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
@@ -1009,9 +1077,9 @@ export interface CompanyUserDelegate<ExtArgs extends runtime.Types.Extensions.In
    *   ]
    * })
    * 
-   * // Create many CompanyUsers and only return the `id`
-   * const companyUserWithIdOnly = await prisma.companyUser.createManyAndReturn({
-   *   select: { id: true },
+   * // Create many CompanyUsers and only return the `identitySyncPending`
+   * const companyUserWithIdentitySyncPendingOnly = await prisma.companyUser.createManyAndReturn({
+   *   select: { identitySyncPending: true },
    *   data: [
    *     // ... provide data here
    *   ]
@@ -1100,9 +1168,9 @@ export interface CompanyUserDelegate<ExtArgs extends runtime.Types.Extensions.In
    *   ]
    * })
    * 
-   * // Update zero or more CompanyUsers and only return the `id`
-   * const companyUserWithIdOnly = await prisma.companyUser.updateManyAndReturn({
-   *   select: { id: true },
+   * // Update zero or more CompanyUsers and only return the `identitySyncPending`
+   * const companyUserWithIdentitySyncPendingOnly = await prisma.companyUser.updateManyAndReturn({
+   *   select: { identitySyncPending: true },
    *   where: {
    *     // ... provide filter here
    *   },
@@ -1305,6 +1373,8 @@ export interface Prisma__CompanyUserClient<T, Null = never, ExtArgs extends runt
  * Fields of the CompanyUser model
  */
 export interface CompanyUserFieldRefs {
+  readonly identitySyncPending: Prisma.FieldRef<"CompanyUser", 'Boolean'>
+  readonly identitySyncAfter: Prisma.FieldRef<"CompanyUser", 'DateTime'>
   readonly id: Prisma.FieldRef<"CompanyUser", 'String'>
   readonly email: Prisma.FieldRef<"CompanyUser", 'String'>
   readonly passwordHash: Prisma.FieldRef<"CompanyUser", 'String'>

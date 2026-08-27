@@ -48,7 +48,7 @@ export class ScheduledJobsService implements OnApplicationBootstrap {
     let failed = 0;
     try {
       const companies = await this.central.company.findMany({
-        where: { dbUrl: { not: '' } },
+        where: { dbUrl: { not: '' }, OR: [{ onboarding: null }, { onboarding: { status: 'SUCCEEDED' } }] },
         select: { id: true, name: true, dbUrl: true },
       });
       for (const company of companies) {
@@ -107,7 +107,7 @@ export class ScheduledJobsService implements OnApplicationBootstrap {
     let failed = 0;
     try {
       const companies = await this.central.company.findMany({
-        where: { status: 'ACTIVE', accessGranted: true, dbUrl: { not: '' } },
+        where: { status: 'ACTIVE', accessGranted: true, dbUrl: { not: '' }, OR: [{ onboarding: null }, { onboarding: { status: 'SUCCEEDED' } }] },
         select: { id: true, name: true, dbUrl: true },
       });
       for (const company of companies) {
@@ -140,7 +140,7 @@ export class ScheduledJobsService implements OnApplicationBootstrap {
     const now = new Date();
     try {
       const companies = await this.central.company.findMany({
-        where: { status: 'ACTIVE', accessGranted: true, dbUrl: { not: '' } },
+        where: { status: 'ACTIVE', accessGranted: true, dbUrl: { not: '' }, OR: [{ onboarding: null }, { onboarding: { status: 'SUCCEEDED' } }] },
         select: { id: true, name: true, adminEmail: true, dbUrl: true, entitlements: true },
       });
       for (const company of companies) {
@@ -221,7 +221,7 @@ export class ScheduledJobsService implements OnApplicationBootstrap {
   async processOperationalAlertDigests() {
     if (!this.email.isConfigured()) return;
     const companies = await this.central.company.findMany({
-      where: { status: 'ACTIVE', accessGranted: true, dbUrl: { not: '' } },
+      where: { status: 'ACTIVE', accessGranted: true, dbUrl: { not: '' }, OR: [{ onboarding: null }, { onboarding: { status: 'SUCCEEDED' } }] },
       select: { id: true, name: true, adminEmail: true, dbUrl: true },
     });
     for (const company of companies) {
@@ -250,7 +250,7 @@ export class ScheduledJobsService implements OnApplicationBootstrap {
   @Cron('0 20 2 * * *')
   async generateRecurringMonthlyRecords() {
     const companies = await this.central.company.findMany({
-      where: { status: 'ACTIVE', accessGranted: true, dbUrl: { not: '' } },
+      where: { status: 'ACTIVE', accessGranted: true, dbUrl: { not: '' }, OR: [{ onboarding: null }, { onboarding: { status: 'SUCCEEDED' } }] },
       select: { id: true, name: true, dbUrl: true },
     });
     for (const company of companies) {

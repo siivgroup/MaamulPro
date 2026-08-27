@@ -33,7 +33,7 @@ function parseActionFromKey(key: string): string {
   return "read";
 }
 
-export async function syncPermissionsToDb(db: DbClient) {
+export async function syncPermissionsToDb(db: DbClient, guard?: () => Promise<void>) {
   const results = { permissions: 0, roles: 0, rolePermissions: 0 };
 
   // 1. Build module lookup from PERMISSION_MODULES
@@ -85,9 +85,13 @@ export async function syncPermissionsToDb(db: DbClient) {
   // Batch create new permissions
   if (permsToCreate.length > 0) {
     if (typeof db.rbacPermission.createMany === "function") {
+      await guard?.();
+
       await db.rbacPermission.createMany({ data: permsToCreate });
     } else {
       for (const p of permsToCreate) {
+        await guard?.();
+
         await db.rbacPermission.create({ data: p });
       }
     }
@@ -96,6 +100,8 @@ export async function syncPermissionsToDb(db: DbClient) {
 
   // Update changed permissions
   for (const p of permsToUpdate) {
+    await guard?.();
+
     await db.rbacPermission.update({
       where: { id: p.id },
       data: p.data,
@@ -137,11 +143,15 @@ export async function syncPermissionsToDb(db: DbClient) {
 
   // Create missing roles
   for (const r of rolesToCreate) {
+    await guard?.();
+
     await db.rbacRole.create({ data: r });
     results.roles++;
   }
   // Update changed roles
   for (const r of rolesToUpdate) {
+    await guard?.();
+
     await db.rbacRole.update({
       where: { id: r.id },
       data: r.data,
@@ -198,6 +208,8 @@ export async function syncPermissionsToDb(db: DbClient) {
 
   // Delete stale links in bulk
   for (const item of linksToDeleteByRoleAndPerm) {
+    await guard?.();
+
     await db.rbacRolePermission.deleteMany({
       where: { roleId: item.roleId, permissionId: item.permissionId },
     });
@@ -206,9 +218,13 @@ export async function syncPermissionsToDb(db: DbClient) {
   // Batch create new links
   if (linksToCreate.length > 0) {
     if (typeof db.rbacRolePermission.createMany === "function") {
+      await guard?.();
+
       await db.rbacRolePermission.createMany({ data: linksToCreate });
     } else {
       for (const link of linksToCreate) {
+        await guard?.();
+
         await db.rbacRolePermission.create({ data: link });
       }
     }

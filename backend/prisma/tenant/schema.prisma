@@ -205,6 +205,7 @@ model SystemConfig {
 // ──────────────────────────────────────────────────────────────
 
 model User {
+  identityVersion Int @default(0) @map("identity_version")
   id           String   @id @default(cuid())
   email        String   @unique
   passwordHash String   @map("password_hash")
@@ -426,6 +427,7 @@ model Category {
 // ──────────────────────────────────────────────────────────────
 
 model Transaction {
+  requestHash String? @map("request_hash")
   id            String            @id @default(cuid())
   referenceId   String            @unique @default(cuid()) @map("reference_id")
   type          TransactionType

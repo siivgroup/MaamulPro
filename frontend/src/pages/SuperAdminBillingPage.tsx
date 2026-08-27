@@ -1,8 +1,9 @@
+import { pendingBillingSubmission, reserveBillingSubmission, completeBillingSubmission } from '../lib/billing-submission';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, Edit3, PauseCircle, RefreshCw, Search } from 'lucide-react';
 import AppShell from '../components/maamulpro/AppShell';
 import { CurrencyInput, EmptyState, ErrorAlert, FormActions, LoadingState, Modal, PageHeader, StatGrid, StatusPill, money, shortDate } from '../components/maamulpro/PageKit';
-import { api } from '../lib/api';
+import { api, ApiError } from '../lib/api';
 
 type Company = any;
 type SubscriptionForm = { amount: string; termDurationMonths: string; autoRecur: boolean; notes: string };
@@ -39,11 +40,12 @@ const SuperAdminBillingPage = () => {
         setError('');
         setMessage('');
         try {
-            await api(path, { method, body: JSON.stringify(body) });
+            await api<any>(path, { method, body: JSON.stringify(body), silent: true }).then((saved) => { if (!saved || (key.startsWith('configure-') && typeof saved.id !== 'string')) throw new Error('Unable to confirm subscription status. Retry the saved submission.'); });
             await load();
             setMessage('Subscription updated successfully.');
             return true;
         } catch (reason) {
+            if (key.startsWith('configure-') && reason instanceof ApiError && (reason.code === 'SUBSCRIPTION_REJECTED' || reason.status === 400)) completeBillingSubmission('subscription:' + key.slice('configure-'.length));
             setError(reason instanceof Error ? reason.message : 'Subscription action failed.');
             return false;
         } finally {
@@ -75,6 +77,7 @@ const SuperAdminBillingPage = () => {
             termDurationMonths: String(company.termDurationMonths || 1),
             autoRecur: Boolean(company.autoRecur),
             notes: '',
+            ...pendingBillingSubmission('subscription:' + company.id)?.payload,
         });
     };
 
@@ -85,18 +88,22 @@ const SuperAdminBillingPage = () => {
             termDurationMonths: String(company.termDurationMonths || 1),
             autoRecur: Boolean(company.autoRecur),
             notes: '',
+            ...pendingBillingSubmission('subscription:' + company.id)?.payload,
         });
     };
 
     const submitConfiguration = async (event: FormEvent, company: Company, close: () => void) => {
         event.preventDefault();
-        const success = await run(`configure-${company.id}`, `/api/superadmin/companies/${company.id}/subscription`, 'PATCH', {
+        try {
+        const submission = reserveBillingSubmission('subscription:' + company.id, {
             amount: Number(form.amount),
             termDurationMonths: Number(form.termDurationMonths),
             autoRecur: form.autoRecur,
             notes: form.notes || undefined,
         });
-        if (success) close();
+        const success = await run(`configure-${company.id}`, `/api/superadmin/companies/${company.id}/subscription`, 'PATCH', { ...submission.payload, requestId: submission.requestId });
+        if (success) { completeBillingSubmission('subscription:' + company.id); close(); }
+        } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to save subscription'); }
     };
 
     const daysRemaining = (value?: string | null) => {
@@ -106,7 +113,7 @@ const SuperAdminBillingPage = () => {
 
     return <AppShell>
         <PageHeader eyebrow="Platform administration" title="Subscriptions" description="Manage all company subscriptions using direct amount, duration, renewal and access controls." />
-        {error && <ErrorAlert message={error} onRetry={load} />}
+        {error && !approveCompany && !editCompany && <ErrorAlert message={error} onRetry={load} />}
         {message && <div className="mb-5 rounded-md bg-success-light p-4 text-success">{message}</div>}
 
         {loading ? <div className="panel"><LoadingState /></div> : <>
@@ -164,7 +171,7 @@ const SuperAdminBillingPage = () => {
         </>}
 
         <Modal title={approveCompany?.subscriptionStatus === 'PENDING' ? 'Approve subscription' : 'Reactivate subscription'} open={Boolean(approveCompany)} onClose={() => setApproveCompany(null)}>
-            {approveCompany && <form className="space-y-4" onSubmit={(event) => submitConfiguration(event, approveCompany, () => setApproveCompany(null))}>
+            {approveCompany && <form className="space-y-4" onSubmit={(event) => submitConfiguration(event, approveCompany, () => setApproveCompany(null))}>{error && <ErrorAlert message={error} />}
                 <p className="text-sm text-white-dark">Configure subscription details and grant platform access to {approveCompany.name}.</p>
                 <label className="block"><span className="font-semibold">Amount</span><CurrencyInput className="form-input mt-1" min="0" step="0.01" required value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} /></label>
                 <label className="block"><span className="font-semibold">Term duration (months)</span><input className="form-input mt-1" type="number" min="1" required value={form.termDurationMonths} onChange={(event) => setForm({ ...form, termDurationMonths: event.target.value })} /></label>
@@ -175,7 +182,7 @@ const SuperAdminBillingPage = () => {
         </Modal>
 
         <Modal title="Edit subscription" open={Boolean(editCompany)} onClose={() => setEditCompany(null)}>
-            {editCompany && <form className="space-y-4" onSubmit={(event) => submitConfiguration(event, editCompany, () => setEditCompany(null))}>
+            {editCompany && <form className="space-y-4" onSubmit={(event) => submitConfiguration(event, editCompany, () => setEditCompany(null))}>{error && <ErrorAlert message={error} />}
                 <p className="text-sm text-white-dark">Update direct subscription details for {editCompany.name} without changing tenant modules.</p>
                 <label className="block"><span className="font-semibold">Amount</span><CurrencyInput className="form-input mt-1" min="0" step="0.01" required value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} /></label>
                 <label className="block"><span className="font-semibold">Term duration (months)</span><input className="form-input mt-1" type="number" min="1" required value={form.termDurationMonths} onChange={(event) => setForm({ ...form, termDurationMonths: event.target.value })} /></label>

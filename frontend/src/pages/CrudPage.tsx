@@ -1,9 +1,9 @@
 import { X } from 'lucide-react';
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import AppShell from '../components/maamulpro/AppShell';
 import { usePermissions } from '../hooks/usePermissions';
-import { api } from '../lib/api';
+import { api, getRequestActivity, subscribeRequestActivity } from '../lib/api';
 import LineItemsEditor, { LineItemConfig } from '../components/maamulpro/LineItemsEditor';
 import { CurrencyInput, EmptyState, ErrorAlert, FormActions, LoadingState, Modal, PageHeader, PasswordInput, StatGrid, StatusPill, SuccessAlert, fieldHint, formatTableValue, humanize as titleize, isCurrencyName, isSystemIdKey, money, shortDate, somaliExample, visibleTableColumns } from '../components/maamulpro/PageKit';
 
@@ -86,6 +86,12 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
     const [saving, setSaving] = useState(false);
     const [loading, setLoading] = useState(!standalone);
     const [uploading, setUploading] = useState('');
+    const { pendingMutations } = useSyncExternalStore(subscribeRequestActivity, getRequestActivity);
+    const pending = saving || Boolean(uploading) || pendingMutations > 0;
+    const closeEditor = () => {
+        if (saving || uploading || getRequestActivity().pendingMutations) return;
+        returnTo ? navigate(returnTo) : setOpen(false);
+    };
     const [viewing, setViewing] = useState<Record<string, any> | null>(null);
     const [filterValue, setFilterValue] = useState('');
     const [lookups, setLookups] = useState<Record<string, { value: string; label: string }[]>>({});
@@ -196,7 +202,9 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
         else if (recordId) api<Record<string, any>>(`${endpoint}/${recordId}`).then(showEdit).catch((reason) => setError(reason.message));
     }, [endpoint, initialMode, recordId]);
     const submit = async (event: FormEvent) => {
-        event.preventDefault(); setError(''); setSuccess('');
+        event.preventDefault();
+        if (saving || uploading || getRequestActivity().pendingMutations) return;
+        setError(''); setSuccess('');
         const errors = Object.fromEntries(fields.flatMap((field) => {
             if (field.hideWhen?.(form)) return [];
             const value = form[field.name];
@@ -219,6 +227,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
             await api(editing ? `${endpoint}/${editing.id}` : endpoint, {
                 method: editing ? 'PATCH' : 'POST',
                 body: JSON.stringify(payload),
+                silent: true,
             });
             if (editing) {
                 await Promise.all(fields.filter((field) => field.type === 'image' && editing[field.name] && editing[field.name] !== payload[field.name])
@@ -284,6 +293,44 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
         printWindow.document.close();
     };
 
+    const editor = <form className={`w-full space-y-4 ${standalone ? "panel mx-auto max-w-5xl" : ""}`} noValidate onSubmit={submit} aria-busy={pending}>
+        <fieldset disabled={pending} className="m-0 min-w-0 space-y-4 border-0 p-0">
+            {standalone && <div className="flex items-center justify-between"><h2 className="text-xl font-bold">{editing ? `Edit ${noun}` : `Add ${noun}`}</h2><button aria-label="Close" className="btn btn-outline-dark btn-sm p-1.5" onClick={closeEditor} type="button"><X size={16} /></button></div>}
+            {error && <ErrorAlert message={error} />}
+            <div className="grid gap-4 sm:grid-cols-2">{fields.filter((field) => !field.hideWhen?.(form)).map((field) => <div className={field.type === 'textarea' || field.type === 'json' || field.type === 'lineItems' || field.type === 'image' ? 'sm:col-span-2' : ''} key={field.name}>
+                <label className="font-semibold" htmlFor={field.name}>{field.label}{field.required && <span className="text-danger"> *</span>}</label>
+                {field.type === 'select' || field.lookup ? <select id={field.name} className="form-select mt-1" required={field.required} value={form[field.name]} onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === INLINE_CREATE_SENTINEL && field.lookup?.create && allowed(field.lookup.create.permission)) {
+                        setInlineCreate({ field, form: emptyForm(field.lookup.create.fields), errors: {}, saving: false, error: '' });
+                        return;
+                    }
+                    const updates: Record<string, any> = { [field.name]: val };
+                    if (field.lookup?.populate && val) {
+                        const rawRow = rawLookups[field.name]?.find((r) => String(r[field.lookup?.valueKey || 'id']) === val);
+                        if (rawRow) {
+                            Object.entries(field.lookup.populate).forEach(([srcPath, targetField]) => {
+                                const srcVal = nestedValue(rawRow, srcPath);
+                                if (srcVal !== undefined && srcVal !== null) updates[targetField] = srcVal;
+                            });
+                        }
+                    }
+                    setForm((current) => ({ ...current, ...updates }));
+                    setFieldErrors((current) => ({ ...current, [field.name]: '' }));
+                }}><option value="">Select…</option>{(field.options || lookups[field.name] || []).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}{field.lookup?.create && allowed(field.lookup.create.permission) && <option value={INLINE_CREATE_SENTINEL}>{field.lookup.create.label || `+ Add new ${field.label.toLowerCase()}`}</option>}</select>
+                    : field.type === 'textarea' || field.type === 'json' ? <textarea id={field.name} className={`form-textarea mt-1 ${field.type === 'json' ? 'min-h-40 font-mono text-xs' : ''} ${fieldErrors[field.name] ? 'border-danger' : ''}`} aria-invalid={Boolean(fieldErrors[field.name])} placeholder={field.placeholder || somaliExample(field.name, field.type, field.label)} value={form[field.name]} onChange={(e) => { setForm({ ...form, [field.name]: e.target.value }); setFieldErrors((current) => ({ ...current, [field.name]: '' })); }} />
+                    : field.type === 'lineItems' && field.lineItems ? <div className="mt-1"><LineItemsEditor value={form[field.name]} onChange={(items) => setForm({ ...form, [field.name]: items })} config={field.lineItems} /></div>
+                    : field.type === 'image' ? <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">{form[field.name] && <img className="h-20 w-20 rounded-lg border border-white-light object-cover dark:border-[#191e3a]" src={form[field.name]} alt="" />}<div className="flex-1"><input id={field.name} className="form-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={uploading === field.name} onChange={(e) => uploadImage(field, e.target.files?.[0])} />{uploading === field.name && <p className="mt-1 text-xs text-primary">Uploading…</p>}{form[field.name] && <button type="button" className="mt-2 text-xs text-danger hover:underline" onClick={() => setForm({ ...form, [field.name]: '' })}>Remove from record</button>}</div></div>
+                    : field.type === 'checkbox' ? <input id={field.name} className="form-checkbox mt-2 block" type="checkbox" checked={Boolean(form[field.name])} onChange={(e) => setForm({ ...form, [field.name]: e.target.checked })} />
+                    : field.type === 'password' ? <PasswordInput id={field.name} className={`form-input mt-1 ${fieldErrors[field.name] ? 'border-danger' : ''}`} aria-invalid={Boolean(fieldErrors[field.name])} placeholder={field.placeholder || somaliExample(field.name, field.type, field.label)} value={form[field.name]} onChange={(e) => { setForm({ ...form, [field.name]: e.target.value }); setFieldErrors((current) => ({ ...current, [field.name]: '' })); }} />
+                    : field.type === 'number' && isCurrencyName(field.name) ? <CurrencyInput id={field.name} className={`form-input mt-1 ${fieldErrors[field.name] ? 'border-danger' : ''}`} aria-invalid={Boolean(fieldErrors[field.name])} placeholder={field.placeholder || somaliExample(field.name, field.type, field.label)} value={form[field.name]} onChange={(e) => { setForm({ ...form, [field.name]: e.target.value }); setFieldErrors((current) => ({ ...current, [field.name]: '' })); }} />
+                    : <input id={field.name} className={`form-input mt-1 ${fieldErrors[field.name] ? 'border-danger' : ''}`} aria-invalid={Boolean(fieldErrors[field.name])} type={field.type || 'text'} placeholder={field.placeholder || somaliExample(field.name, field.type, field.label)} value={form[field.name]} onChange={(e) => { setForm({ ...form, [field.name]: e.target.value }); setFieldErrors((current) => ({ ...current, [field.name]: '' })); }} />}
+                {fieldErrors[field.name] ? <p className="mt-1 text-xs text-danger" role="alert">{fieldErrors[field.name]}</p> : fieldHint(field.name, field.type, field.hint) && <p className="mt-1 text-xs text-white-dark">{fieldHint(field.name, field.type, field.hint)}</p>}
+            </div>)}</div>
+            <FormActions onCancel={closeEditor} loading={pending} saveLabel="Save record" savingLabel="Saving…" />
+        </fieldset>
+    </form>;
+
     return <AppShell>
         {!standalone && <>
         <PageHeader title={title} description={description} eyebrow="Workspace records" actions={canCreate && allowed(createPermission) ? createTo ? <Link className="btn btn-primary shrink-0" to={createTo}>Add new</Link> : <button className="btn btn-primary shrink-0" onClick={showCreate}>Add new</button> : undefined} />
@@ -295,7 +342,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
         ]} />
         <div className="panel mb-5 flex flex-col gap-3 sm:flex-row"><input className="form-input flex-1" placeholder="Search records…" value={search} onChange={(e) => setSearch(e.target.value)} />{filterKey && <select className="form-select sm:w-56" value={filterValue} onChange={(e) => setFilterValue(e.target.value)}><option value="">All {titleize(filterKey)}</option>{filterOptions.map((value) => <option value={value} key={value}>{titleize(value)}</option>)}</select>}</div>
         {success && <SuccessAlert message={success} onDismiss={() => setSuccess('')} />}
-        {error && <ErrorAlert message={error} onRetry={load} />}
+        {error && !open && <ErrorAlert message={error} onRetry={load} />}
         <div className="panel overflow-x-auto p-0">
             {loading ? <LoadingState /> : !filtered.length ? <EmptyState
                 title={rows.length ? `No matching ${noun.toLowerCase()}` : `No ${noun.toLowerCase()} yet`}
@@ -315,47 +362,11 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
         </Modal>
         </>}
         {standalone && <>
-            <PageHeader title={editing ? `Edit ${noun}` : `Add ${noun}`} description={description} eyebrow="Workspace records" actions={returnTo ? <button className="btn btn-outline-primary" onClick={() => navigate(returnTo)}>Back to list</button> : undefined} />
+            <PageHeader title={editing ? `Edit ${noun}` : `Add ${noun}`} description={description} eyebrow="Workspace records" actions={returnTo ? <button className="btn btn-outline-primary" disabled={pending} onClick={closeEditor}>Back to list</button> : undefined} />
             {error && !open && <ErrorAlert message={error} />}
             {!open && !error && <div className="panel"><LoadingState label="Opening record…" /></div>}
         </>}
-        {open && <div className={standalone ? '' : 'fixed inset-0 z-[100] grid place-items-center bg-black/60 p-4'} onMouseDown={standalone ? undefined : (e) => { if (e.currentTarget === e.target) returnTo ? navigate(returnTo) : setOpen(false); }}>
-            <form className={`panel w-full space-y-4 ${fields.some((field) => field.type === 'lineItems') ? 'max-w-5xl' : 'max-w-2xl'} ${standalone ? 'mx-auto' : 'max-h-[90vh] overflow-y-auto'}`} noValidate onSubmit={submit}>
-                <div className="flex items-center justify-between"><h2 className="text-xl font-bold">{editing ? `Edit ${noun}` : `Add ${noun}`}</h2><button aria-label="Close" className="btn btn-outline-dark btn-sm p-1.5" onClick={() => returnTo ? navigate(returnTo) : setOpen(false)} type="button"><X size={16} /></button></div>
-                {error && <ErrorAlert message={error} />}
-                <div className="grid gap-4 sm:grid-cols-2">{fields.filter((field) => !field.hideWhen?.(form)).map((field) => <div className={field.type === 'textarea' || field.type === 'json' || field.type === 'lineItems' || field.type === 'image' ? 'sm:col-span-2' : ''} key={field.name}>
-                    <label className="font-semibold" htmlFor={field.name}>{field.label}{field.required && <span className="text-danger"> *</span>}</label>
-                    {field.type === 'select' || field.lookup ? <select id={field.name} className="form-select mt-1" required={field.required} value={form[field.name]} onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === INLINE_CREATE_SENTINEL && field.lookup?.create && allowed(field.lookup.create.permission)) {
-                            setInlineCreate({ field, form: emptyForm(field.lookup.create.fields), errors: {}, saving: false, error: '' });
-                            return;
-                        }
-                        const updates: Record<string, any> = { [field.name]: val };
-                        if (field.lookup?.populate && val) {
-                            const rawRow = rawLookups[field.name]?.find((r) => String(r[field.lookup?.valueKey || 'id']) === val);
-                            if (rawRow) {
-                                Object.entries(field.lookup.populate).forEach(([srcPath, targetField]) => {
-                                    const srcVal = nestedValue(rawRow, srcPath);
-                                    if (srcVal !== undefined && srcVal !== null) updates[targetField] = srcVal;
-                                });
-                            }
-                        }
-                        setForm((current) => ({ ...current, ...updates }));
-                        setFieldErrors((current) => ({ ...current, [field.name]: '' }));
-                    }}><option value="">Select…</option>{(field.options || lookups[field.name] || []).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}{field.lookup?.create && allowed(field.lookup.create.permission) && <option value={INLINE_CREATE_SENTINEL}>{field.lookup.create.label || `+ Add new ${field.label.toLowerCase()}`}</option>}</select>
-                        : field.type === 'textarea' || field.type === 'json' ? <textarea id={field.name} className={`form-textarea mt-1 ${field.type === 'json' ? 'min-h-40 font-mono text-xs' : ''} ${fieldErrors[field.name] ? 'border-danger' : ''}`} aria-invalid={Boolean(fieldErrors[field.name])} placeholder={field.placeholder || somaliExample(field.name, field.type, field.label)} value={form[field.name]} onChange={(e) => { setForm({ ...form, [field.name]: e.target.value }); setFieldErrors((current) => ({ ...current, [field.name]: '' })); }} />
-                        : field.type === 'lineItems' && field.lineItems ? <div className="mt-1"><LineItemsEditor value={form[field.name]} onChange={(items) => setForm({ ...form, [field.name]: items })} config={field.lineItems} /></div>
-                        : field.type === 'image' ? <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">{form[field.name] && <img className="h-20 w-20 rounded-lg border border-white-light object-cover dark:border-[#191e3a]" src={form[field.name]} alt="" />}<div className="flex-1"><input id={field.name} className="form-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={uploading === field.name} onChange={(e) => uploadImage(field, e.target.files?.[0])} />{uploading === field.name && <p className="mt-1 text-xs text-primary">Uploading…</p>}{form[field.name] && <button type="button" className="mt-2 text-xs text-danger hover:underline" onClick={() => setForm({ ...form, [field.name]: '' })}>Remove from record</button>}</div></div>
-                        : field.type === 'checkbox' ? <input id={field.name} className="form-checkbox mt-2 block" type="checkbox" checked={Boolean(form[field.name])} onChange={(e) => setForm({ ...form, [field.name]: e.target.checked })} />
-                        : field.type === 'password' ? <PasswordInput id={field.name} className={`form-input mt-1 ${fieldErrors[field.name] ? 'border-danger' : ''}`} aria-invalid={Boolean(fieldErrors[field.name])} placeholder={field.placeholder || somaliExample(field.name, field.type, field.label)} value={form[field.name]} onChange={(e) => { setForm({ ...form, [field.name]: e.target.value }); setFieldErrors((current) => ({ ...current, [field.name]: '' })); }} />
-                        : field.type === 'number' && isCurrencyName(field.name) ? <CurrencyInput id={field.name} className={`form-input mt-1 ${fieldErrors[field.name] ? 'border-danger' : ''}`} aria-invalid={Boolean(fieldErrors[field.name])} placeholder={field.placeholder || somaliExample(field.name, field.type, field.label)} value={form[field.name]} onChange={(e) => { setForm({ ...form, [field.name]: e.target.value }); setFieldErrors((current) => ({ ...current, [field.name]: '' })); }} />
-                        : <input id={field.name} className={`form-input mt-1 ${fieldErrors[field.name] ? 'border-danger' : ''}`} aria-invalid={Boolean(fieldErrors[field.name])} type={field.type || 'text'} placeholder={field.placeholder || somaliExample(field.name, field.type, field.label)} value={form[field.name]} onChange={(e) => { setForm({ ...form, [field.name]: e.target.value }); setFieldErrors((current) => ({ ...current, [field.name]: '' })); }} />}
-                    {fieldErrors[field.name] ? <p className="mt-1 text-xs text-danger" role="alert">{fieldErrors[field.name]}</p> : fieldHint(field.name, field.type, field.hint) && <p className="mt-1 text-xs text-white-dark">{fieldHint(field.name, field.type, field.hint)}</p>}
-                </div>)}</div>
-                <FormActions onCancel={() => returnTo ? navigate(returnTo) : setOpen(false)} loading={saving} saveLabel="Save record" savingLabel="Saving…" />
-            </form>
-        </div>}
+        {open && (standalone ? editor : <Modal open title={editing ? `Edit ${noun}` : `Add ${noun}`} onClose={closeEditor} busy={saving || Boolean(uploading)} wide>{editor}</Modal>)}
         <Modal open={Boolean(inlineCreate)} onClose={() => !inlineCreate?.saving && setInlineCreate(null)} title={inlineCreate ? `Add new ${inlineCreate.field.label.toLowerCase()}` : ''} wide>
             {inlineCreate && <form className="space-y-4" noValidate onSubmit={async (e) => {
                 e.preventDefault();
@@ -373,7 +384,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
                         if (f.type === 'number') return [f.name, v === '' ? undefined : Number(v)];
                         return [f.name, v === '' ? undefined : v];
                     }));
-                    const created = await api<Record<string, any>>(cfg.endpoint || inlineCreate.field.lookup!.endpoint, { method: 'POST', body: JSON.stringify(payload) });
+                    const created = await api<Record<string, any>>(cfg.endpoint || inlineCreate.field.lookup!.endpoint, { method: 'POST', body: JSON.stringify(payload), silent: true });
                     const { options } = await refreshLookup(inlineCreate.field);
                     const newId = String(created[inlineCreate.field.lookup!.valueKey || 'id']);
                     const target = inlineCreate.field.name;

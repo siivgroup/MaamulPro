@@ -5,6 +5,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   Matches,
   MaxLength,
   MinLength,
@@ -16,6 +17,7 @@ import {
 } from '../../common/security/password-policy';
 
 export class CreateCompanyDto {
+  @IsUUID('4') onboardingRequestId: string;
   @IsString() @MinLength(2) @MaxLength(120) name: string;
   @IsString() @Matches(/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/) subdomain: string;
   @IsString() @MinLength(2) @MaxLength(120) adminName: string;
@@ -66,6 +68,7 @@ export class AutoRenewDto {
 }
 
 export class ConfigureCompanySubscriptionDto {
+  @IsUUID('4') requestId: string;
   @IsNumber() @Min(0) amount: number;
   @IsInt() @Min(1) termDurationMonths: number;
   @IsOptional() @IsBoolean() autoRecur?: boolean;

@@ -1,8 +1,21 @@
 import { toast } from './toast';
 
 export const LOADING_EVENT = 'maamulpro:loading';
-let pendingRequests = 0;
-const emitLoading = () => window.dispatchEvent(new CustomEvent(LOADING_EVENT, { detail: pendingRequests }));
+let requestActivity = { pendingRequests: 0, pendingMutations: 0 };
+export const getRequestActivity = () => requestActivity;
+export const subscribeRequestActivity = (listener: () => void) => {
+    window.addEventListener(LOADING_EVENT, listener);
+    return () => window.removeEventListener(LOADING_EVENT, listener);
+};
+const trackRequest = (method = 'GET') => {
+    const mutation = !['GET', 'HEAD', 'OPTIONS'].includes(method.toUpperCase());
+    const update = (change: number) => {
+        requestActivity = { pendingRequests: requestActivity.pendingRequests + change, pendingMutations: requestActivity.pendingMutations + (mutation ? change : 0) };
+        window.dispatchEvent(new CustomEvent(LOADING_EVENT, { detail: requestActivity.pendingRequests }));
+    };
+    update(1);
+    return () => update(-1);
+};
 
 export type ApiEnvelope<T> = {
     success: boolean;
@@ -12,6 +25,23 @@ export type ApiEnvelope<T> = {
 };
 
 export type ApiInit = RequestInit & { silent?: boolean };
+
+export class ApiError extends Error {
+    status: number;
+    code?: string;
+    stage?: string;
+    retryable?: boolean;
+    nextAction?: string;
+    onboardingId?: string;
+    requestId?: string;
+    constructor(message: string, status: number, payload: Record<string, any> = {}) {
+        super(message);
+        this.status = status;
+        for (const key of ['code', 'stage', 'retryable', 'nextAction', 'onboardingId', 'requestId'] as const) {
+            (this as any)[key] = payload[key];
+        }
+    }
+}
 
 export type SessionUser = {
     id: string;
@@ -127,33 +157,35 @@ export async function api<T>(path: string, init: ApiInit = {}): Promise<T> {
     if (session?.accessToken) headers.set('Authorization', `Bearer ${session.accessToken}`);
     if (session?.user.companyId) headers.set('X-Company-Id', session.user.companyId);
 
-    pendingRequests++; emitLoading();
-    let response: Response;
+    const finish = trackRequest(fetchInit.method);
     try {
-        response = await fetch(requestUrl(path), { ...fetchInit, headers });
-    } finally {
-        pendingRequests--; emitLoading();
-    }
-    const payload = await response.json().catch(() => null);
-    if (!response.ok) {
-        if (response.status === 401) sessionStore.clear();
-        const message = payload?.message || payload?.error?.message || `Request failed (${response.status})`;
-        const readable = Array.isArray(message) ? message.join(', ') : message;
-        const isLockRedirect = response.status === 403 && /subscription|company setup|company account.*suspend/i.test(readable);
-        if (isLockRedirect) {
-            lastSessionRefreshAt = 0;
-            if (!window.location.pathname.startsWith('/locked')) {
-                window.location.assign(`/locked?reason=${encodeURIComponent(readable)}`);
+        const response = await fetch(requestUrl(path), { ...fetchInit, headers });
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) {
+            if (response.status === 401) sessionStore.clear();
+            const message = payload?.message || payload?.error?.message || `Request failed (${response.status})`;
+            const readable = Array.isArray(message) ? message.join(', ') : message;
+            const isLockRedirect = response.status === 403 && /subscription|company setup|company account.*suspend/i.test(readable);
+            if (isLockRedirect) {
+                lastSessionRefreshAt = 0;
+                if (!window.location.pathname.startsWith('/locked')) {
+                    window.location.assign(`/locked?reason=${encodeURIComponent(readable)}`);
+                }
+            } else if (response.status === 403) {
+                if (!silent) toast.error("You don't have permission for this action.");
+                refreshSession(true).catch(() => undefined);
+            } else if (response.status !== 401 && !silent) {
+                toast.error(readable);
             }
-        } else if (response.status === 403) {
-            if (!silent) toast.error("You don't have permission for this action.");
-            refreshSession(true).catch(() => undefined);
-        } else if (response.status !== 401 && !silent) {
-            toast.error(readable);
+            throw new ApiError(readable, response.status, payload || {});
         }
-        throw new Error(readable);
+        if (!payload || payload.success !== true || !Object.prototype.hasOwnProperty.call(payload, 'data')) {
+            throw new ApiError('The server response could not be confirmed. Check the saved result before retrying.', response.status, { code: 'INVALID_RESPONSE' });
+        }
+        return (payload as ApiEnvelope<T>).data;
+    } finally {
+        finish();
     }
-    return (payload as ApiEnvelope<T>).data;
 }
 
 export async function apiBlob(path: string): Promise<Blob> {
@@ -161,12 +193,17 @@ export async function apiBlob(path: string): Promise<Blob> {
     const headers = new Headers({ Accept: 'image/*' });
     if (session?.accessToken) headers.set('Authorization', `Bearer ${session.accessToken}`);
     if (session?.user.companyId) headers.set('X-Company-Id', session.user.companyId);
-    const response = await fetch(requestUrl(path), { headers });
-    if (!response.ok) {
-        if (response.status === 401) sessionStore.clear();
-        throw new Error(`File request failed (${response.status})`);
+    const finish = trackRequest();
+    try {
+        const response = await fetch(requestUrl(path), { headers });
+        if (!response.ok) {
+            if (response.status === 401) sessionStore.clear();
+            throw new Error(`File request failed (${response.status})`);
+        }
+        return await response.blob();
+    } finally {
+        finish();
     }
-    return response.blob();
 }
 
 let sessionRefreshPromise: Promise<Session | null> | null = null;

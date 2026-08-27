@@ -50,14 +50,10 @@ export class TenantConnectionManager implements OnModuleDestroy {
     const client = this.clients.get(connectionString);
     const pool = this.pools.get(connectionString);
 
-    if (client) {
-      await client.$disconnect();
-      this.clients.delete(connectionString);
-    }
-    if (pool) {
-      await pool.end().catch(() => undefined);
-      this.pools.delete(connectionString);
-    }
+    this.clients.delete(connectionString);
+    this.pools.delete(connectionString);
+    try { await client?.$disconnect(); }
+    finally { await pool?.end(); }
   }
 
   async onModuleDestroy() {

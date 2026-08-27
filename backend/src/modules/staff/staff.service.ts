@@ -1,3 +1,4 @@
+import { IdentitySyncService, identityChange } from '../../common/database/identity-sync.service';
 import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { CentralPrismaService } from '../../common/database/central-prisma.service';
 import * as argon2 from 'argon2';
@@ -15,6 +16,7 @@ export class StaffService {
   constructor(
     private readonly centralPrisma: CentralPrismaService,
     private readonly entitlements: SubscriptionEntitlementService,
+    private readonly identities: IdentitySyncService,
   ) {}
 
   private get central(): any {
@@ -69,7 +71,7 @@ export class StaffService {
   async getStaffById(tenantDb: any, id: string) {
     const staff = await tenantDb.staff.findFirst({
       where: { id, deletedAt: null },
-      include: { user: true, assignedProject: true, workerType: true },
+      include: { user: { select: { id: true, name: true, email: true, role: true, isActive: true } }, assignedProject: true, workerType: true },
     });
     if (!staff) throw new NotFoundException('Staff member not found');
     return staff;
@@ -229,52 +231,24 @@ export class StaffService {
   async setAccountStatus(tenantDb: any, companyId: string, staffId: string, isActive: boolean) {
     const staff = await this.getStaffById(tenantDb, staffId);
     if (!staff.userId) throw new BadRequestException('Staff member has no user account');
-    if (Boolean(staff.user?.isActive) === isActive) return { isActive };
-    if (isActive) {
-      // Activation: grant tenant membership first, then central authorization, so
-      // we never create an authorized central user without tenant membership.
-      await this.entitlements.withUserQuota(companyId, async (centralDb: any) => {
-        await tenantDb.user.update({ where: { id: staff.userId }, data: { isActive: true } });
-        try {
-          await centralDb.companyUser.update({ where: { id: staff.userId }, data: { isActive: true } });
-        } catch (error) {
-          await tenantDb.user.update({ where: { id: staff.userId }, data: { isActive: false } }).catch(() => undefined);
-          throw error;
-        }
-      });
-    } else {
-      // Deactivation: revoke central authorization first so the user is locked
-      // out even if the tenant write fails.
-      await this.central.companyUser.update({
-        where: { id: staff.userId },
-        data: { isActive: false, sessionVersion: { increment: 1 } },
-      });
-      try {
-        await tenantDb.user.update({ where: { id: staff.userId }, data: { isActive: false } });
-      } catch (error) {
-        await this.central.companyUser
-          .update({ where: { id: staff.userId }, data: { isActive: true } })
-          .catch(() => undefined);
-        throw error;
-      }
-    }
-    return { isActive };
+    const current = await this.central.companyUser.findUnique({ where: { id: staff.userId } });
+    if (current?.isActive === isActive) return { isActive, ...await this.syncAccount(staff.userId) };
+    const save = (tx: any) => tx.companyUser.update({
+      where: { id: staff.userId }, data: { isActive, ...identityChange() },
+    });
+    if (isActive) await this.entitlements.withUserQuota(companyId, save);
+    else await save(this.central);
+    return { isActive, ...await this.syncAccount(staff.userId) };
   }
 
   async updateAccountEmail(tenantDb: any, staffId: string, email: string) {
     const staff = await this.getStaffById(tenantDb, staffId);
     if (!staff.userId) throw new BadRequestException('Staff member has no user account');
-    const normalized = email.toLowerCase();
+    const normalized = email.trim().toLowerCase();
     const duplicate = await this.central.companyUser.findUnique({ where: { email: normalized } });
     if (duplicate && duplicate.id !== staff.userId) throw new ConflictException('Email is already in use');
-    await this.central.companyUser.update({ where: { id: staff.userId }, data: { email: normalized } });
-    try {
-      await tenantDb.user.update({ where: { id: staff.userId }, data: { email: normalized } });
-    } catch (error) {
-      await this.central.companyUser.update({ where: { id: staff.userId }, data: { email: staff.user.email } });
-      throw error;
-    }
-    return { email: normalized };
+    await this.central.companyUser.update({ where: { id: staff.userId }, data: { email: normalized, ...identityChange() } });
+    return { email: normalized, ...await this.syncAccount(staff.userId) };
   }
 
   async resetPassword(tenantDb: any, staffId: string, temporaryPassword: string) {
@@ -282,31 +256,25 @@ export class StaffService {
     const staff = await this.getStaffById(tenantDb, staffId);
     if (!staff.userId) throw new BadRequestException('Staff member has no user account');
     const passwordHash = await argon2.hash(temporaryPassword);
-    await Promise.all([
-      tenantDb.user.update({ where: { id: staff.userId }, data: { passwordHash, passwordResetAt: new Date() } }),
-      this.central.companyUser.update({
-        where: { id: staff.userId },
-        data: {
-          passwordHash,
-          passwordResetAt: new Date(),
-          sessionVersion: { increment: 1 },
-        },
-      }),
-    ]);
-    return { reset: true };
+    await this.central.companyUser.update({ where: { id: staff.userId }, data: {
+      passwordHash, passwordResetAt: new Date(), resetTokenHash: null,
+      resetTokenExpiresAt: null, resetRequestedAt: null, ...identityChange(),
+    } });
+    return { reset: true, ...await this.syncAccount(staff.userId) };
   }
 
   async updateAccountRole(tenantDb: any, staffId: string, role: string) {
     const staff = await this.getStaffById(tenantDb, staffId);
     if (!staff.userId) throw new BadRequestException('Staff member has no user account');
-    await Promise.all([
-      tenantDb.user.update({ where: { id: staff.userId }, data: { role } }),
-      this.central.companyUser.update({
-        where: { id: staff.userId },
-        data: { role, sessionVersion: { increment: 1 } },
-      }),
-    ]);
-    return { role };
+    await this.central.companyUser.update({ where: { id: staff.userId }, data: { role, ...identityChange() } });
+    return { role, ...await this.syncAccount(staff.userId) };
+  }
+
+  private async syncAccount(userId: string) {
+    const syncPending = await this.identities.sync(userId);
+    return { syncPending, message: syncPending
+      ? 'Account change saved. Access is paused while the workspace synchronizes; retry happens automatically.'
+      : 'Account updated successfully.' };
   }
 
   async getStaffActivity(tenantDb: any, staffId: string) {

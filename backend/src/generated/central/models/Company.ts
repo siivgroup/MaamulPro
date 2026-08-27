@@ -429,6 +429,7 @@ export type CompanyWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Company"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Company"> | Date | string
   users?: Prisma.CompanyUserListRelationFilter
+  onboarding?: Prisma.XOR<Prisma.CompanyOnboardingNullableScalarRelationFilter, Prisma.CompanyOnboardingWhereInput> | null
   subscriptionTransactions?: Prisma.SubscriptionTransactionListRelationFilter
   subscriptions?: Prisma.TenantSubscriptionListRelationFilter
   invoices?: Prisma.InvoiceListRelationFilter
@@ -467,6 +468,7 @@ export type CompanyOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   users?: Prisma.CompanyUserOrderByRelationAggregateInput
+  onboarding?: Prisma.CompanyOnboardingOrderByWithRelationInput
   subscriptionTransactions?: Prisma.SubscriptionTransactionOrderByRelationAggregateInput
   subscriptions?: Prisma.TenantSubscriptionOrderByRelationAggregateInput
   invoices?: Prisma.InvoiceOrderByRelationAggregateInput
@@ -508,6 +510,7 @@ export type CompanyWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Company"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Company"> | Date | string
   users?: Prisma.CompanyUserListRelationFilter
+  onboarding?: Prisma.XOR<Prisma.CompanyOnboardingNullableScalarRelationFilter, Prisma.CompanyOnboardingWhereInput> | null
   subscriptionTransactions?: Prisma.SubscriptionTransactionListRelationFilter
   subscriptions?: Prisma.TenantSubscriptionListRelationFilter
   invoices?: Prisma.InvoiceListRelationFilter
@@ -622,6 +625,7 @@ export type CompanyCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.CompanyUserCreateNestedManyWithoutCompanyInput
+  onboarding?: Prisma.CompanyOnboardingCreateNestedOneWithoutCompanyInput
   subscriptionTransactions?: Prisma.SubscriptionTransactionCreateNestedManyWithoutCompanyInput
   subscriptions?: Prisma.TenantSubscriptionCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceCreateNestedManyWithoutCompanyInput
@@ -660,6 +664,7 @@ export type CompanyUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.CompanyUserUncheckedCreateNestedManyWithoutCompanyInput
+  onboarding?: Prisma.CompanyOnboardingUncheckedCreateNestedOneWithoutCompanyInput
   subscriptionTransactions?: Prisma.SubscriptionTransactionUncheckedCreateNestedManyWithoutCompanyInput
   subscriptions?: Prisma.TenantSubscriptionUncheckedCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCompanyInput
@@ -698,6 +703,7 @@ export type CompanyUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.CompanyUserUpdateManyWithoutCompanyNestedInput
+  onboarding?: Prisma.CompanyOnboardingUpdateOneWithoutCompanyNestedInput
   subscriptionTransactions?: Prisma.SubscriptionTransactionUpdateManyWithoutCompanyNestedInput
   subscriptions?: Prisma.TenantSubscriptionUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUpdateManyWithoutCompanyNestedInput
@@ -736,6 +742,7 @@ export type CompanyUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.CompanyUserUncheckedUpdateManyWithoutCompanyNestedInput
+  onboarding?: Prisma.CompanyOnboardingUncheckedUpdateOneWithoutCompanyNestedInput
   subscriptionTransactions?: Prisma.SubscriptionTransactionUncheckedUpdateManyWithoutCompanyNestedInput
   subscriptions?: Prisma.TenantSubscriptionUncheckedUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCompanyNestedInput
@@ -960,6 +967,11 @@ export type CompanyScalarRelationFilter = {
   isNot?: Prisma.CompanyWhereInput
 }
 
+export type CompanyNullableScalarRelationFilter = {
+  is?: Prisma.CompanyWhereInput | null
+  isNot?: Prisma.CompanyWhereInput | null
+}
+
 export type StringFieldUpdateOperationsInput = {
   set?: string
 }
@@ -1048,6 +1060,22 @@ export type CompanyUpdateOneRequiredWithoutUsersNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.CompanyUpdateToOneWithWhereWithoutUsersInput, Prisma.CompanyUpdateWithoutUsersInput>, Prisma.CompanyUncheckedUpdateWithoutUsersInput>
 }
 
+export type CompanyCreateNestedOneWithoutOnboardingInput = {
+  create?: Prisma.XOR<Prisma.CompanyCreateWithoutOnboardingInput, Prisma.CompanyUncheckedCreateWithoutOnboardingInput>
+  connectOrCreate?: Prisma.CompanyCreateOrConnectWithoutOnboardingInput
+  connect?: Prisma.CompanyWhereUniqueInput
+}
+
+export type CompanyUpdateOneWithoutOnboardingNestedInput = {
+  create?: Prisma.XOR<Prisma.CompanyCreateWithoutOnboardingInput, Prisma.CompanyUncheckedCreateWithoutOnboardingInput>
+  connectOrCreate?: Prisma.CompanyCreateOrConnectWithoutOnboardingInput
+  upsert?: Prisma.CompanyUpsertWithoutOnboardingInput
+  disconnect?: Prisma.CompanyWhereInput | boolean
+  delete?: Prisma.CompanyWhereInput | boolean
+  connect?: Prisma.CompanyWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CompanyUpdateToOneWithWhereWithoutOnboardingInput, Prisma.CompanyUpdateWithoutOnboardingInput>, Prisma.CompanyUncheckedUpdateWithoutOnboardingInput>
+}
+
 export type CompanyCreateNestedOneWithoutSubscriptionsInput = {
   create?: Prisma.XOR<Prisma.CompanyCreateWithoutSubscriptionsInput, Prisma.CompanyUncheckedCreateWithoutSubscriptionsInput>
   connectOrCreate?: Prisma.CompanyCreateOrConnectWithoutSubscriptionsInput
@@ -1109,6 +1137,7 @@ export type CompanyCreateWithoutSubscriptionTransactionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.CompanyUserCreateNestedManyWithoutCompanyInput
+  onboarding?: Prisma.CompanyOnboardingCreateNestedOneWithoutCompanyInput
   subscriptions?: Prisma.TenantSubscriptionCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceCreateNestedManyWithoutCompanyInput
 }
@@ -1146,6 +1175,7 @@ export type CompanyUncheckedCreateWithoutSubscriptionTransactionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.CompanyUserUncheckedCreateNestedManyWithoutCompanyInput
+  onboarding?: Prisma.CompanyOnboardingUncheckedCreateNestedOneWithoutCompanyInput
   subscriptions?: Prisma.TenantSubscriptionUncheckedCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCompanyInput
 }
@@ -1199,6 +1229,7 @@ export type CompanyUpdateWithoutSubscriptionTransactionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.CompanyUserUpdateManyWithoutCompanyNestedInput
+  onboarding?: Prisma.CompanyOnboardingUpdateOneWithoutCompanyNestedInput
   subscriptions?: Prisma.TenantSubscriptionUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUpdateManyWithoutCompanyNestedInput
 }
@@ -1236,6 +1267,7 @@ export type CompanyUncheckedUpdateWithoutSubscriptionTransactionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.CompanyUserUncheckedUpdateManyWithoutCompanyNestedInput
+  onboarding?: Prisma.CompanyOnboardingUncheckedUpdateOneWithoutCompanyNestedInput
   subscriptions?: Prisma.TenantSubscriptionUncheckedUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCompanyNestedInput
 }
@@ -1272,6 +1304,7 @@ export type CompanyCreateWithoutUsersInput = {
   version?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  onboarding?: Prisma.CompanyOnboardingCreateNestedOneWithoutCompanyInput
   subscriptionTransactions?: Prisma.SubscriptionTransactionCreateNestedManyWithoutCompanyInput
   subscriptions?: Prisma.TenantSubscriptionCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceCreateNestedManyWithoutCompanyInput
@@ -1309,6 +1342,7 @@ export type CompanyUncheckedCreateWithoutUsersInput = {
   version?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  onboarding?: Prisma.CompanyOnboardingUncheckedCreateNestedOneWithoutCompanyInput
   subscriptionTransactions?: Prisma.SubscriptionTransactionUncheckedCreateNestedManyWithoutCompanyInput
   subscriptions?: Prisma.TenantSubscriptionUncheckedCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCompanyInput
@@ -1362,6 +1396,7 @@ export type CompanyUpdateWithoutUsersInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  onboarding?: Prisma.CompanyOnboardingUpdateOneWithoutCompanyNestedInput
   subscriptionTransactions?: Prisma.SubscriptionTransactionUpdateManyWithoutCompanyNestedInput
   subscriptions?: Prisma.TenantSubscriptionUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUpdateManyWithoutCompanyNestedInput
@@ -1399,6 +1434,175 @@ export type CompanyUncheckedUpdateWithoutUsersInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  onboarding?: Prisma.CompanyOnboardingUncheckedUpdateOneWithoutCompanyNestedInput
+  subscriptionTransactions?: Prisma.SubscriptionTransactionUncheckedUpdateManyWithoutCompanyNestedInput
+  subscriptions?: Prisma.TenantSubscriptionUncheckedUpdateManyWithoutCompanyNestedInput
+  invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCompanyNestedInput
+}
+
+export type CompanyCreateWithoutOnboardingInput = {
+  id?: string
+  name: string
+  subdomain: string
+  companyType?: string | null
+  dbUrl: string
+  dbProvider?: string | null
+  dbCreatedByMaamulPro?: boolean
+  logoUrl?: string | null
+  phone?: string | null
+  address?: string | null
+  description?: string | null
+  mode?: $Enums.ModuleMode
+  status?: $Enums.CompanyStatus
+  constructionEnabled?: boolean
+  realEstateEnabled?: boolean
+  materialManagementEnabled?: boolean
+  adminEmail: string
+  adminName: string
+  subscriptionStatus?: $Enums.SubscriptionStatus
+  planTier?: $Enums.PlanTier | null
+  planKey?: string | null
+  entitlements?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  subscriptionAmount?: number | null
+  termDurationMonths?: number | null
+  subscriptionStartAt?: Date | string | null
+  subscriptionExpiresAt?: Date | string | null
+  autoRecur?: boolean
+  accessGranted?: boolean
+  version?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  users?: Prisma.CompanyUserCreateNestedManyWithoutCompanyInput
+  subscriptionTransactions?: Prisma.SubscriptionTransactionCreateNestedManyWithoutCompanyInput
+  subscriptions?: Prisma.TenantSubscriptionCreateNestedManyWithoutCompanyInput
+  invoices?: Prisma.InvoiceCreateNestedManyWithoutCompanyInput
+}
+
+export type CompanyUncheckedCreateWithoutOnboardingInput = {
+  id?: string
+  name: string
+  subdomain: string
+  companyType?: string | null
+  dbUrl: string
+  dbProvider?: string | null
+  dbCreatedByMaamulPro?: boolean
+  logoUrl?: string | null
+  phone?: string | null
+  address?: string | null
+  description?: string | null
+  mode?: $Enums.ModuleMode
+  status?: $Enums.CompanyStatus
+  constructionEnabled?: boolean
+  realEstateEnabled?: boolean
+  materialManagementEnabled?: boolean
+  adminEmail: string
+  adminName: string
+  subscriptionStatus?: $Enums.SubscriptionStatus
+  planTier?: $Enums.PlanTier | null
+  planKey?: string | null
+  entitlements?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  subscriptionAmount?: number | null
+  termDurationMonths?: number | null
+  subscriptionStartAt?: Date | string | null
+  subscriptionExpiresAt?: Date | string | null
+  autoRecur?: boolean
+  accessGranted?: boolean
+  version?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  users?: Prisma.CompanyUserUncheckedCreateNestedManyWithoutCompanyInput
+  subscriptionTransactions?: Prisma.SubscriptionTransactionUncheckedCreateNestedManyWithoutCompanyInput
+  subscriptions?: Prisma.TenantSubscriptionUncheckedCreateNestedManyWithoutCompanyInput
+  invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCompanyInput
+}
+
+export type CompanyCreateOrConnectWithoutOnboardingInput = {
+  where: Prisma.CompanyWhereUniqueInput
+  create: Prisma.XOR<Prisma.CompanyCreateWithoutOnboardingInput, Prisma.CompanyUncheckedCreateWithoutOnboardingInput>
+}
+
+export type CompanyUpsertWithoutOnboardingInput = {
+  update: Prisma.XOR<Prisma.CompanyUpdateWithoutOnboardingInput, Prisma.CompanyUncheckedUpdateWithoutOnboardingInput>
+  create: Prisma.XOR<Prisma.CompanyCreateWithoutOnboardingInput, Prisma.CompanyUncheckedCreateWithoutOnboardingInput>
+  where?: Prisma.CompanyWhereInput
+}
+
+export type CompanyUpdateToOneWithWhereWithoutOnboardingInput = {
+  where?: Prisma.CompanyWhereInput
+  data: Prisma.XOR<Prisma.CompanyUpdateWithoutOnboardingInput, Prisma.CompanyUncheckedUpdateWithoutOnboardingInput>
+}
+
+export type CompanyUpdateWithoutOnboardingInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  subdomain?: Prisma.StringFieldUpdateOperationsInput | string
+  companyType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dbUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  dbProvider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dbCreatedByMaamulPro?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mode?: Prisma.EnumModuleModeFieldUpdateOperationsInput | $Enums.ModuleMode
+  status?: Prisma.EnumCompanyStatusFieldUpdateOperationsInput | $Enums.CompanyStatus
+  constructionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  realEstateEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  materialManagementEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  adminEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  adminName?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  planTier?: Prisma.NullableEnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier | null
+  planKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entitlements?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  subscriptionAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  termDurationMonths?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  subscriptionStartAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRecur?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  accessGranted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  users?: Prisma.CompanyUserUpdateManyWithoutCompanyNestedInput
+  subscriptionTransactions?: Prisma.SubscriptionTransactionUpdateManyWithoutCompanyNestedInput
+  subscriptions?: Prisma.TenantSubscriptionUpdateManyWithoutCompanyNestedInput
+  invoices?: Prisma.InvoiceUpdateManyWithoutCompanyNestedInput
+}
+
+export type CompanyUncheckedUpdateWithoutOnboardingInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  subdomain?: Prisma.StringFieldUpdateOperationsInput | string
+  companyType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dbUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  dbProvider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dbCreatedByMaamulPro?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mode?: Prisma.EnumModuleModeFieldUpdateOperationsInput | $Enums.ModuleMode
+  status?: Prisma.EnumCompanyStatusFieldUpdateOperationsInput | $Enums.CompanyStatus
+  constructionEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  realEstateEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  materialManagementEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  adminEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  adminName?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionStatus?: Prisma.EnumSubscriptionStatusFieldUpdateOperationsInput | $Enums.SubscriptionStatus
+  planTier?: Prisma.NullableEnumPlanTierFieldUpdateOperationsInput | $Enums.PlanTier | null
+  planKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entitlements?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  subscriptionAmount?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  termDurationMonths?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  subscriptionStartAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  autoRecur?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  accessGranted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  users?: Prisma.CompanyUserUncheckedUpdateManyWithoutCompanyNestedInput
   subscriptionTransactions?: Prisma.SubscriptionTransactionUncheckedUpdateManyWithoutCompanyNestedInput
   subscriptions?: Prisma.TenantSubscriptionUncheckedUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCompanyNestedInput
@@ -1437,6 +1641,7 @@ export type CompanyCreateWithoutSubscriptionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.CompanyUserCreateNestedManyWithoutCompanyInput
+  onboarding?: Prisma.CompanyOnboardingCreateNestedOneWithoutCompanyInput
   subscriptionTransactions?: Prisma.SubscriptionTransactionCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceCreateNestedManyWithoutCompanyInput
 }
@@ -1474,6 +1679,7 @@ export type CompanyUncheckedCreateWithoutSubscriptionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.CompanyUserUncheckedCreateNestedManyWithoutCompanyInput
+  onboarding?: Prisma.CompanyOnboardingUncheckedCreateNestedOneWithoutCompanyInput
   subscriptionTransactions?: Prisma.SubscriptionTransactionUncheckedCreateNestedManyWithoutCompanyInput
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCompanyInput
 }
@@ -1527,6 +1733,7 @@ export type CompanyUpdateWithoutSubscriptionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.CompanyUserUpdateManyWithoutCompanyNestedInput
+  onboarding?: Prisma.CompanyOnboardingUpdateOneWithoutCompanyNestedInput
   subscriptionTransactions?: Prisma.SubscriptionTransactionUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUpdateManyWithoutCompanyNestedInput
 }
@@ -1564,6 +1771,7 @@ export type CompanyUncheckedUpdateWithoutSubscriptionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.CompanyUserUncheckedUpdateManyWithoutCompanyNestedInput
+  onboarding?: Prisma.CompanyOnboardingUncheckedUpdateOneWithoutCompanyNestedInput
   subscriptionTransactions?: Prisma.SubscriptionTransactionUncheckedUpdateManyWithoutCompanyNestedInput
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCompanyNestedInput
 }
@@ -1601,6 +1809,7 @@ export type CompanyCreateWithoutInvoicesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.CompanyUserCreateNestedManyWithoutCompanyInput
+  onboarding?: Prisma.CompanyOnboardingCreateNestedOneWithoutCompanyInput
   subscriptionTransactions?: Prisma.SubscriptionTransactionCreateNestedManyWithoutCompanyInput
   subscriptions?: Prisma.TenantSubscriptionCreateNestedManyWithoutCompanyInput
 }
@@ -1638,6 +1847,7 @@ export type CompanyUncheckedCreateWithoutInvoicesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.CompanyUserUncheckedCreateNestedManyWithoutCompanyInput
+  onboarding?: Prisma.CompanyOnboardingUncheckedCreateNestedOneWithoutCompanyInput
   subscriptionTransactions?: Prisma.SubscriptionTransactionUncheckedCreateNestedManyWithoutCompanyInput
   subscriptions?: Prisma.TenantSubscriptionUncheckedCreateNestedManyWithoutCompanyInput
 }
@@ -1691,6 +1901,7 @@ export type CompanyUpdateWithoutInvoicesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.CompanyUserUpdateManyWithoutCompanyNestedInput
+  onboarding?: Prisma.CompanyOnboardingUpdateOneWithoutCompanyNestedInput
   subscriptionTransactions?: Prisma.SubscriptionTransactionUpdateManyWithoutCompanyNestedInput
   subscriptions?: Prisma.TenantSubscriptionUpdateManyWithoutCompanyNestedInput
 }
@@ -1728,6 +1939,7 @@ export type CompanyUncheckedUpdateWithoutInvoicesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.CompanyUserUncheckedUpdateManyWithoutCompanyNestedInput
+  onboarding?: Prisma.CompanyOnboardingUncheckedUpdateOneWithoutCompanyNestedInput
   subscriptionTransactions?: Prisma.SubscriptionTransactionUncheckedUpdateManyWithoutCompanyNestedInput
   subscriptions?: Prisma.TenantSubscriptionUncheckedUpdateManyWithoutCompanyNestedInput
 }
@@ -1823,6 +2035,7 @@ export type CompanySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   createdAt?: boolean
   updatedAt?: boolean
   users?: boolean | Prisma.Company$usersArgs<ExtArgs>
+  onboarding?: boolean | Prisma.Company$onboardingArgs<ExtArgs>
   subscriptionTransactions?: boolean | Prisma.Company$subscriptionTransactionsArgs<ExtArgs>
   subscriptions?: boolean | Prisma.Company$subscriptionsArgs<ExtArgs>
   invoices?: boolean | Prisma.Company$invoicesArgs<ExtArgs>
@@ -1934,6 +2147,7 @@ export type CompanySelectScalar = {
 export type CompanyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "subdomain" | "companyType" | "dbUrl" | "dbProvider" | "dbCreatedByMaamulPro" | "logoUrl" | "phone" | "address" | "description" | "mode" | "status" | "constructionEnabled" | "realEstateEnabled" | "materialManagementEnabled" | "adminEmail" | "adminName" | "subscriptionStatus" | "planTier" | "planKey" | "entitlements" | "subscriptionAmount" | "termDurationMonths" | "subscriptionStartAt" | "subscriptionExpiresAt" | "autoRecur" | "accessGranted" | "version" | "createdAt" | "updatedAt", ExtArgs["result"]["company"]>
 export type CompanyInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   users?: boolean | Prisma.Company$usersArgs<ExtArgs>
+  onboarding?: boolean | Prisma.Company$onboardingArgs<ExtArgs>
   subscriptionTransactions?: boolean | Prisma.Company$subscriptionTransactionsArgs<ExtArgs>
   subscriptions?: boolean | Prisma.Company$subscriptionsArgs<ExtArgs>
   invoices?: boolean | Prisma.Company$invoicesArgs<ExtArgs>
@@ -1946,6 +2160,7 @@ export type $CompanyPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   name: "Company"
   objects: {
     users: Prisma.$CompanyUserPayload<ExtArgs>[]
+    onboarding: Prisma.$CompanyOnboardingPayload<ExtArgs> | null
     subscriptionTransactions: Prisma.$SubscriptionTransactionPayload<ExtArgs>[]
     subscriptions: Prisma.$TenantSubscriptionPayload<ExtArgs>[]
     invoices: Prisma.$InvoicePayload<ExtArgs>[]
@@ -2377,6 +2592,7 @@ readonly fields: CompanyFieldRefs;
 export interface Prisma__CompanyClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   users<T extends Prisma.Company$usersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Company$usersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CompanyUserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  onboarding<T extends Prisma.Company$onboardingArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Company$onboardingArgs<ExtArgs>>): Prisma.Prisma__CompanyOnboardingClient<runtime.Types.Result.GetResult<Prisma.$CompanyOnboardingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   subscriptionTransactions<T extends Prisma.Company$subscriptionTransactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Company$subscriptionTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubscriptionTransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   subscriptions<T extends Prisma.Company$subscriptionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Company$subscriptionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TenantSubscriptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   invoices<T extends Prisma.Company$invoicesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Company$invoicesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InvoicePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -2854,6 +3070,25 @@ export type Company$usersArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.CompanyUserScalarFieldEnum | Prisma.CompanyUserScalarFieldEnum[]
+}
+
+/**
+ * Company.onboarding
+ */
+export type Company$onboardingArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CompanyOnboarding
+   */
+  select?: Prisma.CompanyOnboardingSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CompanyOnboarding
+   */
+  omit?: Prisma.CompanyOnboardingOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CompanyOnboardingInclude<ExtArgs> | null
+  where?: Prisma.CompanyOnboardingWhereInput
 }
 
 /**

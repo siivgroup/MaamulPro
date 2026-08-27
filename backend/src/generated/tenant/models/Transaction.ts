@@ -37,6 +37,7 @@ export type TransactionSumAggregateOutputType = {
 }
 
 export type TransactionMinAggregateOutputType = {
+  requestHash: string | null
   id: string | null
   referenceId: string | null
   type: $Enums.TransactionType | null
@@ -60,6 +61,7 @@ export type TransactionMinAggregateOutputType = {
 }
 
 export type TransactionMaxAggregateOutputType = {
+  requestHash: string | null
   id: string | null
   referenceId: string | null
   type: $Enums.TransactionType | null
@@ -83,6 +85,7 @@ export type TransactionMaxAggregateOutputType = {
 }
 
 export type TransactionCountAggregateOutputType = {
+  requestHash: number
   id: number
   referenceId: number
   type: number
@@ -118,6 +121,7 @@ export type TransactionSumAggregateInputType = {
 }
 
 export type TransactionMinAggregateInputType = {
+  requestHash?: true
   id?: true
   referenceId?: true
   type?: true
@@ -141,6 +145,7 @@ export type TransactionMinAggregateInputType = {
 }
 
 export type TransactionMaxAggregateInputType = {
+  requestHash?: true
   id?: true
   referenceId?: true
   type?: true
@@ -164,6 +169,7 @@ export type TransactionMaxAggregateInputType = {
 }
 
 export type TransactionCountAggregateInputType = {
+  requestHash?: true
   id?: true
   referenceId?: true
   type?: true
@@ -274,6 +280,7 @@ export type TransactionGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
 }
 
 export type TransactionGroupByOutputType = {
+  requestHash: string | null
   id: string
   referenceId: string
   type: $Enums.TransactionType
@@ -320,6 +327,7 @@ export type TransactionWhereInput = {
   AND?: Prisma.TransactionWhereInput | Prisma.TransactionWhereInput[]
   OR?: Prisma.TransactionWhereInput[]
   NOT?: Prisma.TransactionWhereInput | Prisma.TransactionWhereInput[]
+  requestHash?: Prisma.StringNullableFilter<"Transaction"> | string | null
   id?: Prisma.StringFilter<"Transaction"> | string
   referenceId?: Prisma.StringFilter<"Transaction"> | string
   type?: Prisma.EnumTransactionTypeFilter<"Transaction"> | $Enums.TransactionType
@@ -350,6 +358,7 @@ export type TransactionWhereInput = {
 }
 
 export type TransactionOrderByWithRelationInput = {
+  requestHash?: Prisma.SortOrderInput | Prisma.SortOrder
   id?: Prisma.SortOrder
   referenceId?: Prisma.SortOrder
   type?: Prisma.SortOrder
@@ -385,6 +394,7 @@ export type TransactionWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.TransactionWhereInput | Prisma.TransactionWhereInput[]
   OR?: Prisma.TransactionWhereInput[]
   NOT?: Prisma.TransactionWhereInput | Prisma.TransactionWhereInput[]
+  requestHash?: Prisma.StringNullableFilter<"Transaction"> | string | null
   type?: Prisma.EnumTransactionTypeFilter<"Transaction"> | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFilter<"Transaction"> | $Enums.TransactionStatus
   description?: Prisma.StringFilter<"Transaction"> | string
@@ -413,6 +423,7 @@ export type TransactionWhereUniqueInput = Prisma.AtLeast<{
 }, "id" | "referenceId">
 
 export type TransactionOrderByWithAggregationInput = {
+  requestHash?: Prisma.SortOrderInput | Prisma.SortOrder
   id?: Prisma.SortOrder
   referenceId?: Prisma.SortOrder
   type?: Prisma.SortOrder
@@ -444,6 +455,7 @@ export type TransactionScalarWhereWithAggregatesInput = {
   AND?: Prisma.TransactionScalarWhereWithAggregatesInput | Prisma.TransactionScalarWhereWithAggregatesInput[]
   OR?: Prisma.TransactionScalarWhereWithAggregatesInput[]
   NOT?: Prisma.TransactionScalarWhereWithAggregatesInput | Prisma.TransactionScalarWhereWithAggregatesInput[]
+  requestHash?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   id?: Prisma.StringWithAggregatesFilter<"Transaction"> | string
   referenceId?: Prisma.StringWithAggregatesFilter<"Transaction"> | string
   type?: Prisma.EnumTransactionTypeWithAggregatesFilter<"Transaction"> | $Enums.TransactionType
@@ -467,6 +479,7 @@ export type TransactionScalarWhereWithAggregatesInput = {
 }
 
 export type TransactionCreateInput = {
+  requestHash?: string | null
   id?: string
   referenceId?: string
   type: $Enums.TransactionType
@@ -490,6 +503,7 @@ export type TransactionCreateInput = {
 }
 
 export type TransactionUncheckedCreateInput = {
+  requestHash?: string | null
   id?: string
   referenceId?: string
   type: $Enums.TransactionType
@@ -513,6 +527,7 @@ export type TransactionUncheckedCreateInput = {
 }
 
 export type TransactionUpdateInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -536,6 +551,7 @@ export type TransactionUpdateInput = {
 }
 
 export type TransactionUncheckedUpdateInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -559,6 +575,7 @@ export type TransactionUncheckedUpdateInput = {
 }
 
 export type TransactionCreateManyInput = {
+  requestHash?: string | null
   id?: string
   referenceId?: string
   type: $Enums.TransactionType
@@ -582,6 +599,7 @@ export type TransactionCreateManyInput = {
 }
 
 export type TransactionUpdateManyMutationInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -598,6 +616,7 @@ export type TransactionUpdateManyMutationInput = {
 }
 
 export type TransactionUncheckedUpdateManyInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -631,6 +650,7 @@ export type TransactionOrderByRelationAggregateInput = {
 }
 
 export type TransactionCountOrderByAggregateInput = {
+  requestHash?: Prisma.SortOrder
   id?: Prisma.SortOrder
   referenceId?: Prisma.SortOrder
   type?: Prisma.SortOrder
@@ -659,6 +679,7 @@ export type TransactionAvgOrderByAggregateInput = {
 }
 
 export type TransactionMaxOrderByAggregateInput = {
+  requestHash?: Prisma.SortOrder
   id?: Prisma.SortOrder
   referenceId?: Prisma.SortOrder
   type?: Prisma.SortOrder
@@ -682,6 +703,7 @@ export type TransactionMaxOrderByAggregateInput = {
 }
 
 export type TransactionMinOrderByAggregateInput = {
+  requestHash?: Prisma.SortOrder
   id?: Prisma.SortOrder
   referenceId?: Prisma.SortOrder
   type?: Prisma.SortOrder
@@ -799,14 +821,6 @@ export type EnumTransactionTypeFieldUpdateOperationsInput = {
 
 export type EnumTransactionStatusFieldUpdateOperationsInput = {
   set?: $Enums.TransactionStatus
-}
-
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
 }
 
 export type TransactionCreateNestedManyWithoutProjectInput = {
@@ -1020,6 +1034,7 @@ export type TransactionUncheckedUpdateManyWithoutJournalBatchNestedInput = {
 }
 
 export type TransactionCreateWithoutUserInput = {
+  requestHash?: string | null
   id?: string
   referenceId?: string
   type: $Enums.TransactionType
@@ -1042,6 +1057,7 @@ export type TransactionCreateWithoutUserInput = {
 }
 
 export type TransactionUncheckedCreateWithoutUserInput = {
+  requestHash?: string | null
   id?: string
   referenceId?: string
   type: $Enums.TransactionType
@@ -1093,6 +1109,7 @@ export type TransactionScalarWhereInput = {
   AND?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
   OR?: Prisma.TransactionScalarWhereInput[]
   NOT?: Prisma.TransactionScalarWhereInput | Prisma.TransactionScalarWhereInput[]
+  requestHash?: Prisma.StringNullableFilter<"Transaction"> | string | null
   id?: Prisma.StringFilter<"Transaction"> | string
   referenceId?: Prisma.StringFilter<"Transaction"> | string
   type?: Prisma.EnumTransactionTypeFilter<"Transaction"> | $Enums.TransactionType
@@ -1116,6 +1133,7 @@ export type TransactionScalarWhereInput = {
 }
 
 export type TransactionCreateWithoutCategoryInput = {
+  requestHash?: string | null
   id?: string
   referenceId?: string
   type: $Enums.TransactionType
@@ -1138,6 +1156,7 @@ export type TransactionCreateWithoutCategoryInput = {
 }
 
 export type TransactionUncheckedCreateWithoutCategoryInput = {
+  requestHash?: string | null
   id?: string
   referenceId?: string
   type: $Enums.TransactionType
@@ -1186,6 +1205,7 @@ export type TransactionUpdateManyWithWhereWithoutCategoryInput = {
 }
 
 export type TransactionCreateWithoutProjectInput = {
+  requestHash?: string | null
   id?: string
   referenceId?: string
   type: $Enums.TransactionType
@@ -1208,6 +1228,7 @@ export type TransactionCreateWithoutProjectInput = {
 }
 
 export type TransactionUncheckedCreateWithoutProjectInput = {
+  requestHash?: string | null
   id?: string
   referenceId?: string
   type: $Enums.TransactionType
@@ -1256,6 +1277,7 @@ export type TransactionUpdateManyWithWhereWithoutProjectInput = {
 }
 
 export type TransactionCreateWithoutMaterialInput = {
+  requestHash?: string | null
   id?: string
   referenceId?: string
   type: $Enums.TransactionType
@@ -1278,6 +1300,7 @@ export type TransactionCreateWithoutMaterialInput = {
 }
 
 export type TransactionUncheckedCreateWithoutMaterialInput = {
+  requestHash?: string | null
   id?: string
   referenceId?: string
   type: $Enums.TransactionType
@@ -1326,6 +1349,7 @@ export type TransactionUpdateManyWithWhereWithoutMaterialInput = {
 }
 
 export type TransactionCreateWithoutPropertyInput = {
+  requestHash?: string | null
   id?: string
   referenceId?: string
   type: $Enums.TransactionType
@@ -1348,6 +1372,7 @@ export type TransactionCreateWithoutPropertyInput = {
 }
 
 export type TransactionUncheckedCreateWithoutPropertyInput = {
+  requestHash?: string | null
   id?: string
   referenceId?: string
   type: $Enums.TransactionType
@@ -1396,6 +1421,7 @@ export type TransactionUpdateManyWithWhereWithoutPropertyInput = {
 }
 
 export type TransactionCreateWithoutDealInput = {
+  requestHash?: string | null
   id?: string
   referenceId?: string
   type: $Enums.TransactionType
@@ -1418,6 +1444,7 @@ export type TransactionCreateWithoutDealInput = {
 }
 
 export type TransactionUncheckedCreateWithoutDealInput = {
+  requestHash?: string | null
   id?: string
   referenceId?: string
   type: $Enums.TransactionType
@@ -1466,6 +1493,7 @@ export type TransactionUpdateManyWithWhereWithoutDealInput = {
 }
 
 export type TransactionCreateWithoutJournalBatchInput = {
+  requestHash?: string | null
   id?: string
   referenceId?: string
   type: $Enums.TransactionType
@@ -1488,6 +1516,7 @@ export type TransactionCreateWithoutJournalBatchInput = {
 }
 
 export type TransactionUncheckedCreateWithoutJournalBatchInput = {
+  requestHash?: string | null
   id?: string
   referenceId?: string
   type: $Enums.TransactionType
@@ -1536,6 +1565,7 @@ export type TransactionUpdateManyWithWhereWithoutJournalBatchInput = {
 }
 
 export type TransactionCreateManyUserInput = {
+  requestHash?: string | null
   id?: string
   referenceId?: string
   type: $Enums.TransactionType
@@ -1558,6 +1588,7 @@ export type TransactionCreateManyUserInput = {
 }
 
 export type TransactionUpdateWithoutUserInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -1580,6 +1611,7 @@ export type TransactionUpdateWithoutUserInput = {
 }
 
 export type TransactionUncheckedUpdateWithoutUserInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -1602,6 +1634,7 @@ export type TransactionUncheckedUpdateWithoutUserInput = {
 }
 
 export type TransactionUncheckedUpdateManyWithoutUserInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -1624,6 +1657,7 @@ export type TransactionUncheckedUpdateManyWithoutUserInput = {
 }
 
 export type TransactionCreateManyCategoryInput = {
+  requestHash?: string | null
   id?: string
   referenceId?: string
   type: $Enums.TransactionType
@@ -1646,6 +1680,7 @@ export type TransactionCreateManyCategoryInput = {
 }
 
 export type TransactionUpdateWithoutCategoryInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -1668,6 +1703,7 @@ export type TransactionUpdateWithoutCategoryInput = {
 }
 
 export type TransactionUncheckedUpdateWithoutCategoryInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -1690,6 +1726,7 @@ export type TransactionUncheckedUpdateWithoutCategoryInput = {
 }
 
 export type TransactionUncheckedUpdateManyWithoutCategoryInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -1712,6 +1749,7 @@ export type TransactionUncheckedUpdateManyWithoutCategoryInput = {
 }
 
 export type TransactionCreateManyProjectInput = {
+  requestHash?: string | null
   id?: string
   referenceId?: string
   type: $Enums.TransactionType
@@ -1734,6 +1772,7 @@ export type TransactionCreateManyProjectInput = {
 }
 
 export type TransactionUpdateWithoutProjectInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -1756,6 +1795,7 @@ export type TransactionUpdateWithoutProjectInput = {
 }
 
 export type TransactionUncheckedUpdateWithoutProjectInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -1778,6 +1818,7 @@ export type TransactionUncheckedUpdateWithoutProjectInput = {
 }
 
 export type TransactionUncheckedUpdateManyWithoutProjectInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -1800,6 +1841,7 @@ export type TransactionUncheckedUpdateManyWithoutProjectInput = {
 }
 
 export type TransactionCreateManyMaterialInput = {
+  requestHash?: string | null
   id?: string
   referenceId?: string
   type: $Enums.TransactionType
@@ -1822,6 +1864,7 @@ export type TransactionCreateManyMaterialInput = {
 }
 
 export type TransactionUpdateWithoutMaterialInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -1844,6 +1887,7 @@ export type TransactionUpdateWithoutMaterialInput = {
 }
 
 export type TransactionUncheckedUpdateWithoutMaterialInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -1866,6 +1910,7 @@ export type TransactionUncheckedUpdateWithoutMaterialInput = {
 }
 
 export type TransactionUncheckedUpdateManyWithoutMaterialInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -1888,6 +1933,7 @@ export type TransactionUncheckedUpdateManyWithoutMaterialInput = {
 }
 
 export type TransactionCreateManyPropertyInput = {
+  requestHash?: string | null
   id?: string
   referenceId?: string
   type: $Enums.TransactionType
@@ -1910,6 +1956,7 @@ export type TransactionCreateManyPropertyInput = {
 }
 
 export type TransactionUpdateWithoutPropertyInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -1932,6 +1979,7 @@ export type TransactionUpdateWithoutPropertyInput = {
 }
 
 export type TransactionUncheckedUpdateWithoutPropertyInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -1954,6 +2002,7 @@ export type TransactionUncheckedUpdateWithoutPropertyInput = {
 }
 
 export type TransactionUncheckedUpdateManyWithoutPropertyInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -1976,6 +2025,7 @@ export type TransactionUncheckedUpdateManyWithoutPropertyInput = {
 }
 
 export type TransactionCreateManyDealInput = {
+  requestHash?: string | null
   id?: string
   referenceId?: string
   type: $Enums.TransactionType
@@ -1998,6 +2048,7 @@ export type TransactionCreateManyDealInput = {
 }
 
 export type TransactionUpdateWithoutDealInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -2020,6 +2071,7 @@ export type TransactionUpdateWithoutDealInput = {
 }
 
 export type TransactionUncheckedUpdateWithoutDealInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -2042,6 +2094,7 @@ export type TransactionUncheckedUpdateWithoutDealInput = {
 }
 
 export type TransactionUncheckedUpdateManyWithoutDealInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -2064,6 +2117,7 @@ export type TransactionUncheckedUpdateManyWithoutDealInput = {
 }
 
 export type TransactionCreateManyJournalBatchInput = {
+  requestHash?: string | null
   id?: string
   referenceId?: string
   type: $Enums.TransactionType
@@ -2086,6 +2140,7 @@ export type TransactionCreateManyJournalBatchInput = {
 }
 
 export type TransactionUpdateWithoutJournalBatchInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -2108,6 +2163,7 @@ export type TransactionUpdateWithoutJournalBatchInput = {
 }
 
 export type TransactionUncheckedUpdateWithoutJournalBatchInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -2130,6 +2186,7 @@ export type TransactionUncheckedUpdateWithoutJournalBatchInput = {
 }
 
 export type TransactionUncheckedUpdateManyWithoutJournalBatchInput = {
+  requestHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   referenceId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -2154,6 +2211,7 @@ export type TransactionUncheckedUpdateManyWithoutJournalBatchInput = {
 
 
 export type TransactionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  requestHash?: boolean
   id?: boolean
   referenceId?: boolean
   type?: boolean
@@ -2184,6 +2242,7 @@ export type TransactionSelect<ExtArgs extends runtime.Types.Extensions.InternalA
 }, ExtArgs["result"]["transaction"]>
 
 export type TransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  requestHash?: boolean
   id?: boolean
   referenceId?: boolean
   type?: boolean
@@ -2214,6 +2273,7 @@ export type TransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
 }, ExtArgs["result"]["transaction"]>
 
 export type TransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  requestHash?: boolean
   id?: boolean
   referenceId?: boolean
   type?: boolean
@@ -2244,6 +2304,7 @@ export type TransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
 }, ExtArgs["result"]["transaction"]>
 
 export type TransactionSelectScalar = {
+  requestHash?: boolean
   id?: boolean
   referenceId?: boolean
   type?: boolean
@@ -2266,7 +2327,7 @@ export type TransactionSelectScalar = {
   deletedAt?: boolean
 }
 
-export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "referenceId" | "type" | "status" | "description" | "amount" | "date" | "categoryId" | "userId" | "projectId" | "propertyId" | "dealId" | "materialId" | "notes" | "version" | "journalBatchId" | "postingStatus" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["transaction"]>
+export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"requestHash" | "id" | "referenceId" | "type" | "status" | "description" | "amount" | "date" | "categoryId" | "userId" | "projectId" | "propertyId" | "dealId" | "materialId" | "notes" | "version" | "journalBatchId" | "postingStatus" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["transaction"]>
 export type TransactionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   category?: boolean | Prisma.Transaction$categoryArgs<ExtArgs>
   user?: boolean | Prisma.Transaction$userArgs<ExtArgs>
@@ -2307,6 +2368,7 @@ export type $TransactionPayload<ExtArgs extends runtime.Types.Extensions.Interna
     journalBatch: Prisma.$JournalBatchPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
+    requestHash: string | null
     id: string
     referenceId: string
     type: $Enums.TransactionType
@@ -2410,8 +2472,8 @@ export interface TransactionDelegate<ExtArgs extends runtime.Types.Extensions.In
    * // Get first 10 Transactions
    * const transactions = await prisma.transaction.findMany({ take: 10 })
    * 
-   * // Only select the `id`
-   * const transactionWithIdOnly = await prisma.transaction.findMany({ select: { id: true } })
+   * // Only select the `requestHash`
+   * const transactionWithRequestHashOnly = await prisma.transaction.findMany({ select: { requestHash: true } })
    * 
    */
   findMany<T extends TransactionFindManyArgs>(args?: Prisma.SelectSubset<T, TransactionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
@@ -2455,9 +2517,9 @@ export interface TransactionDelegate<ExtArgs extends runtime.Types.Extensions.In
    *   ]
    * })
    * 
-   * // Create many Transactions and only return the `id`
-   * const transactionWithIdOnly = await prisma.transaction.createManyAndReturn({
-   *   select: { id: true },
+   * // Create many Transactions and only return the `requestHash`
+   * const transactionWithRequestHashOnly = await prisma.transaction.createManyAndReturn({
+   *   select: { requestHash: true },
    *   data: [
    *     // ... provide data here
    *   ]
@@ -2546,9 +2608,9 @@ export interface TransactionDelegate<ExtArgs extends runtime.Types.Extensions.In
    *   ]
    * })
    * 
-   * // Update zero or more Transactions and only return the `id`
-   * const transactionWithIdOnly = await prisma.transaction.updateManyAndReturn({
-   *   select: { id: true },
+   * // Update zero or more Transactions and only return the `requestHash`
+   * const transactionWithRequestHashOnly = await prisma.transaction.updateManyAndReturn({
+   *   select: { requestHash: true },
    *   where: {
    *     // ... provide filter here
    *   },
@@ -2757,6 +2819,7 @@ export interface Prisma__TransactionClient<T, Null = never, ExtArgs extends runt
  * Fields of the Transaction model
  */
 export interface TransactionFieldRefs {
+  readonly requestHash: Prisma.FieldRef<"Transaction", 'String'>
   readonly id: Prisma.FieldRef<"Transaction", 'String'>
   readonly referenceId: Prisma.FieldRef<"Transaction", 'String'>
   readonly type: Prisma.FieldRef<"Transaction", 'TransactionType'>

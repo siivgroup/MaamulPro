@@ -69,11 +69,22 @@ export function isAtLimit(current: number, limit: number): boolean {
   return limit > 0 && current >= limit;
 }
 
-export function addBillingPeriod(startAt: Date, billingCycle: string): Date {
+/** Calendar months in UTC; clamp the original day to the destination month. */
+export function addBillingMonths(startAt: Date, months: number): Date {
+  if (!Number.isInteger(months) || months < 1 || !Number.isFinite(startAt.getTime())) {
+    throw new Error('A valid billing date and positive whole number of months are required');
+  }
   const result = new Date(startAt);
-  if (billingCycle === 'YEARLY') result.setFullYear(result.getFullYear() + 1);
-  else result.setMonth(result.getMonth() + 1);
+  const day = result.getUTCDate();
+  result.setUTCDate(1);
+  result.setUTCMonth(result.getUTCMonth() + months);
+  const lastDay = new Date(Date.UTC(result.getUTCFullYear(), result.getUTCMonth() + 1, 0)).getUTCDate();
+  result.setUTCDate(Math.min(day, lastDay));
   return result;
+}
+
+export function addBillingPeriod(startAt: Date, billingCycle: string): Date {
+  return addBillingMonths(startAt, billingCycle === 'YEARLY' ? 12 : 1);
 }
 
 export function legacyPlanTier(key?: string | null) {

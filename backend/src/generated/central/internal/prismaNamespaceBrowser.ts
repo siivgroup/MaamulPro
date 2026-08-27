@@ -55,6 +55,7 @@ export const ModelName = {
   SubscriptionTransaction: 'SubscriptionTransaction',
   CompanyUser: 'CompanyUser',
   CentralAdmin: 'CentralAdmin',
+  CompanyOnboarding: 'CompanyOnboarding',
   ImpersonationGrant: 'ImpersonationGrant',
   EmailVerification: 'EmailVerification',
   SubscriptionPlan: 'SubscriptionPlan',
@@ -116,6 +117,8 @@ export type CompanyScalarFieldEnum = (typeof CompanyScalarFieldEnum)[keyof typeo
 
 
 export const SubscriptionTransactionScalarFieldEnum = {
+  requestId: 'requestId',
+  requestHash: 'requestHash',
   id: 'id',
   companyId: 'companyId',
   transactionType: 'transactionType',
@@ -134,6 +137,8 @@ export type SubscriptionTransactionScalarFieldEnum = (typeof SubscriptionTransac
 
 
 export const CompanyUserScalarFieldEnum = {
+  identitySyncPending: 'identitySyncPending',
+  identitySyncAfter: 'identitySyncAfter',
   id: 'id',
   email: 'email',
   passwordHash: 'passwordHash',
@@ -170,6 +175,34 @@ export const CentralAdminScalarFieldEnum = {
 } as const
 
 export type CentralAdminScalarFieldEnum = (typeof CentralAdminScalarFieldEnum)[keyof typeof CentralAdminScalarFieldEnum]
+
+
+export const CompanyOnboardingScalarFieldEnum = {
+  id: 'id',
+  companyId: 'companyId',
+  ownerId: 'ownerId',
+  passwordHash: 'passwordHash',
+  adminId: 'adminId',
+  verificationId: 'verificationId',
+  verifiedAt: 'verifiedAt',
+  inputs: 'inputs',
+  databaseIdentity: 'databaseIdentity',
+  databaseName: 'databaseName',
+  projectId: 'projectId',
+  branchId: 'branchId',
+  databaseOwner: 'databaseOwner',
+  createRequestedAt: 'createRequestedAt',
+  databaseConfirmed: 'databaseConfirmed',
+  status: 'status',
+  stage: 'stage',
+  retryCount: 'retryCount',
+  nextAttemptAt: 'nextAttemptAt',
+  error: 'error',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CompanyOnboardingScalarFieldEnum = (typeof CompanyOnboardingScalarFieldEnum)[keyof typeof CompanyOnboardingScalarFieldEnum]
 
 
 export const ImpersonationGrantScalarFieldEnum = {
@@ -283,6 +316,14 @@ export const JsonNullValueInput = {
 } as const
 
 export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {

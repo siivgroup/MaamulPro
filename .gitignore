@@ -6,3 +6,7 @@
 !/backend/**
 !/package.json
 !/README.md
+!/docs/
+/docs/*
+!/docs/NEON-SETUP.md
+!/docs/CUTOVER-RUNBOOK.md

@@ -1,0 +1,25 @@
+CREATE TABLE "company_onboarding" (
+  "id" TEXT PRIMARY KEY,
+  "company_id" TEXT UNIQUE REFERENCES "tenants"("id") ON DELETE SET NULL,
+  "owner_id" TEXT NOT NULL,
+  "password_hash" TEXT NOT NULL,
+  "admin_id" TEXT NOT NULL,
+  "verification_id" TEXT NOT NULL,
+  "verified_at" TIMESTAMP(3) NOT NULL,
+  "inputs" JSONB NOT NULL,
+  "database_identity" TEXT NOT NULL UNIQUE,
+  "database_name" TEXT NOT NULL,
+  "project_id" TEXT,
+  "branch_id" TEXT,
+  "database_owner" TEXT,
+  "create_requested_at" TIMESTAMP(3),
+  "database_confirmed" BOOLEAN NOT NULL DEFAULT false,
+  "status" TEXT NOT NULL DEFAULT 'QUEUED',
+  "stage" TEXT NOT NULL DEFAULT 'DATABASE',
+  "retry_count" INTEGER NOT NULL DEFAULT 0,
+  "next_attempt_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "error" JSONB,
+  "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX "company_onboarding_status_next_attempt_at_idx" ON "company_onboarding"("status", "next_attempt_at");

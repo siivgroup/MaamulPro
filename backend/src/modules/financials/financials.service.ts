@@ -1,4 +1,6 @@
-import { Injectable, Logger, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ConflictException, HttpException } from '@nestjs/common';
+import { createHash } from 'crypto';
+import { isUUID } from 'class-validator';
 import { AccountingService } from '../accounting/accounting.service';
 import { AccountMappingsService } from '../accounting/account-mappings.service';
 import {
@@ -19,7 +21,6 @@ const NORMAL_BALANCE_BY_TYPE: Record<string, 'DEBIT' | 'CREDIT'> = {
 
 @Injectable()
 export class FinancialsService {
-  private readonly logger = new Logger(FinancialsService.name);
 
   constructor(
     private readonly accounting: AccountingService,
@@ -64,191 +65,90 @@ export class FinancialsService {
     data: CreateTransactionDto & { idempotencyKey?: string; userId?: string; tenantId?: string },
   ) {
     if (!tenantDb) throw new BadRequestException('Tenant DB not available');
-
+    if (!isUUID(data.idempotencyKey)) throw new BadRequestException('A valid x-idempotency-key UUID is required');
+    // Hash only immutable submission inputs, including omitted dates. Never hash
+    // the server-generated date or the mutable cashbook row used for replay.
+    const input = {
+      type: data.type, status: data.status || 'PENDING', amount: Number(data.amount),
+      description: data.description, date: data.date ? new Date(data.date).toISOString() : null,
+      categoryId: data.categoryId || null, projectId: data.projectId || null,
+      propertyId: data.propertyId || null, dealId: data.dealId || null, materialId: data.materialId || null,
+      notes: data.notes || null, userId: data.userId || null,
+      debitAccountCode: data.debitAccountCode || null, creditAccountCode: data.creditAccountCode || null,
+    };
+    const requestHash = createHash('sha256').update(JSON.stringify(input)).digest('hex');
     return tenantDb.$transaction(async (tx: any) => {
-      // 1. Idempotency check — matching referenceId returns the prior row.
-      if (data.idempotencyKey) {
-        const existing = await tx.transaction.findFirst({
-          where: { referenceId: data.idempotencyKey },
-        });
-        if (existing) return existing;
+      // Serialize identical intents across processes before reading or posting.
+      await tx.$executeRawUnsafe('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', 'financial:' + data.idempotencyKey);
+      const existing = await tx.transaction.findUnique({ where: { referenceId: data.idempotencyKey } });
+      if (existing) {
+        if (existing.requestHash !== requestHash) throw new ConflictException({ code: 'SUBMISSION_CONFLICT', message: 'This submission reference was already used with different details' });
+        return existing;
       }
-
       const date = data.date ? new Date(data.date) : new Date();
-      const status = (data.status as any) || 'PENDING';
-      // Only post to the formal GL when the cashbook row is CLEARED.
-      // PENDING rows stay UNPOSTED until cleared.
-      let journalBatchId: string | null = null;
-      let postingStatus: 'POSTED' | 'UNPOSTED' | 'FAILED' = 'UNPOSTED';
-      if (status === 'CLEARED') {
-        try {
-          const resolved = await this.mappings.resolveMany(tenantDb, [
-            'TRANSACTION_INCOME_CASH',
-            'TRANSACTION_INCOME_REVENUE',
-            'TRANSACTION_EXPENSE_CASH',
-            'TRANSACTION_EXPENSE_ACCOUNT',
-          ]);
-          const lines =
-            data.type === 'INCOME'
-              ? [
-                  { accountCode: resolved.TRANSACTION_INCOME_CASH, debit: data.amount, credit: 0 },
-                  { accountCode: resolved.TRANSACTION_INCOME_REVENUE, debit: 0, credit: data.amount },
-                ]
-              : [
-                  { accountCode: resolved.TRANSACTION_EXPENSE_ACCOUNT, debit: data.amount, credit: 0 },
-                  { accountCode: resolved.TRANSACTION_EXPENSE_CASH, debit: 0, credit: data.amount },
-                ];
-          const batch = await this.accounting.postJournalBatch(tenantDb, {
-            tenantId: data.tenantId || 'system',
-            userId: data.userId,
-            dto: {
-              date,
-              memo: data.description,
-              sourceType: 'TRANSACTION',
-              sourceRef: data.idempotencyKey,
-              lines,
-            },
-            tx,
-          });
-          journalBatchId = batch.id;
-          postingStatus = 'POSTED';
-        } catch (err) {
-          const message = err instanceof Error ? err.message : String(err);
-          this.logger.warn(`Auto-post failed for transaction (${data.type} ${data.amount}): ${message}`);
-          postingStatus = 'UNPOSTED';
-        }
+      const batch = input.status === 'CLEARED' ? await this.postTransaction(tenantDb, tx, {
+        ...input, date, tenantId: data.tenantId, referenceId: data.idempotencyKey,
+      }) : null;
+      const { debitAccountCode, creditAccountCode, ...row } = input;
+      return tx.transaction.create({ data: {
+        ...row, date, referenceId: data.idempotencyKey, requestHash,
+        journalBatchId: batch?.id || null, postingStatus: batch ? 'POSTED' : 'UNPOSTED',
+      } });
+    }).catch((error: unknown) => {
+      // Domain errors occur inside the transaction and roll back. An unknown
+      // driver/commit error remains uncertain: the client must keep its intent.
+      if (error instanceof HttpException && (error.getResponse() as any)?.code !== 'SUBMISSION_CONFLICT') {
+        throw new HttpException({ code: 'TRANSACTION_REJECTED', message: error.message, requestId: data.idempotencyKey }, error.getStatus());
       }
+      throw error;
+    });
+  }
 
-      const transaction = await tx.transaction.create({
-        data: {
-          referenceId: data.idempotencyKey || undefined,
-          type: data.type,
-          amount: data.amount,
-          categoryId: data.categoryId || null,
-          projectId: data.projectId || null,
-          propertyId: data.propertyId || null,
-          dealId: data.dealId || null,
-          materialId: data.materialId || null,
-          userId: data.userId || null,
-          description: data.description,
-          notes: data.notes,
-          date,
-          status,
-          journalBatchId,
-          postingStatus,
-        },
-      });
-
-      return transaction;
+  private async postTransaction(tenantDb: any, tx: any, row: any) {
+    return this.accounting.postFinancialEvent(tenantDb, {
+      tx, tenantId: row.tenantId || 'system', userId: row.userId || undefined,
+      sourceType: 'TRANSACTION', sourceRef: row.referenceId, date: row.date,
+      memo: row.description, amount: Number(row.amount),
+      drKey: row.type === 'INCOME' ? 'TRANSACTION_INCOME_CASH' : 'TRANSACTION_EXPENSE_ACCOUNT',
+      crKey: row.type === 'INCOME' ? 'TRANSACTION_INCOME_REVENUE' : 'TRANSACTION_EXPENSE_CASH',
+      drAccountOverride: row.debitAccountCode || undefined,
+      crAccountOverride: row.creditAccountCode || undefined,
     });
   }
 
   async updateTransaction(tenantDb: any, id: string, data: UpdateTransactionDto) {
-    const existing = await tenantDb.transaction.findFirst({ where: { id, deletedAt: null } });
-    if (!existing) throw new NotFoundException('Transaction not found');
-    if (data.version !== undefined && existing.version !== data.version) {
-      throw new ConflictException('Transaction changed or no longer exists; reload and retry');
-    }
-
     return tenantDb.$transaction(async (tx: any) => {
-      if (existing.journalBatchId) {
-        try {
-          await this.accounting.reverseBatchWithinTx(tx, {
-            userId: existing.userId || undefined,
-            batchId: existing.journalBatchId,
-            memo: `Superseded by update of transaction ${id}`,
-          });
-        } catch (err) {
-          this.logger.warn(`Could not reverse batch ${existing.journalBatchId}: ${err instanceof Error ? err.message : err}`);
-        }
-      }
-
-      const nextStatus = (data.status as any) || existing.status;
-      const nextType = (data.type as any) || existing.type;
-      const nextAmount = data.amount !== undefined ? Number(data.amount) : Number(existing.amount);
-      const nextDate = data.date ? new Date(data.date) : existing.date;
-      const nextDescription = data.description ?? existing.description;
-
-      let journalBatchId: string | null = null;
-      let postingStatus: 'POSTED' | 'UNPOSTED' | 'FAILED' = 'UNPOSTED';
-      if (nextStatus === 'CLEARED') {
-        try {
-          const resolved = await this.mappings.resolveMany(tx, [
-            'TRANSACTION_INCOME_CASH',
-            'TRANSACTION_INCOME_REVENUE',
-            'TRANSACTION_EXPENSE_CASH',
-            'TRANSACTION_EXPENSE_ACCOUNT',
-          ]);
-          const lines =
-            nextType === 'INCOME'
-              ? [
-                  { accountCode: resolved.TRANSACTION_INCOME_CASH, debit: nextAmount, credit: 0 },
-                  { accountCode: resolved.TRANSACTION_INCOME_REVENUE, debit: 0, credit: nextAmount },
-                ]
-              : [
-                  { accountCode: resolved.TRANSACTION_EXPENSE_ACCOUNT, debit: nextAmount, credit: 0 },
-                  { accountCode: resolved.TRANSACTION_EXPENSE_CASH, debit: 0, credit: nextAmount },
-                ];
-          const batch = await this.accounting.postJournalBatch(tenantDb, {
-            tenantId: 'system',
-            userId: existing.userId || undefined,
-            dto: { date: nextDate, memo: nextDescription, sourceType: 'TRANSACTION', sourceRef: existing.referenceId || id, lines },
-            tx,
-          });
-          journalBatchId = batch.id;
-          postingStatus = 'POSTED';
-        } catch (err) {
-          this.logger.warn(`Re-post failed for transaction ${id}: ${err instanceof Error ? err.message : err}`);
-          postingStatus = 'UNPOSTED';
-        }
-      }
-
-      const result = await tx.transaction.updateMany({
-        where: { id, deletedAt: null, version: data.version },
-        data: {
-          type: nextType,
-          status: nextStatus,
-          amount: nextAmount,
-          description: nextDescription,
-          categoryId: data.categoryId !== undefined ? data.categoryId : existing.categoryId,
-          projectId: data.projectId !== undefined ? data.projectId : existing.projectId,
-          propertyId: data.propertyId !== undefined ? data.propertyId : existing.propertyId,
-          dealId: data.dealId !== undefined ? data.dealId : existing.dealId,
-          materialId: data.materialId !== undefined ? data.materialId : existing.materialId,
-          notes: data.notes !== undefined ? data.notes : existing.notes,
-          date: nextDate,
-          journalBatchId,
-          postingStatus,
-          version: { increment: 1 },
-        },
+      await tx.$queryRawUnsafe('SELECT id FROM transactions WHERE id = $1 FOR UPDATE', id);
+      const existing = await tx.transaction.findFirst({ where: { id, deletedAt: null } });
+      if (!existing) throw new NotFoundException('Transaction not found');
+      if (existing.version !== data.version) throw new ConflictException('Transaction changed or no longer exists; reload and retry');
+      if (existing.journalBatchId) await this.accounting.reverseBatchWithinTx(tx, {
+        userId: existing.userId || undefined, batchId: existing.journalBatchId,
+        memo: 'Superseded by update of transaction ' + id,
       });
-      if (!result.count) {
-        throw new ConflictException('Transaction changed or no longer exists; reload and retry');
-      }
-      return tx.transaction.findUnique({ where: { id } });
+      const next = { ...existing, ...Object.fromEntries(Object.entries(data).filter(([,value]) => value !== undefined)) };
+      const batch = next.status === 'CLEARED' ? await this.postTransaction(tenantDb, tx, next) : null;
+      const { version, ...changes } = data;
+      return tx.transaction.update({ where: { id }, data: {
+        ...changes, journalBatchId: batch?.id || null,
+        postingStatus: batch ? 'POSTED' : 'UNPOSTED', version: { increment: 1 },
+      } });
     });
   }
 
   async deleteTransaction(tenantDb: any, id: string) {
-    const existing = await tenantDb.transaction.findFirst({ where: { id, deletedAt: null } });
-    if (!existing) throw new NotFoundException('Transaction not found');
     return tenantDb.$transaction(async (tx: any) => {
-      if (existing.journalBatchId) {
-        try {
-          await this.accounting.reverseBatchWithinTx(tx, {
-            userId: existing.userId || undefined,
-            batchId: existing.journalBatchId,
-            memo: `Soft-delete of transaction ${id}`,
-          });
-        } catch (err) {
-          this.logger.warn(`Could not reverse batch on delete ${existing.journalBatchId}: ${err instanceof Error ? err.message : err}`);
-        }
-      }
-      const result = await tx.transaction.updateMany({
-        where: { id, deletedAt: null },
-        data: { deletedAt: new Date(), postingStatus: 'UNPOSTED', journalBatchId: null, version: { increment: 1 } },
+      await tx.$queryRawUnsafe('SELECT id FROM transactions WHERE id = $1 FOR UPDATE', id);
+      const existing = await tx.transaction.findUnique({ where: { id } });
+      if (!existing) throw new NotFoundException('Transaction not found');
+      if (existing.deletedAt) return { deleted: true };
+      if (existing.journalBatchId) await this.accounting.reverseBatchWithinTx(tx, {
+        userId: existing.userId || undefined, batchId: existing.journalBatchId,
+        memo: 'Soft-delete of transaction ' + id,
       });
-      if (!result.count) throw new NotFoundException('Transaction not found');
+      await tx.transaction.update({ where: { id }, data: {
+        deletedAt: new Date(), postingStatus: 'UNPOSTED', journalBatchId: null, version: { increment: 1 },
+      } });
       return { deleted: true };
     });
   }

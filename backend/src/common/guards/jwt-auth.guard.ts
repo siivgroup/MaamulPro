@@ -2,6 +2,7 @@ import {
   CanActivate,
   ExecutionContext,
   Injectable,
+  ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
@@ -41,7 +42,7 @@ export class JwtAuthGuard implements CanActivate {
           })
         : await (this.centralPrisma as any).companyUser.findUnique({
             where: { id: payload.sub },
-            select: { isActive: true, deletedAt: true, sessionVersion: true },
+            select: { isActive: true, deletedAt: true, sessionVersion: true, identitySyncPending: true },
           });
       if (
         !principal
@@ -50,9 +51,13 @@ export class JwtAuthGuard implements CanActivate {
       ) {
         throw new UnauthorizedException('The session has been revoked');
       }
+      if (principal.identitySyncPending) {
+        throw new ServiceUnavailableException('Account update saved; access is paused until synchronization completes');
+      }
       request.user = { ...payload, id: payload.sub };
       return true;
-    } catch {
+    } catch (error) {
+      if (error instanceof ServiceUnavailableException) throw error;
       throw new UnauthorizedException('The access token is invalid or expired');
     }
   }

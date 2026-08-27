@@ -131,6 +131,7 @@ export type SystemConfigScalarFieldEnum = (typeof SystemConfigScalarFieldEnum)[k
 
 
 export const UserScalarFieldEnum = {
+  identityVersion: 'identityVersion',
   id: 'id',
   email: 'email',
   passwordHash: 'passwordHash',
@@ -258,6 +259,7 @@ export type CategoryScalarFieldEnum = (typeof CategoryScalarFieldEnum)[keyof typ
 
 
 export const TransactionScalarFieldEnum = {
+  requestHash: 'requestHash',
   id: 'id',
   referenceId: 'referenceId',
   type: 'type',

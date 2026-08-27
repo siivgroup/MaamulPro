@@ -57,3 +57,16 @@ test('access requires company, payment, status and unexpired time', () => {
   assert.equal(policy.hasSubscriptionAccess({ ...active, subscriptionStatus: 'PENDING' }, now), false);
   assert.equal(policy.hasSubscriptionAccess({ ...active, subscriptionExpiresAt: now }, now), false);
 });
+
+test('billing months clamp month-end and leap-year dates without local timezone drift',()=>{
+  for(const [start,months,expected] of [
+    ['2027-01-31T18:42:10.000Z',1,'2027-02-28T18:42:10.000Z'],
+    ['2028-01-31T18:42:10.000Z',1,'2028-02-29T18:42:10.000Z'],
+    ['2028-02-29T18:42:10.000Z',12,'2029-02-28T18:42:10.000Z'],
+    ['2026-12-31T18:42:10.000Z',2,'2027-02-28T18:42:10.000Z'],
+    ['2026-08-31T18:42:10.000Z',1,'2026-09-30T18:42:10.000Z'],
+  ]){
+    const original=new Date(start);assert.equal(policy.addBillingMonths(original,months).toISOString(),expected);assert.equal(original.toISOString(),start);
+  }
+  for(const months of [0,-1,1.5,NaN])assert.throws(()=>policy.addBillingMonths(new Date(),months));
+});

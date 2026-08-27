@@ -1,21 +1,24 @@
+import { IdentitySyncService, identityChange } from '../../common/database/identity-sync.service';
 import {
   BadRequestException,
   ConflictException,
-  HttpException,
   Injectable,
+  HttpException,
   NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { CentralPrismaService } from '../../common/database/central-prisma.service';
 import { TenantConnectionManager } from '../../common/database/tenant-connection.manager';
-import { TenantProvisioningService } from '../../common/database/tenant-provisioning.service';
 import {
   NeonManagementService,
-  NeonTenantDatabase,
 } from '../../common/database/neon-management.service';
-import { protectDatabaseUrl, revealDatabaseUrl } from '../../common/database/database-credentials';
+import { revealDatabaseUrl } from '../../common/database/database-credentials';
+import { setupFailure } from '../../common/database/onboarding-errors';
 import { getDatabaseConnectionPair, isNeonDatabaseUrl } from '../../common/database/database-url';
 import { applyCompanySchema } from '../../common/database/tenant-schema-sql';
+import { CompanyOnboardingService } from './company-onboarding.service';
+import { synchronizeTenantConfiguration } from '../../common/database/tenant-setup';
+import { withOnboardingLock } from '../../common/database/onboarding-database';
 import { CreateCompanyDto } from './superadmin.dto';
 import * as argon2 from 'argon2';
 import { SubscriptionLifecycleService } from '../../common/subscriptions/subscription-lifecycle.service';
@@ -29,7 +32,7 @@ import {
   parseEnterpriseModuleConfiguration,
 } from '../../common/database/enterprise-config';
 import { assertStrongPassword } from '../../common/security/password-policy';
-import { hasSubscriptionAccess } from '../../common/subscriptions/entitlement-policy';
+import { addBillingMonths, hasSubscriptionAccess } from '../../common/subscriptions/entitlement-policy';
 
 const tenantUrl = (subdomain: string) => {
   const baseDomain = String(process.env.TENANT_BASE_DOMAIN || 'maamulpro.site')
@@ -47,11 +50,12 @@ export class SuperAdminService {
   constructor(
     private readonly centralPrisma: CentralPrismaService,
     private readonly tenantManager: TenantConnectionManager,
-    private readonly tenantProvisioning: TenantProvisioningService,
     private readonly neonManagement: NeonManagementService,
     private readonly subscriptions: SubscriptionLifecycleService,
     private readonly entitlements: SubscriptionEntitlementService,
     private readonly email: ResendEmailService,
+    private readonly onboarding: CompanyOnboardingService,
+    private readonly identities: IdentitySyncService,
   ) {}
 
   private get central(): any {
@@ -163,227 +167,16 @@ export class SuperAdminService {
     return 'REAL_ESTATE_ONLY';
   }
 
-  private async synchronizeTenantConfiguration(company: any, runtimeUrl?: string) {
-    const tenantDb = this.tenantManager.getTenantDb(runtimeUrl || revealDatabaseUrl(company.dbUrl));
-    const moduleValues = {
-      construction: Boolean(company.constructionEnabled),
-      real_estate: Boolean(company.realEstateEnabled),
-      material_management: Boolean(company.materialManagementEnabled),
-    };
-    const values = [
-      ['company_name', company.name],
-      ['company_slug', company.subdomain],
-      ['company_type', company.companyType || 'general'],
-      ['construction_enabled', String(moduleValues.construction)],
-      ['real_estate_enabled', String(moduleValues.real_estate)],
-      ['material_management_enabled', String(moduleValues.material_management)],
-      ['modules_enabled', Object.entries(moduleValues).filter(([, enabled]) => enabled).map(([key]) => key).join(',')],
-    ];
-    for (const [key, value] of values) {
-      await tenantDb.systemConfig.upsert({ where: { key }, update: { value }, create: { key, value } });
-    }
-    await tenantDb.systemConfig.upsert({
-      where: { key: ENTERPRISE_CONFIG_KEY },
-      update: {},
-      create: {
-        key: ENTERPRISE_CONFIG_KEY,
-        value: JSON.stringify(parseEnterpriseModuleConfiguration(null)),
-      },
-    });
-    return tenantDb;
+  private synchronizeTenantConfiguration(company: any, runtimeUrl?: string) {
+    return synchronizeTenantConfiguration(this.tenantManager.getTenantDb(runtimeUrl || revealDatabaseUrl(company.dbUrl)), company);
   }
 
-  private async seedTenantDefaults(company: any, ownerId: string, runtimeUrl?: string) {
-    const tenantDb = await this.synchronizeTenantConfiguration(company, runtimeUrl);
-    const [firstName, ...rest] = String(company.adminName || '').trim().split(/\s+/);
-    await tenantDb.staff.upsert({
-      where: { userId: ownerId },
-      update: { firstName: firstName || company.adminName, lastName: rest.join(' ') },
-      create: {
-        userId: ownerId,
-        firstName: firstName || company.adminName,
-        lastName: rest.join(' '),
-        department: 'GENERAL',
-        position: 'Company Owner',
-      },
-    });
-    const categories = [
-      ['Salary', '#3b82f6'], ['Material', '#f59e0b'], ['Client Payment', '#10b981'],
-      ['Consulting', '#8b5cf6'], ['Rent', '#ef4444'], ['Utilities', '#06b6d4'],
-      ['Equipment', '#f97316'], ['Other', '#6b7280'],
-    ];
-    for (const [name, color] of categories) {
-      await tenantDb.category.upsert({ where: { name }, update: {}, create: { name, color } });
-    }
-    const setupLog = await tenantDb.activityLog.findFirst({ where: { action: 'company_setup_completed', entity: 'company_setup' } });
-    if (!setupLog) {
-      await tenantDb.activityLog.create({
-        data: { userId: ownerId, action: 'company_setup_completed', entity: 'company_setup', details: `Initial setup via platform administration for ${company.name}` },
-      });
-    }
+  createCompany(data: CreateCompanyDto, adminId: string) {
+    return this.onboarding.start(data, adminId);
   }
 
-  async createCompany(data: CreateCompanyDto, adminId?: string) {
-    const subdomain = data.subdomain.trim().toLowerCase();
-    const adminEmail = data.adminEmail.trim().toLowerCase();
-    const modules = {
-      construction: Boolean(data.constructionEnabled),
-      realEstate: Boolean(data.realEstateEnabled),
-      materials: Boolean(data.materialManagementEnabled),
-    };
-    if (!modules.construction && !modules.realEstate && !modules.materials) {
-      throw new BadRequestException('Select at least one tenant module during onboarding');
-    }
-    const duplicate = await this.central.company.findFirst({
-      where: {
-        OR: [{ subdomain }, { adminEmail }],
-      },
-    });
-    if (duplicate) {
-      throw new ConflictException('The subdomain or administrator email is already in use');
-    }
-    const onboardingVerification = await this.central.emailVerification.findUnique({
-      where: {
-        email_context: {
-          email: adminEmail,
-          context: 'COMPANY_ONBOARDING',
-        },
-      },
-    });
-    if (
-      !onboardingVerification
-      || onboardingVerification.status !== 'VERIFIED'
-      || !onboardingVerification.verifiedAt
-      || onboardingVerification.expiresAt < new Date()
-    ) {
-      throw new BadRequestException(
-        'Verify the company administrator email before creating the company',
-      );
-    }
-    assertStrongPassword(data.adminPassword);
-
-    let neonDatabase: NeonTenantDatabase | undefined;
-    let companyId: string | undefined;
-
-    try {
-      neonDatabase = await this.neonManagement.resolveTenantDatabase(subdomain, data.dbUrl);
-      const connections = await this.tenantProvisioning.provision(neonDatabase.directUrl);
-      const protectedRuntimeUrl = protectDatabaseUrl(connections.runtimeUrl, connections.isNeon);
-      const passwordHash = await argon2.hash(data.adminPassword);
-      const companyUserId = `usr_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-
-      const company = await this.central.$transaction(async (tx: any) => {
-        const created = await tx.company.create({
-          data: {
-            name: data.name.trim(),
-            subdomain,
-            adminName: data.adminName.trim(),
-            adminEmail,
-            dbUrl: protectedRuntimeUrl,
-            dbProvider: neonDatabase.isNeon ? 'NEON' : 'POSTGRESQL',
-            dbCreatedByMaamulPro: neonDatabase.createdByMaamulPro,
-            companyType: data.companyType?.trim() || null,
-            mode: this.moduleMode(modules),
-            status: 'PENDING_SETUP',
-            subscriptionStatus: 'PENDING',
-            accessGranted: false,
-            constructionEnabled: modules.construction,
-            realEstateEnabled: modules.realEstate,
-            materialManagementEnabled: modules.materials,
-            logoUrl: (data as any).logoUrl?.trim() || null,
-            phone: (data as any).phone?.trim() || null,
-            address: (data as any).address?.trim() || null,
-            description: (data as any).description?.trim() || null,
-            entitlements: { tenantModules: modules },
-          },
-        });
-
-        await tx.companyUser.create({
-          data: {
-            id: companyUserId,
-            email: adminEmail,
-            passwordHash,
-            companyId: created.id,
-            role: 'COMPANY_OWNER',
-          },
-        });
-        return created;
-      });
-      companyId = company.id;
-
-      const tenantDb = this.tenantManager.getTenantDb(connections.runtimeUrl);
-      await tenantDb.user.create({
-        data: {
-          id: companyUserId,
-          email: adminEmail,
-          name: data.adminName.trim(),
-          passwordHash,
-          role: 'COMPANY_OWNER',
-        },
-      });
-
-      await this.seedTenantDefaults(company, companyUserId, connections.runtimeUrl);
-
-      if (data.subscriptionAmount !== undefined && data.subscriptionTermMonths) {
-        await this.configureCompanySubscription(
-          company.id,
-          {
-            amount: data.subscriptionAmount,
-            termDurationMonths: data.subscriptionTermMonths,
-            autoRecur: data.autoRecur,
-            notes: 'Initial subscription configured during company onboarding',
-          },
-          adminId,
-        );
-      }
-
-      const createdCompany = await this.getCompanyById(company.id);
-      await this.central.emailVerification.update({
-        where: { id: onboardingVerification.id },
-        data: { status: 'EXPIRED' },
-      });
-      return {
-        ...createdCompany,
-        onboarding: {
-          adminEmail,
-          dbName: `maamulpro_${subdomain.replace(/[^a-z0-9]/g, '_')}`,
-          loginUrl: `${tenantUrl(subdomain)}/sign-in`,
-          modulesEnabled: Object.entries(modules).filter(([, enabled]) => enabled).map(([key]) => key),
-          emailVerified: true,
-        },
-      };
-    } catch (error) {
-      let cleanupFailure: unknown;
-      if (neonDatabase?.runtimeUrl) {
-        try {
-          await this.tenantManager.disconnectTenant(neonDatabase.runtimeUrl);
-        } catch (cleanupError) {
-          cleanupFailure = cleanupError;
-        }
-      }
-      if (companyId) {
-        try {
-          await this.central.company.delete({ where: { id: companyId } });
-        } catch (cleanupError) {
-          cleanupFailure = cleanupError;
-        }
-      }
-      try {
-        await this.neonManagement.deleteCreatedDatabase(neonDatabase);
-      } catch (cleanupError) {
-        cleanupFailure = cleanupError;
-      }
-      if (cleanupFailure) {
-        throw new ServiceUnavailableException(
-          `Company onboarding failed and rollback did not complete${neonDatabase?.databaseName ? ` for database '${neonDatabase.databaseName}'` : ''}. Remove the orphaned onboarding resources before retrying.`,
-        );
-      }
-      if (error instanceof HttpException) throw error;
-      throw new BadRequestException(
-        'Company onboarding failed; provisioned records were rolled back',
-      );
-    }
-  }
+  getOnboarding(id: string) { return this.onboarding.status(id); }
+  retryOnboarding(id: string) { return this.onboarding.retry(id); }
 
   async checkCompanyEmailAvailability(email: string) {
     const normalized = String(email || '').trim().toLowerCase();
@@ -496,6 +289,7 @@ export class SuperAdminService {
       this.central.company.findMany({
       where,
       include: {
+        onboarding: { select: { id: true, status: true, stage: true } },
         subscriptions: {
           include: { plan: true },
           orderBy: { createdAt: 'desc' },
@@ -520,6 +314,7 @@ export class SuperAdminService {
     const company = await this.central.company.findUnique({
       where: { id },
       include: {
+        onboarding: { select: { id: true, status: true, stage: true } },
         subscriptions: {
           include: { plan: true },
           orderBy: { createdAt: 'desc' },
@@ -575,6 +370,7 @@ export class SuperAdminService {
   }
 
   async updateCompanyStatus(id: string, status: 'ACTIVE' | 'SUSPENDED' | 'PENDING_SETUP') {
+    await this.onboarding.assertComplete(id);
     const current = await this.central.company.findUnique({ where: { id } });
     if (!current) throw new NotFoundException(`Company with ID '${id}' not found`);
     if (status === 'ACTIVE') {
@@ -604,6 +400,7 @@ export class SuperAdminService {
     id: string,
     modules: { constructionEnabled?: boolean; realEstateEnabled?: boolean; materialManagementEnabled?: boolean },
   ) {
+    await this.onboarding.assertComplete(id);
     const current = await this.central.company.findUnique({ where: { id } });
     if (!current) throw new NotFoundException(`Company with ID '${id}' not found`);
     if (current.status !== 'ACTIVE') {
@@ -636,6 +433,7 @@ export class SuperAdminService {
   }
 
   async syncCompanyRbac(id: string) {
+    await this.onboarding.assertComplete(id);
     const company = await this.central.company.findUnique({ where: { id } });
     if (!company) throw new NotFoundException(`Company with ID '${id}' not found`);
     const tenantDb = this.tenantManager.getTenantDb(revealDatabaseUrl(company.dbUrl));
@@ -643,6 +441,7 @@ export class SuperAdminService {
   }
 
   async generateCompanyOwnerTemporaryPassword(id: string) {
+    await this.onboarding.assertComplete(id);
     const company = await this.central.company.findUnique({
       where: { id },
       include: { users: { where: { isActive: true, deletedAt: null }, orderBy: { createdAt: 'asc' } } },
@@ -655,14 +454,10 @@ export class SuperAdminService {
     const temporaryPassword = `${randomBytes(6).toString('base64url')}A9!`;
     const passwordHash = await argon2.hash(temporaryPassword);
     const passwordResetAt = new Date();
-    const tenantDb = this.tenantManager.getTenantDb(revealDatabaseUrl(company.dbUrl));
-    await tenantDb.user.update({
-      where: { id: owner.id },
-      data: { passwordHash, passwordResetAt, deletedAt: null },
-    });
     await this.central.companyUser.update({
       where: { id: owner.id },
       data: {
+        ...identityChange(),
         passwordHash,
         passwordResetAt,
         resetTokenHash: null,
@@ -670,10 +465,12 @@ export class SuperAdminService {
         resetRequestedAt: null,
       },
     });
-    return { password: temporaryPassword, adminEmail: owner.email, passwordResetAt };
+    const syncPending = await this.identities.sync(owner.id);
+    return { password: temporaryPassword, adminEmail: owner.email, passwordResetAt, syncPending };
   }
 
   async createCompanyImpersonation(id: string, adminId: string) {
+    await this.onboarding.assertComplete(id);
     const company = await this.central.company.findUnique({
       where: { id },
       include: { users: { where: { isActive: true, deletedAt: null }, orderBy: { createdAt: 'asc' } } },
@@ -704,6 +501,7 @@ export class SuperAdminService {
   }
 
   async getCompanyEnterpriseConfiguration(id: string) {
+    await this.onboarding.assertComplete(id);
     const company = await this.central.company.findUnique({ where: { id } });
     if (!company) throw new NotFoundException(`Company with ID '${id}' not found`);
     const tenantDb = this.tenantManager.getTenantDb(revealDatabaseUrl(company.dbUrl));
@@ -712,6 +510,7 @@ export class SuperAdminService {
   }
 
   async updateCompanyEnterpriseConfiguration(id: string, configuration: EnterpriseModuleConfiguration) {
+    await this.onboarding.assertComplete(id);
     const company = await this.central.company.findUnique({ where: { id } });
     if (!company) throw new NotFoundException(`Company with ID '${id}' not found`);
     if (!configuration || typeof configuration !== 'object') {
@@ -749,111 +548,86 @@ export class SuperAdminService {
 
   async configureCompanySubscription(
     companyId: string,
-    data: { amount: number; termDurationMonths: number; autoRecur?: boolean; notes?: string },
+    data: { requestId: string; amount: number; termDurationMonths: number; autoRecur?: boolean; notes?: string },
     adminId?: string,
   ) {
-    const company = await this.central.company.findUnique({ where: { id: companyId } });
-    if (!company) throw new NotFoundException(`Company with ID '${companyId}' not found`);
-    const amount = Number(data.amount);
-    const termDurationMonths = Number(data.termDurationMonths);
-    if (hasSubscriptionAccess(company)) {
-      await this.central.$transaction(async (tx: any) => {
-        await tx.company.update({
-          where: { id: companyId },
-          data: {
-            subscriptionAmount: amount,
-            termDurationMonths,
-            autoRecur: data.autoRecur ?? false,
-            version: { increment: 1 },
-          },
-        });
-        await tx.subscriptionTransaction.create({
-          data: {
-            companyId,
-            transactionType: 'UPDATE',
-            amount,
-            termDurationMonths,
-            previousStatus: company.subscriptionStatus,
-            newStatus: company.subscriptionStatus,
-            approvedBy: adminId,
-            notes: data.notes,
-          },
-        });
-      });
-      return this.getCompanyById(companyId);
+    await this.onboarding.assertComplete(companyId);
+    const amount = Number(data.amount), termDurationMonths = Number(data.termDurationMonths);
+    if (!data.requestId || !Number.isFinite(amount) || amount < 0 || !Number.isInteger(termDurationMonths) || termDurationMonths < 1) {
+      throw new BadRequestException('A request reference, valid amount, and whole billing term are required');
     }
-    const startAt = new Date();
-    const expiresAt = new Date(startAt);
-    expiresAt.setMonth(expiresAt.getMonth() + termDurationMonths);
-    const invoiceNumber = `INV-${startAt.toISOString().replace(/\D/g, '').slice(0, 14)}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+    const requestHash = createHash('sha256').update(JSON.stringify({ companyId, amount, termDurationMonths,
+      autoRecur: data.autoRecur ?? false, notes: data.notes || null })).digest('hex');
     await this.central.$transaction(async (tx: any) => {
-      await tx.company.update({
-        where: { id: companyId },
-        data: {
-          subscriptionStatus: 'ACTIVE',
-          subscriptionAmount: amount,
-          termDurationMonths,
-          subscriptionStartAt: startAt,
-          subscriptionExpiresAt: expiresAt,
-          autoRecur: data.autoRecur ?? false,
-          accessGranted: true,
+      await tx.$queryRawUnsafe('SELECT id FROM tenants WHERE id = $1 FOR UPDATE', companyId);
+      const replay = await tx.subscriptionTransaction.findUnique({ where: { requestId: data.requestId } });
+      if (replay) {
+        if (replay.requestHash !== requestHash) throw new ConflictException({ code: 'SUBMISSION_CONFLICT', message: 'This subscription request was already used with different details' });
+        return;
+      }
+      const company = await tx.company.findUnique({ where: { id: companyId } });
+      if (!company) throw new NotFoundException('Company not found');
+      const active = hasSubscriptionAccess(company);
+      if (!active && !['PENDING', 'EXPIRED', 'CANCELLED'].includes(company.subscriptionStatus)) {
+        throw new ConflictException('Resume the suspended subscription or settle its existing invoice before configuring another term');
+      }
+      if (!active && await tx.invoice.findFirst({ where: { companyId, status: { in: ['UNPAID', 'OVERDUE'] } } })) {
+        throw new ConflictException('Settle or cancel the outstanding invoice before approving another subscription');
+      }
+      const startAt = new Date(), expiresAt = addBillingMonths(startAt, termDurationMonths);
+      await tx.company.update({ where: { id: companyId }, data: {
+        subscriptionAmount: amount, termDurationMonths, autoRecur: data.autoRecur ?? false,
+        version: { increment: 1 },
+        ...(!active ? { subscriptionStatus: 'ACTIVE', subscriptionStartAt: startAt,
+          subscriptionExpiresAt: expiresAt, accessGranted: true,
           ...(company.status === 'PENDING_SETUP' ? { status: 'ACTIVE' } : {}),
-          version: { increment: 1 },
-        },
-      });
-      await tx.invoice.create({
-        data: {
-          invoiceNumber,
-          companyId,
-          amount,
-          kind: 'INITIAL',
-          status: 'PAID',
-          dueDate: startAt,
-          expiresAt,
-          periodStart: startAt,
-          periodEnd: expiresAt,
-          paidAt: startAt,
-          paymentMethod: 'MANUAL_PLATFORM_APPROVAL',
-          notes: data.notes || 'Subscription configured by platform administration',
-        },
-      });
-      await tx.subscriptionTransaction.create({
-        data: {
-          companyId,
-          transactionType: 'APPROVAL',
-          amount,
-          termDurationMonths,
-          previousStatus: company.subscriptionStatus,
-          newStatus: 'ACTIVE',
-          startAt,
-          expiresAt,
-          approvedBy: adminId,
-          notes: data.notes,
-        },
-      });
+        } : {}),
+      } });
+      if (!active) await tx.invoice.create({ data: {
+        invoiceNumber: 'APPROVAL-' + data.requestId, idempotencyKey: 'APPROVAL_' + data.requestId,
+        companyId, amount, kind: 'INITIAL', status: 'PAID', dueDate: startAt, expiresAt,
+        periodStart: startAt, periodEnd: expiresAt, paidAt: startAt, paymentMethod: 'MANUAL_PLATFORM_APPROVAL',
+        notes: data.notes || 'Subscription configured by platform administration',
+      } });
+      await tx.subscriptionTransaction.create({ data: {
+        requestId: data.requestId, requestHash, companyId, transactionType: active ? 'UPDATE' : 'APPROVAL',
+        amount, termDurationMonths, previousStatus: company.subscriptionStatus,
+        newStatus: active ? company.subscriptionStatus : 'ACTIVE',
+        ...(!active ? { startAt, expiresAt } : {}), approvedBy: adminId, notes: data.notes,
+      } });
+    }).catch((error: unknown) => {
+      if (error instanceof HttpException && (error.getResponse() as any)?.code !== 'SUBMISSION_CONFLICT') {
+        throw new HttpException({ code: 'SUBSCRIPTION_REJECTED', message: error.message }, error.getStatus());
+      }
+      throw error;
     });
     return this.getCompanyById(companyId);
   }
 
-  createRenewalInvoice(companyId: string, adminId?: string) {
+  async createRenewalInvoice(companyId: string, adminId?: string) {
+    await this.onboarding.assertComplete(companyId);
     // Route through SubscriptionLifecycleService so a renewal Invoice and the
     // TenantSubscription lifecycle record stay consistent with company state.
     return this.subscriptions.createRenewalInvoice(companyId, adminId);
   }
 
-  suspendSubscription(companyId: string, adminId?: string, notes?: string) {
+  async suspendSubscription(companyId: string, adminId?: string, notes?: string) {
+    await this.onboarding.assertComplete(companyId);
     return this.subscriptions.suspendSubscription(companyId, adminId, notes);
   }
 
-  resumeSubscription(companyId: string, adminId?: string, notes?: string) {
+  async resumeSubscription(companyId: string, adminId?: string, notes?: string) {
+    await this.onboarding.assertComplete(companyId);
     return this.subscriptions.resumeSubscription(companyId, adminId, notes);
   }
 
-  cancelSubscription(companyId: string, adminId?: string, notes?: string) {
+  async cancelSubscription(companyId: string, adminId?: string, notes?: string) {
+    await this.onboarding.assertComplete(companyId);
     return this.subscriptions.cancelSubscription(companyId, adminId, notes);
   }
 
   async setSubscriptionAutoRenew(companyId: string, autoRenew: boolean, adminId?: string) {
+    await this.onboarding.assertComplete(companyId);
     const company = await this.central.company.findUnique({ where: { id: companyId } });
     if (!company) throw new NotFoundException(`Company with ID '${companyId}' not found`);
     await this.central.$transaction(async (tx: any) => {
@@ -998,6 +772,7 @@ export class SuperAdminService {
   }
 
   async updateCompany(id: string, data: Partial<CreateCompanyDto & { phone?: string; address?: string; description?: string; logoUrl?: string }>) {
+    await this.onboarding.assertComplete(id);
     const current = await this.central.company.findUnique({ where: { id }, include: { users: { where: { role: 'COMPANY_OWNER' }, take: 1 } } });
     if (!current) throw new NotFoundException(`Company with ID '${id}' not found`);
     const moduleChangeRequested = data.constructionEnabled !== undefined
@@ -1042,19 +817,16 @@ export class SuperAdminService {
       version: { increment: 1 },
     };
 
-    if ((adminEmail || data.adminName !== undefined) && current.users[0]) {
-      try {
-        const tenantDb = this.tenantManager.getTenantDb(revealDatabaseUrl(current.dbUrl));
-        await tenantDb.user.update({ where: { id: current.users[0].id }, data: { ...(adminEmail ? { email: adminEmail } : {}), ...(data.adminName !== undefined ? { name: data.adminName.trim() } : {}) } });
-      } catch {
-        throw new BadRequestException('The tenant owner account could not be updated. No platform identity changes were saved.');
-      }
-    }
     const updated = await this.central.$transaction(async (tx: any) => {
-      if (adminEmail && current.users[0]) await tx.companyUser.update({ where: { id: current.users[0].id }, data: { email: adminEmail } });
+      if ((adminEmail || data.adminName !== undefined) && current.users[0]) await tx.companyUser.update({
+        where: { id: current.users[0].id }, data: { ...(adminEmail ? { email: adminEmail } : {}), ...identityChange() },
+      });
       return tx.company.update({ where: { id }, data: update });
     });
-    let synchronizationWarning: string | undefined;
+    const syncPending = current.users[0] && (adminEmail || data.adminName !== undefined)
+      ? await this.identities.sync(current.users[0].id) : false;
+    let synchronizationWarning: string | undefined = syncPending
+      ? 'Owner profile saved. Access is paused while the workspace identity synchronizes automatically.' : undefined;
     try {
       await this.synchronizeTenantConfiguration(updated);
     } catch {
@@ -1064,27 +836,40 @@ export class SuperAdminService {
   }
 
   async deleteCompany(id: string) {
-    const company = await this.central.company.findUnique({ where: { id } });
-    if (!company) throw new NotFoundException(`Company with ID '${id}' not found`);
-    const revealedUrl = revealDatabaseUrl(company.dbUrl);
-    await this.tenantManager.disconnectTenant(revealedUrl).catch(() => undefined);
-    let tenantDatabaseDeleted = false;
-    // Only delete databases the platform itself provisioned. Customer-supplied
-    // databases must never be touched through the Neon API, regardless of name.
-    if (company.dbCreatedByMaamulPro) {
-      const pair = getDatabaseConnectionPair(revealedUrl);
-      const databaseName = decodeURIComponent(new URL(pair.directUrl).pathname.replace(/^\/+/, ''));
-      if (databaseName) {
-        await this.neonManagement.deleteCreatedDatabase({
-          ...pair,
-          databaseName,
-          createdByMaamulPro: true,
+    const result = await withOnboardingLock(async (guard) => {
+      const company = await this.central.company.findUnique({ where: { id }, include: { onboarding: true } });
+      if (!company) throw new NotFoundException('Company not found');
+      if (company.onboarding && !['SUCCEEDED', 'DELETING'].includes(company.onboarding.status)) {
+        throw new ConflictException({ message: 'Finish or recover this company setup before deleting it.', onboardingId: company.onboarding.id });
+      }
+      await guard();
+      await this.central.$transaction(async (tx: any) => {
+        await tx.company.update({ where: { id }, data: { status: 'SUSPENDED', accessGranted: false } });
+        if (company.onboarding) await tx.companyOnboarding.update({ where: { id: company.onboarding.id }, data: { status: 'DELETING' } });
+      });
+      const revealedUrl = revealDatabaseUrl(company.dbUrl);
+      await this.tenantManager.disconnectTenant(revealedUrl);
+      await guard();
+      let tenantDatabaseDeleted = false;
+      if (company.dbCreatedByMaamulPro) {
+        const pair = getDatabaseConnectionPair(revealedUrl);
+        await this.neonManagement.deleteCreatedDatabase({ ...pair, createdByMaamulPro: true,
+          databaseName: company.onboarding?.databaseName || decodeURIComponent(new URL(pair.directUrl).pathname.slice(1)),
+          projectId: company.onboarding?.projectId || process.env.NEON_PROJECT_ID,
+          branchId: company.onboarding?.branchId || process.env.NEON_BRANCH_ID,
+          databaseOwner: company.onboarding?.databaseOwner || decodeURIComponent(new URL(pair.directUrl).username),
         });
         tenantDatabaseDeleted = true;
       }
-    }
-    await this.central.company.delete({ where: { id } });
-    return { deleted: true, id, name: company.name, tenantDatabaseDeleted };
+      await guard();
+      await this.central.$transaction(async (tx: any) => {
+        if (company.onboarding) await tx.companyOnboarding.update({ where: { id: company.onboarding.id }, data: { status: 'CANCELLED' } });
+        await tx.company.delete({ where: { id } });
+      });
+      return { deleted: true, id, name: company.name, tenantDatabaseDeleted };
+    });
+    if (!result) throw new ConflictException('Another company setup or deletion is running. Try again shortly.');
+    return result;
   }
 
   async getPlatformNotifications() {
@@ -1139,7 +924,7 @@ export class SuperAdminService {
 
   async syncTenantSchemas() {
     const companies = await this.central.company.findMany({
-      where: { status: { not: 'PENDING_SETUP' } },
+      where: { status: { not: 'PENDING_SETUP' }, OR: [{ onboarding: null }, { onboarding: { status: 'SUCCEEDED' } }] },
       select: { id: true, name: true, dbUrl: true },
     });
 
@@ -1150,8 +935,8 @@ export class SuperAdminService {
         await applyCompanySchema(directUrl);
         results.push({ companyId: company.id, name: company.name, status: 'ok' });
       } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        results.push({ companyId: company.id, name: company.name, status: 'error', error: msg });
+        const failure = setupFailure(err, 'SCHEMA');
+        results.push({ companyId: company.id, name: company.name, status: 'error', error: `${failure.message} Reference: ${failure.code}` });
       }
     }
 

@@ -4,6 +4,7 @@ import * as bcrypt from 'bcryptjs';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { getCentralDatabaseUrls } from '../src/common/database/database-url';
+import { assertStrongPassword } from '../src/common/security/password-policy';
 
 // Load environment from backend/.env
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
@@ -24,15 +25,31 @@ async function seed() {
   const adapter = new PrismaPg(pool);
   const prisma = new PrismaClient({ adapter });
 
-  const adminEmail = process.env.E2E_SUPER_ADMIN_EMAIL || 'admin@maamulpro.com';
-  const adminPassword = process.env.E2E_SUPER_ADMIN_PASSWORD || 'StrongPass@123';
+  // Keep the existing deployment-secret names working. INITIAL_* is clearer
+  // for new deployments; E2E_* remains supported for the established seed job.
+  const useInitialVariables = Boolean(
+    process.env.INITIAL_SUPER_ADMIN_EMAIL || process.env.INITIAL_SUPER_ADMIN_PASSWORD,
+  );
+  const adminEmail = (
+    useInitialVariables
+      ? process.env.INITIAL_SUPER_ADMIN_EMAIL
+      : process.env.E2E_SUPER_ADMIN_EMAIL
+  )?.trim().toLowerCase();
+  const adminPassword = useInitialVariables
+    ? process.env.INITIAL_SUPER_ADMIN_PASSWORD
+    : process.env.E2E_SUPER_ADMIN_PASSWORD;
+  if (!adminEmail || !adminPassword) {
+    throw new Error(
+      'Set INITIAL_SUPER_ADMIN_EMAIL and INITIAL_SUPER_ADMIN_PASSWORD, or the existing E2E_SUPER_ADMIN_EMAIL and E2E_SUPER_ADMIN_PASSWORD, before seeding.',
+    );
+  }
+  assertStrongPassword(adminPassword);
   const passwordHash = await bcrypt.hash(adminPassword, 10);
 
   // 1. Seed Super Admin
   const admin = await prisma.centralAdmin.upsert({
     where: { email: adminEmail },
     update: {
-      passwordHash,
       name: 'Super Admin User',
     },
     create: {

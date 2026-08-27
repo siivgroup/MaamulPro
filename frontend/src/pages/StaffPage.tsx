@@ -76,10 +76,10 @@ const StaffPage = () => {
         try {
             const path = accountActionType === 'status' ? 'status' : accountActionType === 'email' ? 'email' : accountActionType === 'role' ? 'role' : 'reset-password';
             const body = accountActionType === 'status' ? { isActive: !selected.user.isActive } : accountActionType === 'email' ? { email: accountActionValue } : accountActionType === 'role' ? { role: accountActionValue } : { temporaryPassword: accountActionValue };
-            await api(`/api/staff/${selected.id}/account/${path}`, { method: accountActionType === 'password' ? 'POST' : 'PATCH', silent: true, body: JSON.stringify(body) });
+            const result = await api<{ syncPending?: boolean; message?: string }>(`/api/staff/${selected.id}/account/${path}`, { method: accountActionType === 'password' ? 'POST' : 'PATCH', silent: true, body: JSON.stringify(body) });
             const savedType = accountActionType;
             setAccountActionType(null); setAccountActionValue('');
-            toast.success(savedType === 'status' ? 'Account status updated.' : savedType === 'email' ? 'Email updated.' : savedType === 'role' ? 'Role updated. The user must sign in again.' : 'Password reset.');
+            toast.success(result.syncPending ? result.message || 'Account change saved; synchronization is pending.' : savedType === 'status' ? 'Account status updated.' : savedType === 'email' ? 'Email updated.' : savedType === 'role' ? 'Role updated. The user must sign in again.' : 'Password reset.');
             await state.reload(); setSelected(await api<Staff>(`/api/staff/${selected.id}`));
             if (savedType === 'role' && selected.user?.id === currentUserId) refreshSession(true).catch(() => undefined);
         } catch (reason) { const msg = reason instanceof Error ? reason.message : 'Account update failed'; toast.error(msg); state.setError(msg); } finally { setAccountActionSaving(false); }

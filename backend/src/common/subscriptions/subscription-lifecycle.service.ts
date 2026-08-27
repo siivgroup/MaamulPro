@@ -9,6 +9,7 @@ import {
 import { CentralPrismaService } from '../database/central-prisma.service';
 import {
   addBillingPeriod,
+  addBillingMonths,
   legacyPlanTier,
   planEntitlements,
 } from './entitlement-policy';
@@ -688,52 +689,55 @@ export class SubscriptionLifecycleService implements OnModuleInit {
   }
 
   private async createDirectRenewalInvoice(companyId: string, adminId?: string, now = new Date()) {
-    const company = await this.central.company.findUnique({ where: { id: companyId } });
-    if (!company) throw new NotFoundException('Company not found');
-    if (!['ACTIVE', 'EXPIRED'].includes(company.subscriptionStatus)) {
-      throw new BadRequestException('No active subscription is available to renew');
-    }
-    const existing = await this.central.invoice.findFirst({
-      where: { companyId, subscriptionId: null, kind: 'RENEWAL', status: { in: OPEN_INVOICE_STATUSES } },
-    });
-    if (existing) return existing;
-    const months = Number(company.termDurationMonths || 0);
-    if (months < 1 || company.subscriptionAmount == null) {
-      throw new BadRequestException('Configure the company subscription before renewing it');
-    }
-    const periodStart = company.subscriptionExpiresAt && new Date(company.subscriptionExpiresAt) > now
-      ? new Date(company.subscriptionExpiresAt)
-      : now;
-    const periodEnd = new Date(periodStart);
-    periodEnd.setMonth(periodEnd.getMonth() + months);
-    const invoice = await this.central.invoice.create({
-      data: {
-        invoiceNumber: this.invoiceNumber(),
-        companyId,
-        amount: company.subscriptionAmount,
-        kind: 'RENEWAL',
-        status: 'UNPAID',
-        dueDate: periodStart > now ? periodStart : new Date(now.getTime() + INVOICE_DUE_DAYS * DAY),
-        expiresAt: new Date(Math.max(periodStart.getTime(), now.getTime()) + INVOICE_EXPIRY_DAYS * DAY),
-        periodStart,
-        periodEnd,
-        idempotencyKey: `DIRECT_RENEW_${companyId}_${periodStart.toISOString()}`,
-        notes: `Renewal invoice for ${company.name}`,
-      },
-    });
-    await this.central.subscriptionTransaction.create({
-      data: {
-        companyId,
-        transactionType: 'RENEWAL_INVOICE_CREATED',
-        amount: company.subscriptionAmount,
-        termDurationMonths: months,
-        previousStatus: company.subscriptionStatus,
-        newStatus: company.subscriptionStatus,
-        startAt: periodStart,
-        expiresAt: periodEnd,
-        approvedBy: adminId,
-        notes: `Invoice ${invoice.invoiceNumber} created`,
-      },
+    const invoice = await this.central.$transaction(async (tx: any) => {
+      await tx.$queryRawUnsafe('SELECT id FROM tenants WHERE id = $1 FOR UPDATE', companyId);
+      const company = await tx.company.findUnique({ where: { id: companyId } });
+      if (!company) throw new NotFoundException('Company not found');
+      if (!['ACTIVE', 'EXPIRED'].includes(company.subscriptionStatus)) {
+        throw new BadRequestException('No active subscription is available to renew');
+      }
+      const existing = await tx.invoice.findFirst({
+        where: { companyId, subscriptionId: null, kind: 'RENEWAL', status: { in: OPEN_INVOICE_STATUSES } },
+      });
+      if (existing) return existing;
+      const months = Number(company.termDurationMonths || 0);
+      if (months < 1 || company.subscriptionAmount == null) {
+        throw new BadRequestException('Configure the company subscription before renewing it');
+      }
+      const periodStart = company.subscriptionExpiresAt && new Date(company.subscriptionExpiresAt) > now
+        ? new Date(company.subscriptionExpiresAt)
+        : now;
+      const periodEnd = addBillingMonths(periodStart, months);
+      const invoice = await tx.invoice.create({
+        data: {
+          invoiceNumber: this.invoiceNumber(),
+          companyId,
+          amount: company.subscriptionAmount,
+          kind: 'RENEWAL',
+          status: 'UNPAID',
+          dueDate: periodStart > now ? periodStart : new Date(now.getTime() + INVOICE_DUE_DAYS * DAY),
+          expiresAt: new Date(Math.max(periodStart.getTime(), now.getTime()) + INVOICE_EXPIRY_DAYS * DAY),
+          periodStart,
+          periodEnd,
+          idempotencyKey: `DIRECT_RENEW_${companyId}_${periodStart.toISOString()}`,
+          notes: `Renewal invoice for ${company.name}`,
+        },
+      });
+      await tx.subscriptionTransaction.create({
+        data: {
+          companyId,
+          transactionType: 'RENEWAL_INVOICE_CREATED',
+          amount: company.subscriptionAmount,
+          termDurationMonths: months,
+          previousStatus: company.subscriptionStatus,
+          newStatus: company.subscriptionStatus,
+          startAt: periodStart,
+          expiresAt: periodEnd,
+          approvedBy: adminId,
+          notes: `Invoice ${invoice.invoiceNumber} created`,
+        },
+      });
+      return invoice;
     });
     if (Number(invoice.amount) === 0) return this.markInvoicePaid(invoice.id, 'NO_CHARGE', adminId);
     return invoice;

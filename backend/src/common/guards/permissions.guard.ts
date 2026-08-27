@@ -99,7 +99,13 @@ export class PermissionsGuard implements CanActivate {
       return false;
     }
 
-    if (user.isSuperAdmin || user.isImpersonating || user.role === 'SUPER_ADMIN') {
+    // Platform authority comes from the verified central-admin principal, never
+    // a tenant role name or the tenant-owner/impersonation permission bypass.
+    if (requiredRoles?.includes('SUPER_ADMIN')) {
+      if (user.isSuperAdmin === true && !user.isImpersonating) return true;
+      throw new ForbiddenException('Platform administrator access is required');
+    }
+    if (user.isSuperAdmin === true || user.isImpersonating) {
       return true;
     }
 
@@ -109,7 +115,6 @@ export class PermissionsGuard implements CanActivate {
     }
     user.role = principal.role;
     if (user.role === 'COMPANY_OWNER') return true;
-
     if (requiredRoles && requiredRoles.length > 0) {
       const hasRole = requiredRoles.includes(user.role);
       if (!hasRole) {

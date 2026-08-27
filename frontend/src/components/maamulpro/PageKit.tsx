@@ -1,5 +1,6 @@
-import { AlertTriangle, BarChart3, Building2, CheckCircle2, Clock, CreditCard, Eye, EyeOff, Package, TrendingUp, Users, X } from 'lucide-react';
-import { Children, cloneElement, InputHTMLAttributes, isValidElement, ReactElement, ReactNode, useState } from 'react';
+import { AlertTriangle, BarChart3, Building2, CheckCircle2, Clock, CreditCard, Eye, EyeOff, LoaderCircle, Package, TrendingUp, Users, X } from 'lucide-react';
+import { Children, cloneElement, InputHTMLAttributes, isValidElement, ReactElement, ReactNode, useState, useSyncExternalStore } from 'react';
+import { getRequestActivity, subscribeRequestActivity } from '../../lib/api';
 import DotLoader from './DotLoader';
 
 type PasswordInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'prefix'> & { startAdornment?: ReactNode };
@@ -185,17 +186,27 @@ export const LoadingState = ({ label = 'Loading live data…' }: { label?: strin
 export const ErrorAlert = ({ message, onRetry }: { message: string; onRetry?: () => void }) => <div className="mb-5 flex items-center justify-between gap-4 rounded-md bg-danger-light p-4 text-danger" role="alert"><span>{message}</span>{onRetry && <button className="btn btn-sm btn-outline-danger" onClick={onRetry}>Retry</button>}</div>;
 export const SuccessAlert = ({ message, onDismiss }: { message: string; onDismiss?: () => void }) => <div className="mb-5 flex items-center justify-between gap-4 rounded-md bg-success-light p-4 text-success" role="status"><span>{message}</span>{onDismiss && <button className="btn btn-sm btn-outline-success" onClick={onDismiss}>Close</button>}</div>;
 
-export const Modal = ({ title, open, onClose, children, wide = false }: { title: string; open: boolean; onClose: () => void; children: ReactNode; wide?: boolean }) => !open ? null : (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 p-4" onMouseDown={(event) => event.currentTarget === event.target && onClose()}>
-        <div className={`flex max-h-[92vh] w-full flex-col overflow-hidden rounded-md bg-white shadow-xl dark:bg-black ${wide ? 'max-w-4xl' : 'max-w-xl'}`} role="dialog" aria-modal="true" aria-label={title}>
-            <div className="flex shrink-0 items-center justify-between border-b border-white-light px-5 py-4 dark:border-[#191e3a]">
+export const Modal = ({ title, open, onClose, children, wide = false, busy = false }: { title: string; open: boolean; onClose: () => void; children: ReactNode; wide?: boolean; busy?: boolean }) => {
+    const { pendingMutations } = useSyncExternalStore(subscribeRequestActivity, getRequestActivity);
+    // ponytail: lock open dialogs during any write; scope activity per dialog if parallel editing is needed.
+    const pending = busy || pendingMutations > 0;
+    // Read the live count in handlers too: a second click can arrive before React renders.
+    const isPending = () => busy || getRequestActivity().pendingMutations > 0;
+    const close = () => { if (!isPending()) onClose(); };
+    if (!open) return null;
+    return <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 p-4" onMouseDown={(event) => event.currentTarget === event.target && close()}
+        onClickCapture={event => { if (isPending()) { event.preventDefault(); event.stopPropagation(); } }}
+        onSubmitCapture={event => { if (isPending()) { event.preventDefault(); event.stopPropagation(); } }}
+        onKeyDown={event => { if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close(); } }}>
+        <div className={`flex max-h-[92vh] w-full flex-col overflow-hidden rounded-md bg-white shadow-xl dark:bg-black ${wide ? 'max-w-4xl' : 'max-w-xl'}`} role="dialog" aria-modal="true" aria-label={title} aria-busy={pending}>
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white-light px-5 py-4 dark:border-[#191e3a]">
                 <h2 className="text-lg font-bold">{title}</h2>
-                <button aria-label="Close" className="btn btn-sm btn-outline-dark p-1.5" onClick={onClose}><X size={16} /></button>
+                <div className="flex items-center gap-3">{pending && <span className="flex items-center gap-2 text-sm text-primary"><LoaderCircle size={16} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />Processing…</span>}<button type="button" aria-label="Close" disabled={pending} className="btn btn-sm btn-outline-dark p-1.5" onClick={close}><X size={16} /></button></div>
             </div>
-            <div className="flex-1 overflow-y-auto px-5 py-5">{children}</div>
+            <div className="flex-1 overflow-y-auto px-5 py-5"><fieldset disabled={pending} className="m-0 min-w-0 border-0 p-0">{children}</fieldset></div>
         </div>
-    </div>
-);
+    </div>;
+};
 
 const defaultPlaceholder = (label: string) => {
     const normalized = label.toLowerCase();
@@ -250,10 +261,14 @@ const addPlaceholder = (node: ReactNode, placeholder: string): ReactNode => {
 
 export const Field = ({ label, required, children, hint }: { label: string; required?: boolean; children: ReactNode; hint?: string }) => <label className="block"><span className="font-semibold">{label}{required && <span className="text-danger"> *</span>}</span>{addPlaceholder(children, defaultPlaceholder(label))}{hint && <span className="mt-1 block text-xs text-white-dark">{hint}</span>}</label>;
 
-export const FormActions = ({ onCancel, loading = false, saveLabel = 'Save', savingLabel = 'Saving…' }: { onCancel?: () => void; loading?: boolean; saveLabel?: string; savingLabel?: string }) => (
+export const FormActions = ({ onCancel, loading = false, saveLabel = 'Save', savingLabel = 'Saving…' }: { onCancel?: () => void; loading?: boolean; saveLabel?: string; savingLabel?: string }) => {
+    const { pendingMutations } = useSyncExternalStore(subscribeRequestActivity, getRequestActivity);
+    const pending = loading || pendingMutations > 0;
+    return (
     <div className="col-span-full mt-8 flex items-center justify-end gap-3 border-t border-white-light pt-5 dark:border-[#191e3a]">
-        <button className="btn btn-outline-dark" disabled={loading} onClick={onCancel} type="button">Cancel</button>
-        <button className="btn btn-primary" disabled={loading} type="submit">{loading ? savingLabel : saveLabel}</button>
+        <button className="btn btn-outline-dark" disabled={pending} onClick={() => { if (!loading && !getRequestActivity().pendingMutations) onCancel?.(); }} type="button">Cancel</button>
+        <button className="btn btn-primary gap-2" disabled={pending} aria-busy={pending} onClick={event => { if (loading || getRequestActivity().pendingMutations) event.preventDefault(); }} type="submit">{pending && <LoaderCircle size={16} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}{pending ? savingLabel : saveLabel}</button>
     </div>
-);
+    );
+};
 

@@ -130,12 +130,15 @@ export class AccountingService {
     tx: any,
     args: { userId?: string; batchId: string; memo?: string },
   ) {
+    await tx.$queryRawUnsafe('SELECT id FROM journal_batches WHERE id = $1 FOR UPDATE', args.batchId);
     const original = await tx.journalBatch.findUnique({
       where: { id: args.batchId },
       include: { entries: true },
     });
     if (!original || original.status !== 'POSTED' || original.reversedByBatchId) return null;
     const now = new Date();
+    await this.assertPeriodOpen(tx, original.date);
+    await this.assertPeriodOpen(tx, now);
     const reversal = await tx.journalBatch.create({
       data: {
         tenantId: original.tenantId,
@@ -557,6 +560,7 @@ export class AccountingService {
     args: { userId?: string; batchId: string; memo?: string },
   ) {
     return tenantDb.$transaction(async (tx: any) => {
+      await tx.$queryRawUnsafe('SELECT id FROM journal_batches WHERE id = $1 FOR UPDATE', args.batchId);
       const original = await tx.journalBatch.findUnique({
         where: { id: args.batchId },
         include: { entries: true },
@@ -569,6 +573,8 @@ export class AccountingService {
         throw new ConflictException('Batch has already been reversed');
       }
       const now = new Date();
+      await this.assertPeriodOpen(tx, original.date);
+      await this.assertPeriodOpen(tx, now);
       const totalDebit = Number(original.totalCredit);
       const totalCredit = Number(original.totalDebit);
       const reversal = await tx.journalBatch.create({
