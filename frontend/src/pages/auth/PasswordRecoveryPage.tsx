@@ -23,9 +23,9 @@ const PasswordRecoveryPage = () => {
         setWorking(true);
         try {
             await api<{ accepted: boolean }>('/api/auth/password/forgot', {
-                method: 'POST', body: JSON.stringify({ email }),
+                method: 'POST', silent: true, body: JSON.stringify({ email }),
             });
-            setMessage('If the address belongs to an active account, a reset code has been sent.');
+            setMessage('If this address belongs to an active account, you will receive a reset code. Check your inbox and spam folder. Allow 60 seconds before requesting another code.');
             setStep('reset');
         } catch (reason) {
             setError(reason instanceof Error ? reason.message : 'Unable to request reset');

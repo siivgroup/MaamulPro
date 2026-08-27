@@ -25,7 +25,7 @@ export class RequestMonitoringInterceptor implements NestInterceptor {
           event: 'slow_http_request',
           requestId,
           method: request.method,
-          path: request.originalUrl || request.url,
+          path: (request.path || request.originalUrl || request.url).split('?')[0],
           statusCode: response.statusCode,
           durationMs,
           companyId: request.tenantContext?.companyId,

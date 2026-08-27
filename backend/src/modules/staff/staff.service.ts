@@ -1,4 +1,5 @@
 import { IdentitySyncService, identityChange } from '../../common/database/identity-sync.service';
+import { AccountSecurityService } from '../../common/security/account-security.service';
 import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { CentralPrismaService } from '../../common/database/central-prisma.service';
 import * as argon2 from 'argon2';
@@ -17,6 +18,7 @@ export class StaffService {
     private readonly centralPrisma: CentralPrismaService,
     private readonly entitlements: SubscriptionEntitlementService,
     private readonly identities: IdentitySyncService,
+    private readonly security: AccountSecurityService,
   ) {}
 
   private get central(): any {
@@ -245,9 +247,14 @@ export class StaffService {
     const staff = await this.getStaffById(tenantDb, staffId);
     if (!staff.userId) throw new BadRequestException('Staff member has no user account');
     const normalized = email.trim().toLowerCase();
-    const duplicate = await this.central.companyUser.findUnique({ where: { email: normalized } });
-    if (duplicate && duplicate.id !== staff.userId) throw new ConflictException('Email is already in use');
-    await this.central.companyUser.update({ where: { id: staff.userId }, data: { email: normalized, ...identityChange() } });
+    const account = await this.central.companyUser.findUnique({ where: { id: staff.userId }, include: { company: true } });
+    if (account.email === normalized) return { email: normalized, ...await this.syncAccount(staff.userId) };
+    await this.central.$transaction(async (tx: any) => {
+      await this.security.assertAvailable(tx, normalized, 'user', staff.userId);
+      await tx.companyUser.update({ where: { id: staff.userId }, data: { email: normalized, ...identityChange() } });
+      if (account.role === 'COMPANY_OWNER') await tx.company.update({ where: { id: account.companyId }, data: { adminEmail: normalized } });
+    });
+    await this.security.notifyChange(account, 'email', true, normalized);
     return { email: normalized, ...await this.syncAccount(staff.userId) };
   }
 
@@ -255,12 +262,15 @@ export class StaffService {
     assertStrongPassword(temporaryPassword);
     const staff = await this.getStaffById(tenantDb, staffId);
     if (!staff.userId) throw new BadRequestException('Staff member has no user account');
+    const account = await this.central.companyUser.findUnique({ where: { id: staff.userId }, include: { company: true } });
     const passwordHash = await argon2.hash(temporaryPassword);
     await this.central.companyUser.update({ where: { id: staff.userId }, data: {
       passwordHash, passwordResetAt: new Date(), resetTokenHash: null,
       resetTokenExpiresAt: null, resetRequestedAt: null, ...identityChange(),
     } });
-    return { reset: true, ...await this.syncAccount(staff.userId) };
+    const result = { reset: true, ...await this.syncAccount(staff.userId) };
+    await this.security.notifyChange(account, 'password', true);
+    return result;
   }
 
   async updateAccountRole(tenantDb: any, staffId: string, role: string) {

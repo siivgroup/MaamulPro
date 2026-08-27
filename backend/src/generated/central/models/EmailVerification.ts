@@ -27,14 +27,18 @@ export type AggregateEmailVerification = {
 }
 
 export type EmailVerificationAvgAggregateOutputType = {
+  subjectVersion: number | null
   attempts: number | null
 }
 
 export type EmailVerificationSumAggregateOutputType = {
+  subjectVersion: number | null
   attempts: number | null
 }
 
 export type EmailVerificationMinAggregateOutputType = {
+  subjectKey: string | null
+  subjectVersion: number | null
   id: string | null
   email: string | null
   context: $Enums.VerificationContext | null
@@ -49,6 +53,8 @@ export type EmailVerificationMinAggregateOutputType = {
 }
 
 export type EmailVerificationMaxAggregateOutputType = {
+  subjectKey: string | null
+  subjectVersion: number | null
   id: string | null
   email: string | null
   context: $Enums.VerificationContext | null
@@ -63,6 +69,8 @@ export type EmailVerificationMaxAggregateOutputType = {
 }
 
 export type EmailVerificationCountAggregateOutputType = {
+  subjectKey: number
+  subjectVersion: number
   id: number
   email: number
   context: number
@@ -79,14 +87,18 @@ export type EmailVerificationCountAggregateOutputType = {
 
 
 export type EmailVerificationAvgAggregateInputType = {
+  subjectVersion?: true
   attempts?: true
 }
 
 export type EmailVerificationSumAggregateInputType = {
+  subjectVersion?: true
   attempts?: true
 }
 
 export type EmailVerificationMinAggregateInputType = {
+  subjectKey?: true
+  subjectVersion?: true
   id?: true
   email?: true
   context?: true
@@ -101,6 +113,8 @@ export type EmailVerificationMinAggregateInputType = {
 }
 
 export type EmailVerificationMaxAggregateInputType = {
+  subjectKey?: true
+  subjectVersion?: true
   id?: true
   email?: true
   context?: true
@@ -115,6 +129,8 @@ export type EmailVerificationMaxAggregateInputType = {
 }
 
 export type EmailVerificationCountAggregateInputType = {
+  subjectKey?: true
+  subjectVersion?: true
   id?: true
   email?: true
   context?: true
@@ -216,6 +232,8 @@ export type EmailVerificationGroupByArgs<ExtArgs extends runtime.Types.Extension
 }
 
 export type EmailVerificationGroupByOutputType = {
+  subjectKey: string | null
+  subjectVersion: number | null
   id: string
   email: string
   context: $Enums.VerificationContext
@@ -253,6 +271,8 @@ export type EmailVerificationWhereInput = {
   AND?: Prisma.EmailVerificationWhereInput | Prisma.EmailVerificationWhereInput[]
   OR?: Prisma.EmailVerificationWhereInput[]
   NOT?: Prisma.EmailVerificationWhereInput | Prisma.EmailVerificationWhereInput[]
+  subjectKey?: Prisma.StringNullableFilter<"EmailVerification"> | string | null
+  subjectVersion?: Prisma.IntNullableFilter<"EmailVerification"> | number | null
   id?: Prisma.StringFilter<"EmailVerification"> | string
   email?: Prisma.StringFilter<"EmailVerification"> | string
   context?: Prisma.EnumVerificationContextFilter<"EmailVerification"> | $Enums.VerificationContext
@@ -267,6 +287,8 @@ export type EmailVerificationWhereInput = {
 }
 
 export type EmailVerificationOrderByWithRelationInput = {
+  subjectKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  subjectVersion?: Prisma.SortOrderInput | Prisma.SortOrder
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   context?: Prisma.SortOrder
@@ -286,6 +308,8 @@ export type EmailVerificationWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.EmailVerificationWhereInput | Prisma.EmailVerificationWhereInput[]
   OR?: Prisma.EmailVerificationWhereInput[]
   NOT?: Prisma.EmailVerificationWhereInput | Prisma.EmailVerificationWhereInput[]
+  subjectKey?: Prisma.StringNullableFilter<"EmailVerification"> | string | null
+  subjectVersion?: Prisma.IntNullableFilter<"EmailVerification"> | number | null
   email?: Prisma.StringFilter<"EmailVerification"> | string
   context?: Prisma.EnumVerificationContextFilter<"EmailVerification"> | $Enums.VerificationContext
   hashedCode?: Prisma.StringFilter<"EmailVerification"> | string
@@ -299,6 +323,8 @@ export type EmailVerificationWhereUniqueInput = Prisma.AtLeast<{
 }, "id" | "email_context">
 
 export type EmailVerificationOrderByWithAggregationInput = {
+  subjectKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  subjectVersion?: Prisma.SortOrderInput | Prisma.SortOrder
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   context?: Prisma.SortOrder
@@ -321,6 +347,8 @@ export type EmailVerificationScalarWhereWithAggregatesInput = {
   AND?: Prisma.EmailVerificationScalarWhereWithAggregatesInput | Prisma.EmailVerificationScalarWhereWithAggregatesInput[]
   OR?: Prisma.EmailVerificationScalarWhereWithAggregatesInput[]
   NOT?: Prisma.EmailVerificationScalarWhereWithAggregatesInput | Prisma.EmailVerificationScalarWhereWithAggregatesInput[]
+  subjectKey?: Prisma.StringNullableWithAggregatesFilter<"EmailVerification"> | string | null
+  subjectVersion?: Prisma.IntNullableWithAggregatesFilter<"EmailVerification"> | number | null
   id?: Prisma.StringWithAggregatesFilter<"EmailVerification"> | string
   email?: Prisma.StringWithAggregatesFilter<"EmailVerification"> | string
   context?: Prisma.EnumVerificationContextWithAggregatesFilter<"EmailVerification"> | $Enums.VerificationContext
@@ -335,6 +363,8 @@ export type EmailVerificationScalarWhereWithAggregatesInput = {
 }
 
 export type EmailVerificationCreateInput = {
+  subjectKey?: string | null
+  subjectVersion?: number | null
   id?: string
   email: string
   context: $Enums.VerificationContext
@@ -349,6 +379,8 @@ export type EmailVerificationCreateInput = {
 }
 
 export type EmailVerificationUncheckedCreateInput = {
+  subjectKey?: string | null
+  subjectVersion?: number | null
   id?: string
   email: string
   context: $Enums.VerificationContext
@@ -363,6 +395,8 @@ export type EmailVerificationUncheckedCreateInput = {
 }
 
 export type EmailVerificationUpdateInput = {
+  subjectKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subjectVersion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   context?: Prisma.EnumVerificationContextFieldUpdateOperationsInput | $Enums.VerificationContext
@@ -377,6 +411,8 @@ export type EmailVerificationUpdateInput = {
 }
 
 export type EmailVerificationUncheckedUpdateInput = {
+  subjectKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subjectVersion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   context?: Prisma.EnumVerificationContextFieldUpdateOperationsInput | $Enums.VerificationContext
@@ -391,6 +427,8 @@ export type EmailVerificationUncheckedUpdateInput = {
 }
 
 export type EmailVerificationCreateManyInput = {
+  subjectKey?: string | null
+  subjectVersion?: number | null
   id?: string
   email: string
   context: $Enums.VerificationContext
@@ -405,6 +443,8 @@ export type EmailVerificationCreateManyInput = {
 }
 
 export type EmailVerificationUpdateManyMutationInput = {
+  subjectKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subjectVersion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   context?: Prisma.EnumVerificationContextFieldUpdateOperationsInput | $Enums.VerificationContext
@@ -419,6 +459,8 @@ export type EmailVerificationUpdateManyMutationInput = {
 }
 
 export type EmailVerificationUncheckedUpdateManyInput = {
+  subjectKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subjectVersion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   context?: Prisma.EnumVerificationContextFieldUpdateOperationsInput | $Enums.VerificationContext
@@ -438,6 +480,8 @@ export type EmailVerificationEmailContextCompoundUniqueInput = {
 }
 
 export type EmailVerificationCountOrderByAggregateInput = {
+  subjectKey?: Prisma.SortOrder
+  subjectVersion?: Prisma.SortOrder
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   context?: Prisma.SortOrder
@@ -452,10 +496,13 @@ export type EmailVerificationCountOrderByAggregateInput = {
 }
 
 export type EmailVerificationAvgOrderByAggregateInput = {
+  subjectVersion?: Prisma.SortOrder
   attempts?: Prisma.SortOrder
 }
 
 export type EmailVerificationMaxOrderByAggregateInput = {
+  subjectKey?: Prisma.SortOrder
+  subjectVersion?: Prisma.SortOrder
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   context?: Prisma.SortOrder
@@ -470,6 +517,8 @@ export type EmailVerificationMaxOrderByAggregateInput = {
 }
 
 export type EmailVerificationMinOrderByAggregateInput = {
+  subjectKey?: Prisma.SortOrder
+  subjectVersion?: Prisma.SortOrder
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   context?: Prisma.SortOrder
@@ -484,6 +533,7 @@ export type EmailVerificationMinOrderByAggregateInput = {
 }
 
 export type EmailVerificationSumOrderByAggregateInput = {
+  subjectVersion?: Prisma.SortOrder
   attempts?: Prisma.SortOrder
 }
 
@@ -498,6 +548,8 @@ export type EnumVerificationStatusFieldUpdateOperationsInput = {
 
 
 export type EmailVerificationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  subjectKey?: boolean
+  subjectVersion?: boolean
   id?: boolean
   email?: boolean
   context?: boolean
@@ -512,6 +564,8 @@ export type EmailVerificationSelect<ExtArgs extends runtime.Types.Extensions.Int
 }, ExtArgs["result"]["emailVerification"]>
 
 export type EmailVerificationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  subjectKey?: boolean
+  subjectVersion?: boolean
   id?: boolean
   email?: boolean
   context?: boolean
@@ -526,6 +580,8 @@ export type EmailVerificationSelectCreateManyAndReturn<ExtArgs extends runtime.T
 }, ExtArgs["result"]["emailVerification"]>
 
 export type EmailVerificationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  subjectKey?: boolean
+  subjectVersion?: boolean
   id?: boolean
   email?: boolean
   context?: boolean
@@ -540,6 +596,8 @@ export type EmailVerificationSelectUpdateManyAndReturn<ExtArgs extends runtime.T
 }, ExtArgs["result"]["emailVerification"]>
 
 export type EmailVerificationSelectScalar = {
+  subjectKey?: boolean
+  subjectVersion?: boolean
   id?: boolean
   email?: boolean
   context?: boolean
@@ -553,12 +611,14 @@ export type EmailVerificationSelectScalar = {
   updatedAt?: boolean
 }
 
-export type EmailVerificationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "context" | "hashedCode" | "expiresAt" | "status" | "attempts" | "verifiedAt" | "ipAddress" | "createdAt" | "updatedAt", ExtArgs["result"]["emailVerification"]>
+export type EmailVerificationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"subjectKey" | "subjectVersion" | "id" | "email" | "context" | "hashedCode" | "expiresAt" | "status" | "attempts" | "verifiedAt" | "ipAddress" | "createdAt" | "updatedAt", ExtArgs["result"]["emailVerification"]>
 
 export type $EmailVerificationPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "EmailVerification"
   objects: {}
   scalars: runtime.Types.Extensions.GetPayloadResult<{
+    subjectKey: string | null
+    subjectVersion: number | null
     id: string
     email: string
     context: $Enums.VerificationContext
@@ -653,8 +713,8 @@ export interface EmailVerificationDelegate<ExtArgs extends runtime.Types.Extensi
    * // Get first 10 EmailVerifications
    * const emailVerifications = await prisma.emailVerification.findMany({ take: 10 })
    * 
-   * // Only select the `id`
-   * const emailVerificationWithIdOnly = await prisma.emailVerification.findMany({ select: { id: true } })
+   * // Only select the `subjectKey`
+   * const emailVerificationWithSubjectKeyOnly = await prisma.emailVerification.findMany({ select: { subjectKey: true } })
    * 
    */
   findMany<T extends EmailVerificationFindManyArgs>(args?: Prisma.SelectSubset<T, EmailVerificationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmailVerificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
@@ -698,9 +758,9 @@ export interface EmailVerificationDelegate<ExtArgs extends runtime.Types.Extensi
    *   ]
    * })
    * 
-   * // Create many EmailVerifications and only return the `id`
-   * const emailVerificationWithIdOnly = await prisma.emailVerification.createManyAndReturn({
-   *   select: { id: true },
+   * // Create many EmailVerifications and only return the `subjectKey`
+   * const emailVerificationWithSubjectKeyOnly = await prisma.emailVerification.createManyAndReturn({
+   *   select: { subjectKey: true },
    *   data: [
    *     // ... provide data here
    *   ]
@@ -789,9 +849,9 @@ export interface EmailVerificationDelegate<ExtArgs extends runtime.Types.Extensi
    *   ]
    * })
    * 
-   * // Update zero or more EmailVerifications and only return the `id`
-   * const emailVerificationWithIdOnly = await prisma.emailVerification.updateManyAndReturn({
-   *   select: { id: true },
+   * // Update zero or more EmailVerifications and only return the `subjectKey`
+   * const emailVerificationWithSubjectKeyOnly = await prisma.emailVerification.updateManyAndReturn({
+   *   select: { subjectKey: true },
    *   where: {
    *     // ... provide filter here
    *   },
@@ -993,6 +1053,8 @@ export interface Prisma__EmailVerificationClient<T, Null = never, ExtArgs extend
  * Fields of the EmailVerification model
  */
 export interface EmailVerificationFieldRefs {
+  readonly subjectKey: Prisma.FieldRef<"EmailVerification", 'String'>
+  readonly subjectVersion: Prisma.FieldRef<"EmailVerification", 'Int'>
   readonly id: Prisma.FieldRef<"EmailVerification", 'String'>
   readonly email: Prisma.FieldRef<"EmailVerification", 'String'>
   readonly context: Prisma.FieldRef<"EmailVerification", 'VerificationContext'>

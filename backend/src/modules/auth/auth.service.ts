@@ -1,24 +1,21 @@
-import { IdentitySyncService, identityChange } from '../../common/database/identity-sync.service';
+import { AccountSecurityService } from '../../common/security/account-security.service';
 import {
   Injectable,
   UnauthorizedException,
   BadRequestException,
-  NotFoundException,
   ServiceUnavailableException,
   Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import * as bcrypt from 'bcryptjs';
-import { createHash, randomInt } from 'crypto';
+import { createHash } from 'crypto';
 import { CentralPrismaService } from '../../common/database/central-prisma.service';
 import { TenantConnectionManager } from '../../common/database/tenant-connection.manager';
 import { revealDatabaseUrl } from '../../common/database/database-credentials';
-import { ResendEmailService } from '../../common/email/resend-email.service';
 import { SubscriptionEntitlementService } from '../../common/subscriptions/subscription-entitlement.service';
 import { hasSubscriptionAccess } from '../../common/subscriptions/entitlement-policy';
 import { ENTERPRISE_CONFIG_KEY, parseEnterpriseModuleConfiguration } from '../../common/database/enterprise-config';
-import { assertStrongPassword } from '../../common/security/password-policy';
 import { ALL_PERMISSIONS, ROLE_PERMISSIONS } from '../../common/database/registry';
 import type { AppRole } from '../../common/database/roles';
 
@@ -30,9 +27,8 @@ export class AuthService {
     private readonly centralPrisma: CentralPrismaService,
     private readonly tenantManager: TenantConnectionManager,
     private readonly jwtService: JwtService,
-    private readonly email: ResendEmailService,
     private readonly entitlements: SubscriptionEntitlementService,
-    private readonly identities: IdentitySyncService,
+    private readonly security: AccountSecurityService,
   ) {}
 
   private get central(): any {
@@ -444,113 +440,10 @@ export class AuthService {
   }
 
   async requestPasswordReset(email: string) {
-    const normalizedEmail = email.trim().toLowerCase();
-    const user = await this.central.companyUser.findFirst({
-      where: { email: normalizedEmail, isActive: true },
-      include: { company: true },
-    });
-    const admin = user ? null : await this.central.centralAdmin.findFirst({
-      where: { email: normalizedEmail },
-    });
-    // Do not disclose whether an address exists.
-    if (!user && !admin) return { accepted: true };
-
-    const code = String(randomInt(100000, 1000000));
-    const hashedCode = await argon2.hash(code);
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-    await this.central.emailVerification.upsert({
-      where: {
-        email_context: {
-          email: normalizedEmail,
-          context: 'PASSWORD_RESET',
-        },
-      },
-      create: {
-        email: normalizedEmail,
-        context: 'PASSWORD_RESET',
-        hashedCode,
-        expiresAt,
-      },
-      update: {
-        hashedCode,
-        expiresAt,
-        status: 'PENDING',
-        attempts: 0,
-        verifiedAt: null,
-      },
-    });
-
-    const delivery = await this.email.send({
-      to: [normalizedEmail],
-      subject: 'MaamulPro password reset code',
-      text: `Your MaamulPro password reset code is ${code}. It expires in 15 minutes.`,
-    });
-    if (!delivery.sent) {
-      await this.central.emailVerification.updateMany({
-        where: { email: normalizedEmail, context: 'PASSWORD_RESET', status: 'PENDING' },
-        data: { status: 'FAILED' },
-      });
-      throw new ServiceUnavailableException(
-        'Password reset email could not be delivered. Please try again later.',
-      );
-    }
-
-    return { accepted: true, expiresAt };
+    return this.security.requestPasswordReset(email);
   }
 
   async resetPassword(email: string, code: string, newPassword: string) {
-    assertStrongPassword(newPassword);
-    const normalizedEmail = email.trim().toLowerCase();
-    const verification = await this.central.emailVerification.findFirst({
-      where: { email: normalizedEmail, context: 'PASSWORD_RESET', status: 'PENDING' },
-      orderBy: { createdAt: 'desc' },
-    });
-    if (!verification || verification.expiresAt < new Date()) {
-      throw new BadRequestException('Reset code is invalid or expired');
-    }
-    if (verification.attempts >= 5) {
-      await this.central.emailVerification.update({ where: { id: verification.id }, data: { status: 'FAILED' } });
-      throw new BadRequestException('Reset code is invalid or expired');
-    }
-    const valid = await argon2.verify(verification.hashedCode, code);
-    if (!valid) {
-      await this.central.emailVerification.update({
-        where: { id: verification.id },
-        data: { attempts: { increment: 1 } },
-      });
-      throw new BadRequestException('Reset code is invalid or expired');
-    }
-
-    const user = await this.central.companyUser.findFirst({
-      where: { email: normalizedEmail },
-      include: { company: true },
-    });
-    const admin = user ? null : await this.central.centralAdmin.findFirst({ where: { email: normalizedEmail } });
-    if (!user && !admin) throw new NotFoundException('Account not found');
-    const setup = user && await this.central.companyOnboarding.findUnique({ where: { companyId: user.companyId } });
-    if (setup && setup.status !== 'SUCCEEDED') throw new BadRequestException('Finish company setup before resetting its owner password.');
-    const passwordHash = await argon2.hash(newPassword);
-    await this.central.$transaction(async (tx: any) => {
-      const consumed = await tx.emailVerification.updateMany({
-        where: { id: verification.id, status: 'PENDING', expiresAt: { gt: new Date() } },
-        data: { status: 'VERIFIED', verifiedAt: new Date() },
-      });
-      if (!consumed.count) throw new BadRequestException('Reset code has already been used or expired');
-      if (user) {
-        await tx.companyUser.update({ where: { id: user.id }, data: {
-          passwordHash, passwordResetAt: new Date(), resetTokenHash: null,
-          resetTokenExpiresAt: null, resetRequestedAt: null, ...identityChange(),
-        } });
-      } else {
-        await tx.centralAdmin.update({ where: { id: admin.id }, data: {
-          passwordHash, passwordResetAt: new Date(), sessionVersion: { increment: 1 },
-        } });
-      }
-    });
-    const syncPending = user ? await this.identities.sync(user.id) : false;
-    return { reset: true, syncPending, message: syncPending
-      ? 'Password saved. Access is paused while the workspace synchronizes; please sign in again shortly.'
-      : 'Password reset successfully.' };
-
+    return this.security.resetPassword(email, code, newPassword);
   }
 }

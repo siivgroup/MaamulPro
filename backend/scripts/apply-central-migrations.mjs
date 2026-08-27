@@ -1,11 +1,15 @@
-// Applies only the two additive production migrations introduced by the
-// onboarding reliability rollout. Inspection is the default; --apply is explicit.
+// Applies the additive reliability/security migrations. Inspection is the default.
 import 'dotenv/config';
 import { readFile } from 'node:fs/promises';
 import { parseArgs } from 'node:util';
 import { Pool } from 'pg';
 
 const migrations = [
+  {
+    id: '20260829000000_email_security',
+    file: new URL('../prisma/central/migrations/20260829000000_email_security/migration.sql', import.meta.url),
+    present: async client => (await client.query("SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'email_verifications' AND column_name IN ('subject_key', 'subject_version')")).rows.length === 2,
+  },
   {
     id: '20260827000000_durable_onboarding',
     file: new URL('../prisma/central/migrations/20260827000000_durable_onboarding/migration.sql', import.meta.url),
@@ -25,7 +29,7 @@ const migrations = [
       return result.rows.length === 4;
     },
   },
-];
+].sort((a, b) => a.id.localeCompare(b.id));
 
 const { values } = parseArgs({ options: { apply: { type: 'boolean' } } });
 const suppliedUrl = process.env.CENTRAL_DATABASE_DIRECT_URL || process.env.CENTRAL_DATABASE_URL;

@@ -36,6 +36,15 @@ export class ChangePasswordDto {
   newPassword: string;
 }
 
+export class EmailVerificationDto {
+  @IsEmail() @MaxLength(254) email: string;
+  @IsString() @MaxLength(200) currentPassword: string;
+}
+
+export class ChangeEmailDto extends EmailVerificationDto {
+  @IsString() @Matches(/^\d{6}$/) verificationCode: string;
+}
+
 export class UpdateLanguageDto {
   @IsIn(['en', 'so']) language: 'en' | 'so';
 }

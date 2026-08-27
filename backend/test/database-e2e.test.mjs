@@ -56,6 +56,110 @@ const require = createRequire(import.meta.url);
 const centralTestUrl = process.env.TEST_CENTRAL_DATABASE_URL;
 const onboardingEnabled = Boolean(centralTestUrl && process.env.E2E_DATABASES_ARE_DISPOSABLE === 'true');
 
+test('email challenges serialize across processes, bind accounts, and preserve saved identity changes', {skip:!onboardingEnabled}, async t => {
+  process.env.DATABASE_PROVIDER='postgres';
+  process.env.CENTRAL_DATABASE_URL=centralTestUrl; process.env.CENTRAL_DATABASE_DIRECT_URL=centralTestUrl;
+  const {CentralPrismaService}=require('../dist/common/database/central-prisma.service.js');
+  const {AccountSecurityService}=require('../dist/common/security/account-security.service.js');
+  const {IdentitySyncService}=require('../dist/common/database/identity-sync.service.js');
+  const {TenantConnectionManager}=require('../dist/common/database/tenant-connection.manager.js');
+  const {SettingsService}=require('../dist/modules/settings/settings.service.js');
+  const argon2=require('argon2');
+  const central=new CentralPrismaService(),manager=new TenantConnectionManager();
+  const notices=[]; let delivery=true;
+  const mail={send:async input=>{notices.push(input);return {sent:delivery,id:'fake-provider'};}};
+  const identities=new IdentitySyncService(central,{getTenantDb:()=>{throw Error('injected outage');}});
+  const security=new AccountSecurityService(central,mail,identities);
+  const email=()=>randomUUID()+'@example.test';
+  const verification=address=>central.emailVerification.findUnique({where:{email_context:{email:address,context:'COMPANY_ONBOARDING'}}});
+  const worker=(action,address,code='')=>new Promise((resolve,reject)=>{
+    const child=spawn(process.execPath,['test/email-worker.mjs',action,address,code],{cwd:new URL('..',import.meta.url),env:process.env});
+    let output=''; child.stdout.on('data',chunk=>output+=chunk);child.stderr.on('data',chunk=>output+=chunk);
+    child.on('error',reject); const timeout=setTimeout(()=>{child.kill();reject(Error('email worker timeout'));},30000);
+    child.on('exit',status=>{clearTimeout(timeout);try{if(status!==0)throw Error(output);resolve(JSON.parse(output));}catch(error){reject(error);}});
+  });
+  try {
+    await t.test('the additive migration expires unbound legacy credential codes but preserves onboarding',async()=>{
+      const legacy=email(),onboarding=email();
+      await central.emailVerification.create({data:{email:legacy,context:'PASSWORD_RESET',hashedCode:'legacy-hash',expiresAt:new Date(Date.now()+600000)}});
+      await central.emailVerification.create({data:{email:onboarding,context:'COMPANY_ONBOARDING',hashedCode:'legacy-hash',expiresAt:new Date(Date.now()+600000)}});
+      const connection=new pg.Client({connectionString:centralTestUrl});await connection.connect();
+      try { await connection.query(require('node:fs').readFileSync(new URL('../prisma/central/migrations/20260829000000_email_security/migration.sql',import.meta.url),'utf8')); }
+      finally {await connection.end();}
+      assert.equal((await central.emailVerification.findUnique({where:{email_context:{email:legacy,context:'PASSWORD_RESET'}}})).status,'EXPIRED');
+      assert.equal((await verification(onboarding)).status,'PENDING');
+    });
+    await t.test('two processes cannot issue twice inside the cooldown',async()=>{
+      const address=email(); const results=await Promise.all([worker('issue',address),worker('issue',address)]);
+      assert.equal(results.filter(r=>r.ok).length,1);assert.equal(results.find(r=>!r.ok).status,400);
+      assert.equal(await central.emailVerification.count({where:{email:address}}),1);
+    });
+    await t.test('attempt exhaustion persists under concurrency and callbacks roll back with consumption',async()=>{
+      const address=email(),challenge=await security.issue(address,'COMPANY_ONBOARDING');
+      const results=await Promise.allSettled(Array.from({length:8},()=>security.consume(address,'COMPANY_ONBOARDING','000000',undefined,async()=>{throw Error('must not execute');})));
+      assert.ok(results.every(result=>result.status==='rejected'));
+      assert.equal((await verification(address)).attempts,5);assert.equal((await verification(address)).status,'FAILED');
+      await assert.rejects(security.consume(address,'COMPANY_ONBOARDING',challenge.code,undefined,async()=>true));
+      const rollbackEmail=email(),valid=await security.issue(rollbackEmail,'COMPANY_ONBOARDING');
+      await assert.rejects(security.consume(rollbackEmail,'COMPANY_ONBOARDING',valid.code,undefined,async()=>{throw Error('commit failed');}));
+      assert.equal((await verification(rollbackEmail)).status,'PENDING');
+      assert.equal(await security.consume(rollbackEmail,'COMPANY_ONBOARDING',valid.code,undefined,async()=>true),true);
+      await assert.rejects(security.consume(rollbackEmail,'COMPANY_ONBOARDING',valid.code,undefined,async()=>true));
+    });
+    await t.test('old send failures cannot invalidate a replacement; expired and superseded codes fail',async()=>{
+      const address=email(),old=await security.issue(address,'COMPANY_ONBOARDING');
+      await central.emailVerification.update({where:{email_context:{email:address,context:'COMPANY_ONBOARDING'}},data:{expiresAt:new Date(Date.now()+539000)}});
+      const newer=await security.issue(address,'COMPANY_ONBOARDING');
+      delivery=false;await assert.rejects(security.deliverCode(address,'COMPANY_ONBOARDING',old));delivery=true;
+      const row=await verification(address);assert.equal(row.status,'PENDING');assert.equal(row.hashedCode,newer.hashedCode);
+      if(old.code!==newer.code) await assert.rejects(security.consume(address,'COMPANY_ONBOARDING',old.code,undefined,async()=>true));
+      await central.emailVerification.update({where:{id:row.id},data:{expiresAt:new Date(Date.now()-1)}});
+      await assert.rejects(security.consume(address,'COMPANY_ONBOARDING',newer.code,undefined,async()=>true));
+    });
+    await t.test('concurrent reset consumption changes one password once and invalidates old sessions',async()=>{
+      const address=email();const account=await central.centralAdmin.create({data:{email:address,name:'Test Admin',passwordHash:await require('bcryptjs').hash('Before123',4)}});
+      const challenge=await security.issue(address,'PASSWORD_RESET',{key:`admin:${account.id}`,version:account.sessionVersion});
+      const other=await central.centralAdmin.create({data:{email:email(),name:'Other Admin',passwordHash:account.passwordHash}});
+      await assert.rejects(security.consume(address,'PASSWORD_RESET',challenge.code,{key:`admin:${other.id}`,version:other.sessionVersion},async()=>{throw Error('must not execute');}),error=>error.getStatus()===400);
+      await assert.rejects(security.consume(address,'PASSWORD_RESET',challenge.code,{key:`admin:${account.id}`,version:account.sessionVersion+1},async()=>true));
+      const results=await Promise.all([worker('reset',address,challenge.code),worker('reset',address,challenge.code)]);
+      assert.equal(results.filter(r=>r.ok).length,1);
+      const saved=await central.centralAdmin.findUnique({where:{id:account.id}});assert.equal(saved.sessionVersion,account.sessionVersion+1);assert.ok(await argon2.verify(saved.passwordHash,'Recovered123'));
+      delivery=false;
+      assert.deepEqual(await security.requestPasswordReset(address),await security.requestPasswordReset(email()));
+      delivery=true;
+    });
+    await t.test('tenant settings verifies the new address, updates the owner contact and recovers tenant outages',async()=>{
+      const address=email(),newEmail=email(),tenant=manager.getTenantDb(urlA);
+      const company=await central.company.create({data:{name:'Email test',adminEmail:address,adminName:'Owner',subdomain:'email-'+randomUUID().slice(0,8),dbUrl:urlA}});
+      const passwordHash=await argon2.hash('Current123');
+      const user=await central.companyUser.create({data:{companyId:company.id,email:address,passwordHash,role:'COMPANY_OWNER'}});
+      await tenant.user.create({data:{id:user.id,email:address,name:'Owner',passwordHash,role:'COMPANY_OWNER'}});
+      const settings=new SettingsService(central,null,security);
+      await assert.rejects(settings.updateProfile(tenant,user.id,{email:newEmail}),/verification/);
+      const conflict=await central.centralAdmin.create({data:{email:email(),name:'Other',passwordHash}});
+      await assert.rejects(settings.sendEmailVerification(user.id,conflict.email,'Current123'),error=>error.getStatus()===409);
+      await settings.sendEmailVerification(user.id,newEmail,'Current123');
+      const challenge=notices.at(-1).content;
+      await assert.rejects(settings.changeEmail(user.id,newEmail,'wrong',challenge.code));
+      const result=await settings.changeEmail(user.id,newEmail,'Current123',challenge.code);
+      assert.equal(result.updated,true);assert.equal(result.syncPending,true);
+      assert.equal((await central.company.findUnique({where:{id:company.id}})).adminEmail,newEmail);
+      assert.equal((await central.companyUser.findUnique({where:{id:user.id}})).sessionVersion,1);
+      assert.equal((await tenant.user.findUnique({where:{id:user.id}})).email,address);
+      assert.deepEqual(notices.slice(-2).map(input=>input.to[0]),[address,newEmail]);
+      const restarted=new IdentitySyncService(central,manager);assert.equal(await restarted.sync(user.id),false);
+      assert.equal((await tenant.user.findUnique({where:{id:user.id}})).email,newEmail);
+      const reset=await security.issue(newEmail,'PASSWORD_RESET',{key:`user:${user.id}`,version:1});
+      const changed=await settings.changePassword(tenant,user.id,{currentPassword:'Current123',newPassword:'Next123'});
+      assert.equal(changed.syncPending,true);
+      await assert.rejects(security.resetPassword(newEmail,reset.code,'Stale123'));
+      assert.equal(await restarted.sync(user.id),false);
+      assert.ok(await argon2.verify((await tenant.user.findUnique({where:{id:user.id}})).passwordHash,'Next123'));
+    });
+  } finally {await manager.onModuleDestroy();await central.onModuleDestroy();}
+});
+
 test('saved onboarding survives two worker processes and creates exactly one owner and invoice', { skip: !onboardingEnabled }, async () => {
   process.env.DATABASE_PROVIDER = 'postgres';
   process.env.CENTRAL_DATABASE_URL = centralTestUrl;
@@ -163,7 +267,7 @@ test('two PostgreSQL approval processes create one invoice and direct renewal hi
   try {
     const company=await central.company.create({data:{name:'Approval test',subdomain:'approval-'+randomUUID(),adminEmail:randomUUID()+'@example.test',adminName:'Test',dbUrl:urlA}});
     const data={requestId:randomUUID(),amount:42,termDurationMonths:1};
-    const code=`const {CentralPrismaService}=require('./dist/common/database/central-prisma.service.js');const {SuperAdminService}=require('./dist/modules/superadmin/superadmin.service.js');const c=new CentralPrismaService();const s=new SuperAdminService(c,null,null,null,null,null,{assertComplete:async()=>{}});s.getCompanyById=async()=>null;s.configureCompanySubscription(${JSON.stringify(company.id)},${JSON.stringify(data)}).catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>c.onModuleDestroy());`;
+    const code=`const {CentralPrismaService}=require('./dist/common/database/central-prisma.service.js');const {SuperAdminService}=require('./dist/modules/superadmin/superadmin.service.js');const c=new CentralPrismaService();const s=new SuperAdminService(c,null,null,null,null,{assertComplete:async()=>{}});s.getCompanyById=async()=>null;s.configureCompanySubscription(${JSON.stringify(company.id)},${JSON.stringify(data)}).catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>c.onModuleDestroy());`;
     const child=()=>new Promise((resolve,reject)=>{const proc=spawn(process.execPath,['-e',code],{cwd:new URL('..',import.meta.url),env:process.env});let output='';proc.stdout.on('data',c=>output+=c);proc.stderr.on('data',c=>output+=c);proc.on('error',reject);proc.on('exit',status=>status===0?resolve():reject(Error(output)));});
     await Promise.all([child(),child()]);await child();
     assert.equal(await central.invoice.count({where:{companyId:company.id}}),1);
@@ -188,7 +292,7 @@ test('persisted identity changes recover with a fresh worker and old tenant writ
     const staff=await tenant.staff.create({data:{firstName:'Test',lastName:'User',userId:user.id}});
     await central.companyUser.create({data:{id:user.id,companyId:company.id,email,passwordHash:'old',role:'STAFF'}});
     const unavailable=new IdentitySyncService(central,{getTenantDb:()=>{throw Error('injected tenant outage');}});
-    const staffService=new StaffService(central,null,unavailable);
+    const staffService=new StaffService(central,null,unavailable,{notifyChange:async()=>{}});
     assert.equal((await staffService.resetPassword(tenant,staff.id,'NewPass123!')).syncPending,true);
     const saved=await central.companyUser.findUnique({where:{id:user.id}});
     assert.equal(saved.sessionVersion,1);assert.equal(saved.identitySyncPending,true);

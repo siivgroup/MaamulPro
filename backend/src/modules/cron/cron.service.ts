@@ -5,6 +5,7 @@ import { TenantConnectionManager } from '../../common/database/tenant-connection
 import { ReportsService } from '../reports/reports.service';
 import { revealDatabaseUrl } from '../../common/database/database-credentials';
 import { ResendEmailService } from '../../common/email/resend-email.service';
+import { emailCompany } from '../../common/email/email-template';
 import { SubscriptionLifecycleService } from '../../common/subscriptions/subscription-lifecycle.service';
 import { SubscriptionEntitlementService } from '../../common/subscriptions/subscription-entitlement.service';
 import { syncPermissionsToDb } from '../../common/database/rbac-sync';
@@ -141,7 +142,7 @@ export class ScheduledJobsService implements OnApplicationBootstrap {
     try {
       const companies = await this.central.company.findMany({
         where: { status: 'ACTIVE', accessGranted: true, dbUrl: { not: '' }, OR: [{ onboarding: null }, { onboarding: { status: 'SUCCEEDED' } }] },
-        select: { id: true, name: true, adminEmail: true, dbUrl: true, entitlements: true },
+        select: { id: true, name: true, subdomain: true, adminEmail: true, dbUrl: true, entitlements: true },
       });
       for (const company of companies) {
         if (!this.subscriptionEntitlements.fromCompany(company).features.advancedReports) continue;
@@ -167,9 +168,8 @@ export class ScheduledJobsService implements OnApplicationBootstrap {
               if (!recipients.length) throw new Error('No report recipients are configured');
               const delivery = await this.email.send({
                 to: recipients,
-                subject: `${company.name}: ${result.report.title}`,
-                text: `${result.report.title} is attached as a CSV file.`,
-                html: `<h2>${this.escapeHtml(result.report.title)}</h2><p>Your scheduled report for ${this.escapeHtml(company.name)} is attached.</p><p>Generated ${new Date(result.generatedAt).toISOString()}</p>`,
+                content: { template: 'report', company: await emailCompany(db, company), title: result.report.title, generatedAt: new Date(result.generatedAt),
+                  period: [filters.startDate, filters.endDate].filter(Boolean).join(' to ') || undefined },
                 attachments: [{
                   filename: `${schedule.reportId}-${now.toISOString().slice(0, 10)}.csv`,
                   content: csv,
@@ -222,7 +222,7 @@ export class ScheduledJobsService implements OnApplicationBootstrap {
     if (!this.email.isConfigured()) return;
     const companies = await this.central.company.findMany({
       where: { status: 'ACTIVE', accessGranted: true, dbUrl: { not: '' }, OR: [{ onboarding: null }, { onboarding: { status: 'SUCCEEDED' } }] },
-      select: { id: true, name: true, adminEmail: true, dbUrl: true },
+      select: { id: true, name: true, subdomain: true, adminEmail: true, dbUrl: true },
     });
     for (const company of companies) {
       try {
@@ -230,12 +230,9 @@ export class ScheduledJobsService implements OnApplicationBootstrap {
         await this.operationalAlerts.reconcileTenant(db);
         const alerts = await this.operationalAlerts.getDigestAlerts(db);
         if (!alerts.length || !company.adminEmail) continue;
-        const critical = alerts.filter((alert: any) => alert.severity === 'CRITICAL').length;
-        const lines = alerts.slice(0, 50).map((alert: any) => `- [${alert.severity}] ${alert.title}${alert.details ? `: ${alert.details}` : ''}`);
         const delivery = await this.email.send({
           to: [company.adminEmail],
-          subject: `${company.name}: ${alerts.length} active operational alert${alerts.length === 1 ? '' : 's'}`,
-          text: `${critical} critical alert${critical === 1 ? '' : 's'}\n\n${lines.join('\n')}`,
+          content: { template: 'digest', company: await emailCompany(db, company), alerts },
         });
         if (delivery.sent) await db.operationalAlert.updateMany({
           where: { id: { in: alerts.map((alert: any) => alert.id) } },
@@ -291,13 +288,4 @@ export class ScheduledJobsService implements OnApplicationBootstrap {
     return next;
   }
 
-  private escapeHtml(value: string) {
-    return value.replace(/[&<>"']/g, (character) => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#039;',
-    })[character] || character);
-  }
 }

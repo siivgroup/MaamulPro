@@ -250,6 +250,8 @@ enum VerificationContext {
 }
 
 model EmailVerification {
+  subjectKey           String?              @map("subject_key")
+  subjectVersion       Int?                 @map("subject_version")
   id                   String               @id @default(cuid())
   email                String               @map("email")
   context              VerificationContext   @map("context")

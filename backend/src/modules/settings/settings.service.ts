@@ -1,11 +1,8 @@
 import {
   BadRequestException,
-  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import * as argon2 from 'argon2';
-import * as bcrypt from 'bcryptjs';
 import { CentralPrismaService } from '../../common/database/central-prisma.service';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import {
@@ -15,7 +12,7 @@ import {
   UpdateProfileDto,
 } from './dto/settings.dto';
 import { OperationalAlertsService } from './operational-alerts.service';
-import { assertStrongPassword } from '../../common/security/password-policy';
+import { AccountSecurityService } from '../../common/security/account-security.service';
 
 const CONFIG_KEYS: Record<keyof UpdateCompanySettingsDto, string> = {
   companyName: 'company_name',
@@ -33,6 +30,7 @@ export class SettingsService {
   constructor(
     private readonly centralPrisma: CentralPrismaService,
     private readonly operationalAlerts: OperationalAlertsService,
+    private readonly security: AccountSecurityService,
   ) {}
 
   async getSettings(tenantDb: any, tenant: any) {
@@ -107,60 +105,26 @@ export class SettingsService {
 
   async updateProfile(tenantDb: any, userId: string, data: UpdateProfileDto) {
     const current = await this.getProfile(tenantDb, userId);
-    const email = data.email?.trim().toLowerCase();
-    if (email && email !== current.email) {
-      const duplicate = await (this.centralPrisma as any).companyUser.findUnique({
-        where: { email },
-      });
-      if (duplicate) throw new ConflictException('Email address is already in use');
-      await (this.centralPrisma as any).companyUser.update({
-        where: { id: userId },
-        data: { email },
-      });
+    if (data.email && data.email.trim().toLowerCase() !== current.email.toLowerCase()) {
+      throw new BadRequestException('Use email verification to change your login email.');
     }
-    try {
-      return await tenantDb.user.update({
-        where: { id: userId },
-        data: {
-          name: data.name?.trim(),
-          email,
-          avatarUrl: data.avatarUrl,
-        },
-        select: { id: true, name: true, email: true, avatarUrl: true, language: true },
-      });
-    } catch (error) {
-      if (email && email !== current.email) {
-        await (this.centralPrisma as any).companyUser.update({
-          where: { id: userId },
-          data: { email: current.email },
-        });
-      }
-      throw error;
-    }
+    return tenantDb.user.update({
+      where: { id: userId },
+      data: { name: data.name?.trim(), avatarUrl: data.avatarUrl },
+      select: { id: true, name: true, email: true, avatarUrl: true, language: true },
+    });
   }
 
-  async changePassword(tenantDb: any, userId: string, data: ChangePasswordDto) {
-    assertStrongPassword(data.newPassword);
-    const centralUser = await (this.centralPrisma as any).companyUser.findUnique({
-      where: { id: userId },
-    });
-    if (!centralUser) throw new NotFoundException('User account not found');
-    const valid = centralUser.passwordHash.startsWith('$argon2')
-      ? await argon2.verify(centralUser.passwordHash, data.currentPassword)
-      : await bcrypt.compare(data.currentPassword, centralUser.passwordHash);
-    if (!valid) throw new BadRequestException('Current password is incorrect');
+  async changePassword(_tenantDb: any, userId: string, data: ChangePasswordDto) {
+    return this.security.changePassword('user', userId, data.currentPassword, data.newPassword);
+  }
 
-    const passwordHash = await argon2.hash(data.newPassword);
-    await (this.centralPrisma as any).companyUser.update({
-      where: { id: userId },
-      data: {
-        passwordHash,
-        passwordResetAt: new Date(),
-        sessionVersion: { increment: 1 },
-      },
-    });
-    await tenantDb.user.update({ where: { id: userId }, data: { passwordHash } });
-    return { changed: true };
+  sendEmailVerification(userId: string, email: string, currentPassword: string) {
+    return this.security.sendEmailChange('user', userId, email, currentPassword);
+  }
+
+  changeEmail(userId: string, email: string, currentPassword: string, verificationCode: string) {
+    return this.security.changeEmail('user', userId, email, currentPassword, verificationCode);
   }
 
   updateLanguage(tenantDb: any, userId: string, data: UpdateLanguageDto) {

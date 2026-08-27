@@ -276,7 +276,7 @@ test('failed provider deletion retains the company and deletion journal for retr
   let deleted=false;
   const db={company:{findUnique:async()=>company,update:async({data})=>Object.assign(company,data),delete:async()=>{deleted=true;}},companyOnboarding:{update:async({data})=>Object.assign(company.onboarding,data)}};
   db.$transaction=async fn=>fn(db);
-  const service=new SuperAdminService(db,{disconnectTenant:async()=>{}},{deleteCreatedDatabase:async()=>{throw new Error('provider unavailable');}},null,null,null,null);
+  const service=new SuperAdminService(db,{disconnectTenant:async()=>{}},{deleteCreatedDatabase:async()=>{throw new Error('provider unavailable');}},null,null,null);
   await assert.rejects(service.deleteCompany('company'),/provider unavailable/);
   assert.equal(deleted,false);assert.equal(company.onboarding.status,'DELETING');assert.equal(company.accessGranted,false);
 });
@@ -342,7 +342,7 @@ function approvalFixture() {
   };
   let queue=Promise.resolve();
   central.$transaction=fn=>{const run=queue.then(()=>fn(central));queue=run.catch(()=>{});return run;};
-  const service=new SuperAdminService(central,null,null,null,null,null,{assertComplete:async()=>{}});
+  const service=new SuperAdminService(central,null,null,null,null,{assertComplete:async()=>{}});
   service.getCompanyById=async()=>({...company});
   return {service,company,invoices,ledgers};
 }
@@ -382,11 +382,13 @@ test('owner password generation revokes sessions in the same durable credential 
   let change;
   const owner={id:'owner',email:'owner@example.test',role:'COMPANY_OWNER'};
   const db={company:{findUnique:async()=>({id:'company',adminEmail:owner.email,users:[owner]})},companyUser:{update:async({data})=>{change=data;}}};
-  const service=new SuperAdminService(db,null,null,null,null,null,{assertComplete:async()=>{}},{sync:async()=>true});
+  let notified=false;
+  const service=new SuperAdminService(db,null,null,null,null,{assertComplete:async()=>{}},{sync:async()=>true},{notifyChange:async(account,change,administrator)=>{assert.ok(change);assert.equal(account.id,'owner');assert.equal(administrator,true);notified=true;}});
   const result=await service.generateCompanyOwnerTemporaryPassword('company');
   assert.deepEqual(change.sessionVersion,{increment:1});assert.equal(change.identitySyncPending,true);
   assert.equal(result.syncPending,true);assert.ok(await require('argon2').verify(change.passwordHash,result.password));
   assert.ok(!JSON.stringify(change).includes(result.password));
+  assert.equal(notified,true);
 });
 
 test('JWT authentication rejects revoked versions and pauses pending account synchronization',async()=>{

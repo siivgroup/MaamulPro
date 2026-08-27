@@ -1,4 +1,5 @@
 import { IdentitySyncService, identityChange } from '../../common/database/identity-sync.service';
+import { AccountSecurityService } from '../../common/security/account-security.service';
 import {
   BadRequestException,
   ConflictException,
@@ -24,14 +25,12 @@ import * as argon2 from 'argon2';
 import { SubscriptionLifecycleService } from '../../common/subscriptions/subscription-lifecycle.service';
 import { SubscriptionEntitlementService } from '../../common/subscriptions/subscription-entitlement.service';
 import { syncPermissionsToDb } from '../../common/database/rbac-sync';
-import { ResendEmailService } from '../../common/email/resend-email.service';
-import { createHash, randomBytes, randomInt } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 import {
   EnterpriseModuleConfiguration,
   ENTERPRISE_CONFIG_KEY,
   parseEnterpriseModuleConfiguration,
 } from '../../common/database/enterprise-config';
-import { assertStrongPassword } from '../../common/security/password-policy';
 import { addBillingMonths, hasSubscriptionAccess } from '../../common/subscriptions/entitlement-policy';
 
 const tenantUrl = (subdomain: string) => {
@@ -53,9 +52,9 @@ export class SuperAdminService {
     private readonly neonManagement: NeonManagementService,
     private readonly subscriptions: SubscriptionLifecycleService,
     private readonly entitlements: SubscriptionEntitlementService,
-    private readonly email: ResendEmailService,
     private readonly onboarding: CompanyOnboardingService,
     private readonly identities: IdentitySyncService,
+    private readonly security: AccountSecurityService,
   ) {}
 
   private get central(): any {
@@ -72,81 +71,15 @@ export class SuperAdminService {
   }
 
   async sendAccountEmailVerification(adminId: string, email: string, currentPassword: string) {
-    const normalized = String(email || '').trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) throw new BadRequestException('A valid email address is required');
-    const account = await this.central.centralAdmin.findUnique({ where: { id: adminId } });
-    if (!account || !(await argon2.verify(account.passwordHash, currentPassword || ''))) {
-      throw new BadRequestException('Current password is incorrect');
-    }
-    const duplicate = await this.central.centralAdmin.findFirst({ where: { email: normalized, NOT: { id: adminId } } });
-    if (duplicate) throw new ConflictException('Email address is already in use');
-    const code = String(randomInt(100000, 1000000));
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
-    await this.central.emailVerification.upsert({
-      where: { email_context: { email: normalized, context: 'EMAIL_CHANGE' } },
-      create: { email: normalized, context: 'EMAIL_CHANGE', hashedCode: await argon2.hash(code), expiresAt },
-      update: { hashedCode: await argon2.hash(code), expiresAt, status: 'PENDING', attempts: 0, verifiedAt: null },
-    });
-    const delivery = await this.email.send({
-      to: [normalized],
-      subject: 'MaamulPro administrator email verification code',
-      text: `Your MaamulPro administrator email verification code is ${code}. It expires in 10 minutes.`,
-    });
-    if (!delivery.sent) {
-      await this.central.emailVerification.updateMany({
-        where: { email: normalized, context: 'EMAIL_CHANGE', status: 'PENDING' },
-        data: { status: 'FAILED' },
-      });
-      throw new ServiceUnavailableException(
-        'Verification email could not be delivered. Please try again later.',
-      );
-    }
-    return { sent: true, expiresAt };
+    return this.security.sendEmailChange('admin', adminId, email, currentPassword);
   }
 
   async updateAccountEmail(adminId: string, email: string, currentPassword: string, verificationCode: string) {
-    const normalized = String(email || '').trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) throw new BadRequestException('A valid email address is required');
-    const account = await this.central.centralAdmin.findUnique({ where: { id: adminId } });
-    if (!account || !(await argon2.verify(account.passwordHash, currentPassword || ''))) {
-      throw new BadRequestException('Current password is incorrect');
-    }
-    const duplicate = await this.central.centralAdmin.findFirst({ where: { email: normalized, NOT: { id: adminId } } });
-    if (duplicate) throw new ConflictException('Email address is already in use');
-    const verification = await this.central.emailVerification.findUnique({
-      where: { email_context: { email: normalized, context: 'EMAIL_CHANGE' } },
-    });
-    if (!verification || verification.status !== 'PENDING' || verification.expiresAt < new Date()) {
-      throw new BadRequestException('Email verification code is invalid or expired');
-    }
-    if (!(await argon2.verify(verification.hashedCode, String(verificationCode || '')))) {
-      await this.central.emailVerification.update({ where: { id: verification.id }, data: { attempts: { increment: 1 } } });
-      throw new BadRequestException('Email verification code is incorrect');
-    }
-    const updated = await this.central.$transaction(async (tx: any) => {
-      const row = await tx.centralAdmin.update({ where: { id: adminId }, data: { email: normalized }, select: { id: true, email: true, name: true } });
-      await tx.emailVerification.update({ where: { id: verification.id }, data: { status: 'VERIFIED', verifiedAt: new Date() } });
-      return row;
-    });
-    return updated;
+    return this.security.changeEmail('admin', adminId, email, currentPassword, verificationCode);
   }
 
   async updateAccountPassword(adminId: string, currentPassword: string, newPassword: string) {
-    assertStrongPassword(newPassword);
-    const account = await this.central.centralAdmin.findUnique({ where: { id: adminId } });
-    if (!account || !(await argon2.verify(account.passwordHash, currentPassword || ''))) {
-      throw new BadRequestException('Current password is incorrect');
-    }
-    if (await argon2.verify(account.passwordHash, newPassword)) throw new BadRequestException('New password must be different');
-    await this.central.centralAdmin.update({
-      where: { id: adminId },
-      data: {
-        passwordHash: await argon2.hash(newPassword),
-        passwordResetAt: new Date(),
-        sessionVersion: { increment: 1 },
-      },
-    });
-    return { updated: true };
+    return this.security.changePassword('admin', adminId, currentPassword, newPassword);
   }
 
   // -----------------------------------------------------------
@@ -198,75 +131,12 @@ export class SuperAdminService {
     const availability = await this.checkCompanyEmailAvailability(email);
     if (!availability.available) throw new ConflictException(availability.error);
     const normalized = email.trim().toLowerCase();
-    const existing = await this.central.emailVerification.findUnique({
-      where: { email_context: { email: normalized, context: 'COMPANY_ONBOARDING' } },
-    });
-    if (existing && Date.now() - new Date(existing.updatedAt).getTime() < 60_000) {
-      const cooldownRemaining = Math.ceil((60_000 - (Date.now() - new Date(existing.updatedAt).getTime())) / 1000);
-      throw new BadRequestException(`Please wait ${cooldownRemaining} seconds before requesting another code`);
-    }
-    const code = String(randomInt(100000, 1000000));
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
-    await this.central.emailVerification.upsert({
-      where: { email_context: { email: normalized, context: 'COMPANY_ONBOARDING' } },
-      create: {
-        email: normalized,
-        context: 'COMPANY_ONBOARDING',
-        hashedCode: await argon2.hash(code),
-        expiresAt,
-      },
-      update: {
-        hashedCode: await argon2.hash(code),
-        expiresAt,
-        status: 'PENDING',
-        attempts: 0,
-        verifiedAt: null,
-      },
-    });
-    const delivery = await this.email.send({
-      to: [normalized],
-      subject: 'MaamulPro company onboarding verification code',
-      text: `Your MaamulPro company onboarding verification code is ${code}. It expires in 10 minutes.`,
-    });
-    if (!delivery.sent) {
-      await this.central.emailVerification.updateMany({
-        where: { email: normalized, context: 'COMPANY_ONBOARDING', status: 'PENDING' },
-        data: { status: 'FAILED' },
-      });
-      throw new ServiceUnavailableException(
-        'Verification email could not be delivered. Please try again later.',
-      );
-    }
-    return { sent: true, expiresAt, cooldownSeconds: 60 };
+    const challenge = await this.security.issue(normalized, 'COMPANY_ONBOARDING');
+    return this.security.deliverCode(normalized, 'COMPANY_ONBOARDING', challenge);
   }
 
   async verifyCompanyOnboardingEmail(email: string, code: string) {
-    const normalized = String(email || '').trim().toLowerCase();
-    if (!/^\d{6}$/.test(String(code || ''))) {
-      throw new BadRequestException('Verification code must contain 6 digits');
-    }
-    const verification = await this.central.emailVerification.findUnique({
-      where: { email_context: { email: normalized, context: 'COMPANY_ONBOARDING' } },
-    });
-    if (!verification || verification.status !== 'PENDING' || verification.expiresAt < new Date()) {
-      throw new BadRequestException('Verification code is invalid or expired');
-    }
-    if (verification.attempts >= 5) {
-      await this.central.emailVerification.update({ where: { id: verification.id }, data: { status: 'FAILED' } });
-      throw new BadRequestException('Too many verification attempts; request a new code');
-    }
-    if (!(await argon2.verify(verification.hashedCode, code))) {
-      await this.central.emailVerification.update({
-        where: { id: verification.id },
-        data: { attempts: { increment: 1 } },
-      });
-      throw new BadRequestException('Incorrect verification code');
-    }
-    await this.central.emailVerification.update({
-      where: { id: verification.id },
-      data: { status: 'VERIFIED', verifiedAt: new Date() },
-    });
-    return { verified: true };
+    return this.security.consume(email, 'COMPANY_ONBOARDING', code, undefined, async () => ({ verified: true }));
   }
 
   async getAllCompanies(query?: { search?: string; status?: string; page?: number; pageSize?: number }) {
@@ -466,6 +336,7 @@ export class SuperAdminService {
       },
     });
     const syncPending = await this.identities.sync(owner.id);
+    await this.security.notifyChange({ ...owner, company }, 'password', true);
     return { password: temporaryPassword, adminEmail: owner.email, passwordResetAt, syncPending };
   }
 
@@ -818,6 +689,7 @@ export class SuperAdminService {
     };
 
     const updated = await this.central.$transaction(async (tx: any) => {
+      if (adminEmail && current.users[0]) await this.security.assertAvailable(tx, adminEmail, 'user', current.users[0].id);
       if ((adminEmail || data.adminName !== undefined) && current.users[0]) await tx.companyUser.update({
         where: { id: current.users[0].id }, data: { ...(adminEmail ? { email: adminEmail } : {}), ...identityChange() },
       });
@@ -825,6 +697,9 @@ export class SuperAdminService {
     });
     const syncPending = current.users[0] && (adminEmail || data.adminName !== undefined)
       ? await this.identities.sync(current.users[0].id) : false;
+    if (adminEmail && adminEmail !== current.adminEmail && current.users[0]) {
+      await this.security.notifyChange({ ...current.users[0], company: current }, 'email', true, adminEmail);
+    }
     let synchronizationWarning: string | undefined = syncPending
       ? 'Owner profile saved. Access is paused while the workspace identity synchronizes automatically.' : undefined;
     try {

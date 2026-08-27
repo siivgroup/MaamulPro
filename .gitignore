@@ -10,3 +10,4 @@
 /docs/*
 !/docs/NEON-SETUP.md
 !/docs/CUTOVER-RUNBOOK.md
+!/docs/EMAIL-SETUP.md

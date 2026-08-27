@@ -1346,6 +1346,8 @@ export type ImpersonationGrantScalarFieldEnum = (typeof ImpersonationGrantScalar
 
 
 export const EmailVerificationScalarFieldEnum = {
+  subjectKey: 'subjectKey',
+  subjectVersion: 'subjectVersion',
   id: 'id',
   email: 'email',
   context: 'context',

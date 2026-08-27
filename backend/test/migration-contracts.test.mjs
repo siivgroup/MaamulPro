@@ -149,7 +149,7 @@ test('production integrations are wired into the Nest cutover', async () => {
   assert.match(appModule, /UploadsModule/);
   assert.match(appModule, /EmailModule/);
   assert.match(cron, /processDueReportSchedules/);
-  assert.match(auth, /ResendEmailService/);
+  assert.match(auth, /AccountSecurityService/);
   assert.match(cron, /ResendEmailService/);
   assert.match(email, /resend\.emails\.send/);
   assert.match(provisioning, /applyCompanySchema/);

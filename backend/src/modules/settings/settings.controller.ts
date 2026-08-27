@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequirePermissions } from '../../common/decorators/permissions.decorator';
 import { RequireRoles } from '../../common/decorators/roles.decorator';
@@ -7,6 +7,8 @@ import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { TenantAccessGuard } from '../../common/guards/tenant-access.guard';
 import {
   ChangePasswordDto,
+  EmailVerificationDto,
+  ChangeEmailDto,
   UpdateCompanySettingsDto,
   UpdateLanguageDto,
   UpdateProfileDto,
@@ -48,10 +50,27 @@ export class SettingsController {
   @Patch('password')
   changePassword(
     @GetTenantDb() db: any,
-    @CurrentUser('id') userId: string,
+    @CurrentUser() user: any,
     @Body() body: ChangePasswordDto,
   ) {
-    return this.settings.changePassword(db, userId, body);
+    this.assertCredentialChange(user);
+    return this.settings.changePassword(db, user.id, body);
+  }
+
+  @Post('email/verification')
+  sendEmailVerification(@CurrentUser() user: any, @Body() body: EmailVerificationDto) {
+    this.assertCredentialChange(user);
+    return this.settings.sendEmailVerification(user.id, body.email, body.currentPassword);
+  }
+
+  @Patch('email')
+  changeEmail(@CurrentUser() user: any, @Body() body: ChangeEmailDto) {
+    this.assertCredentialChange(user);
+    return this.settings.changeEmail(user.id, body.email, body.currentPassword, body.verificationCode);
+  }
+
+  private assertCredentialChange(user: any) {
+    if (user?.isImpersonating || user?.isSuperAdmin) throw new ForbiddenException('Use your own account to change credentials.');
   }
 
   @Patch('language')

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Query, UseGuards, Param, Patch, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, UseGuards, Param, Patch, Delete, ForbiddenException } from '@nestjs/common';
 import { StaffService } from './staff.service';
 import { GetTenantDb, GetTenantContext } from '../../common/decorators/tenant-context.decorator';
 import { TenantAccessGuard } from '../../common/guards/tenant-access.guard';
@@ -95,13 +95,15 @@ export class StaffController {
 
   @Patch(':id/account/email')
   @RequirePermissions('users.update')
-  updateEmail(@GetTenantDb() db: any, @Param('id') id: string, @Body() body: StaffEmailDto) {
+  updateEmail(@GetTenantDb() db: any, @Param('id') id: string, @Body() body: StaffEmailDto, @CurrentUser() user: any) {
+    if (user?.isImpersonating) throw new ForbiddenException('Cannot change credentials while impersonating.');
     return this.staffService.updateAccountEmail(db, id, body.email);
   }
 
   @Post(':id/account/reset-password')
   @RequirePermissions('users.update')
-  resetPassword(@GetTenantDb() db: any, @Param('id') id: string, @Body() body: StaffPasswordDto) {
+  resetPassword(@GetTenantDb() db: any, @Param('id') id: string, @Body() body: StaffPasswordDto, @CurrentUser() user: any) {
+    if (user?.isImpersonating) throw new ForbiddenException('Cannot change credentials while impersonating.');
     return this.staffService.resetPassword(db, id, body.temporaryPassword);
   }
 

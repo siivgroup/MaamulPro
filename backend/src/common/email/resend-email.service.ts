@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Resend } from 'resend';
+import { randomUUID } from 'crypto';
+import { EmailContent, renderEmail } from './email-template';
 
 export type EmailAttachment = {
   filename: string;
@@ -8,9 +10,7 @@ export type EmailAttachment = {
 
 export type SendEmailInput = {
   to: string[];
-  subject: string;
-  text: string;
-  html?: string;
+  content: EmailContent;
   attachments?: EmailAttachment[];
 };
 
@@ -26,30 +26,37 @@ export class ResendEmailService {
   }
 
   async send(input: SendEmailInput) {
+    const reference = randomUUID();
+    const log = (event: string, id?: string) => JSON.stringify({ event, template: input.content.template, reference, ...(id ? { providerId: id } : {}) });
     if (!this.isConfigured()) {
-      this.logger.warn('Email delivery is disabled until RESEND_API_KEY and RESEND_FROM are configured');
+      this.logger.warn(log('email_disabled'));
       return { sent: false as const };
     }
 
+    let rendered: ReturnType<typeof renderEmail>;
+    try { rendered = renderEmail(input.content); }
+    catch {
+      this.logger.error(log('email_render_or_configuration_failed'));
+      return { sent: false as const, reason: 'delivery_failed' as const };
+    }
     try {
       const resend = new Resend(process.env.RESEND_API_KEY!.trim());
       const { data, error } = await resend.emails.send({
         from: process.env.RESEND_FROM!.trim(),
         to: input.to,
-        subject: input.subject,
-        text: input.text,
-        ...(input.html ? { html: input.html } : {}),
+        ...rendered,
+        ...(process.env.EMAIL_SUPPORT_ADDRESS ? { replyTo: process.env.EMAIL_SUPPORT_ADDRESS.trim() } : {}),
         ...(input.attachments?.length ? { attachments: input.attachments } : {}),
       });
-      if (error) {
-        this.logger.error(`Email provider rejected delivery: ${error.message}`);
+      if (error || !data?.id || typeof data.id !== 'string') {
+        this.logger.error(log(error ? 'email_provider_rejected' : 'email_provider_unconfirmed'));
         return { sent: false as const, reason: 'delivery_failed' as const };
       }
-      return { sent: true as const, id: data?.id };
-    } catch (error) {
-      this.logger.error(
-        `Email provider request failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
+      this.logger.log(log('email_provider_accepted', data.id));
+      // Acceptance by Resend does not confirm delivery to the recipient's inbox.
+      return { sent: true as const, id: data.id };
+    } catch {
+      this.logger.error(log('email_send_failed'));
       return { sent: false as const, reason: 'delivery_failed' as const };
     }
   }
