@@ -8,8 +8,7 @@ import { useApiRows } from '../hooks/useApiData';
 import { usePermissions } from '../hooks/usePermissions';
 
 type Staff = { id: string; firstName: string; lastName: string; phone?: string; position?: string; department: string; salary: number; hireDate?: string; status: string; notes?: string; photoUrl?: string; assignedProjectId?: string; user?: { id: string; email: string; role: string; isActive: boolean } };
-type Role = { key: string; name: string };
-const ACCOUNT_ROLE_KEYS = new Set(['GENERAL_MANAGER', 'ADMIN', 'MANAGER', 'STAFF', 'CONSTRUCTION_MANAGER', 'SITE_ENGINEER', 'PROJECT_SUPERVISOR', 'PROCUREMENT_OFFICER', 'STOREKEEPER', 'MANPOWER_SUPERVISOR', 'REAL_ESTATE_MANAGER', 'SALES_AGENT', 'RENTAL_OFFICER', 'PROPERTY_SUPERVISOR', 'MATERIAL_MANAGER', 'SALES_STAFF', 'INVENTORY_OFFICER', 'SUPPLIER_OFFICER', 'DELIVERY_OFFICER']);
+type Role = { key: string; name: string; isSystem: boolean; isActive: boolean };
 const blank = { firstName: '', lastName: '', phone: '', position: '', department: 'GENERAL', salary: 0, hireDate: '', status: 'ACTIVE', notes: '', photoUrl: '', assignedProjectId: '', createAccount: false, email: '', role: 'STAFF', temporaryPassword: '' };
 
 const StaffPage = () => {
@@ -37,7 +36,15 @@ const StaffPage = () => {
     const [activity, setActivity] = useState<Record<string, any>[]>([]);
     const [saving, setSaving] = useState(false);
     const departmentOptions = Array.from(new Set(['GENERAL', ...(constructionModuleEnabled ? ['CONSTRUCTION'] : []), ...(realEstateModuleEnabled ? ['REAL_ESTATE'] : []), ...(materialManagementModuleEnabled ? ['MATERIAL_MANAGEMENT'] : []), form.department]));
-    useEffect(() => { Promise.all([api<Role[]>('/api/rbac/roles'), canUseConstruction ? api<any>('/api/construction/projects/options') : Promise.resolve([])]).then(([roleRows, projectRows]) => { setRoles(roleRows.filter((role) => ACCOUNT_ROLE_KEYS.has(role.key))); setProjects(Array.isArray(projectRows) ? projectRows : projectRows.data || []); }).catch(() => undefined); }, [canUseConstruction]);
+    useEffect(() => {
+        let current = true;
+        setRoles([]);
+        if (canCreate || canUpdate) api<Role[]>('/api/rbac/roles', { silent: true })
+            .then(rows => { if (current) setRoles(rows.filter(role => role.isSystem && role.isActive)); })
+            .catch(() => { if (current) state.setError('Unable to load the company’s available roles. Refresh before changing account access.'); });
+        return () => { current = false; };
+    }, [canCreate, canUpdate, constructionModuleEnabled, realEstateModuleEnabled, materialManagementModuleEnabled]);
+    useEffect(() => { (canUseConstruction ? api<any>('/api/construction/projects/options') : Promise.resolve([])).then(rows => setProjects(Array.isArray(rows) ? rows : rows.data || [])).catch(() => setProjects([])); }, [canUseConstruction]);
     useEffect(() => { if (selected?.user) api<Record<string, any>[]>(`/api/staff/${selected.id}/activity`).then(setActivity).catch(() => setActivity([])); else setActivity([]); }, [selected]);
     const filtered = useMemo(() => state.rows.filter((row) => {
         const text = `${row.firstName} ${row.lastName} ${row.phone || ''} ${row.position || ''}`.toLowerCase();
@@ -51,7 +58,9 @@ const StaffPage = () => {
         try { const result = await api<{ url: string }>('/api/uploads/images?folder=staff', { method: 'POST', body: data }); setForm((current) => ({ ...current, photoUrl: result.url })); } catch (reason) { state.setError(reason instanceof Error ? reason.message : 'Upload failed'); }
     };
     const save = async (event: FormEvent) => {
-        event.preventDefault(); setSaving(true); state.setError('');
+        event.preventDefault();
+        if (!editing && form.createAccount && !roles.some(role => role.key === form.role)) return state.setError('Select a role available for this company.');
+        setSaving(true); state.setError('');
         try {
             const payload: any = Object.fromEntries(Object.keys(blank).map((key) => [key, (form as any)[key]]));
             Object.assign(payload, { salary: Number(form.salary), hireDate: form.hireDate || undefined, assignedProjectId: form.assignedProjectId || undefined });
@@ -64,7 +73,9 @@ const StaffPage = () => {
     const [deleting, setDeleting] = useState(false);
     const confirmDelete = async () => { if (!deleteTarget) return; setDeleting(true); try { await api(`/api/staff/${deleteTarget.id}`, { method: 'DELETE', silent: true }); toast.success('Staff member deleted.'); setDeleteTarget(null); setSelected(null); await state.reload(); } catch (reason) { const msg = reason instanceof Error ? reason.message : 'Unable to delete staff'; toast.error(msg); state.setError(msg); } finally { setDeleting(false); } };
     const saveAccount = async (event: FormEvent) => {
-        event.preventDefault(); if (!selected) return; setSaving(true);
+        event.preventDefault(); if (!selected) return;
+        if (!roles.some(role => role.key === account.role)) return state.setError('Select a role available for this company.');
+        setSaving(true);
         try { await api(`/api/staff/${selected.id}/account`, { method: 'POST', silent: true, body: JSON.stringify(account) }); setAccountOpen(false); toast.success('Login account created.'); await state.reload(); setSelected(await api<Staff>(`/api/staff/${selected.id}`)); } catch (reason) { const msg = reason instanceof Error ? reason.message : 'Unable to create account'; toast.error(msg); state.setError(msg); } finally { setSaving(false); }
     };
     const [accountActionType, setAccountActionType] = useState<'status' | 'email' | 'password' | 'role' | null>(null);
@@ -145,12 +156,13 @@ const StaffPage = () => {
         <Modal open={accountActionType === 'role'} onClose={() => setAccountActionType(null)} title="Change role">
             <div className="space-y-4">
                 <p className="text-white-dark">Select a new role for <strong>{selected?.firstName} {selected?.lastName}</strong>. They will need to log in again for the change to take effect.</p>
-                <select className="form-select" value={accountActionValue} onChange={(e) => setAccountActionValue(e.target.value)}>
+                <select className="form-select" disabled={accountActionSaving} value={roles.some(role => role.key === accountActionValue) ? accountActionValue : ''} onChange={(e) => setAccountActionValue(e.target.value)}>
+                    <option value="" disabled>Select an enabled role</option>
                     {roles.map((role) => <option key={role.key} value={role.key}>{role.name}</option>)}
                 </select>
                 <div className="flex justify-end gap-2">
                     <button className="btn btn-outline-dark" disabled={accountActionSaving} onClick={() => setAccountActionType(null)}>Cancel</button>
-                    <button className="btn btn-primary" disabled={accountActionSaving || !accountActionValue} onClick={executeAccountAction}>{accountActionSaving ? 'Saving…' : 'Update role'}</button>
+                    <button className="btn btn-primary" disabled={accountActionSaving || !roles.some(role => role.key === accountActionValue)} onClick={executeAccountAction}>{accountActionSaving ? 'Saving…' : 'Update role'}</button>
                 </div>
             </div>
         </Modal>

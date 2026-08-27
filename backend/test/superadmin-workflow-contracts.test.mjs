@@ -420,7 +420,7 @@ test('financial drafts keep the original submission across refresh and forbid ch
 test('staff role changes save revocation before attempting tenant synchronization and detail reads omit credentials',async()=>{
   const {StaffService}=require('../src/modules/staff/staff.service.ts');
   const writes=[];let detailQuery;
-  const central={companyUser:{update:async({data})=>writes.push(data)}};
+  const central={company:{findUnique:async()=>({constructionEnabled:true})},companyUser:{findUnique:async()=>({companyId:'company'}),update:async({data})=>writes.push(data)}};
   const tenant={staff:{findFirst:async query=>{detailQuery=query;return {id:'staff',userId:'user'};}},user:{update:async()=>{throw Error('must use durable synchronization');}}};
   const service=new StaffService(central,null,{sync:async id=>{assert.equal(id,'user');assert.equal(writes.length,1);return true;}});
   const result=await service.updateAccountRole(tenant,'staff','MANAGER');

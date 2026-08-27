@@ -56,6 +56,65 @@ const require = createRequire(import.meta.url);
 const centralTestUrl = process.env.TEST_CENTRAL_DATABASE_URL;
 const onboardingEnabled = Boolean(centralTestUrl && process.env.E2E_DATABASES_ARE_DISPOSABLE === 'true');
 
+test('company modules scope persisted role catalogs, custom grants and staff assignments', { skip: !onboardingEnabled || !enabled }, async () => {
+  process.env.DATABASE_PROVIDER = 'postgres';
+  process.env.CENTRAL_DATABASE_URL = centralTestUrl;
+  process.env.CENTRAL_DATABASE_DIRECT_URL = centralTestUrl;
+  const { CentralPrismaService } = require('../dist/common/database/central-prisma.service.js');
+  const { TenantConnectionManager } = require('../dist/common/database/tenant-connection.manager.js');
+  const { syncPermissionsToDb } = require('../dist/common/database/rbac-sync.js');
+  const { RbacService } = require('../dist/modules/rbac/rbac.service.js');
+  const { StaffService } = require('../dist/modules/staff/staff.service.js');
+  const central = new CentralPrismaService(), manager = new TenantConnectionManager(), db = manager.getTenantDb(urlA);
+  const service = new RbacService(central);
+  const forbidden = error => error.getStatus() === 403;
+  try {
+    await syncPermissionsToDb(db);
+    const company = await central.company.create({ data: { name: 'Role test', subdomain: 'roles-' + randomUUID(), adminEmail: randomUUID() + '@example.test', adminName: 'Test', dbUrl: urlA, constructionEnabled: true, realEstateEnabled: false, materialManagementEnabled: false } });
+    const user = await db.user.create({ data: { email: randomUUID() + '@example.test', name: 'Staff', role: 'STAFF', passwordHash: 'unused' } });
+    await central.companyUser.create({ data: { id: user.id, companyId: company.id, email: user.email, role: 'STAFF', passwordHash: 'unused' } });
+    const staff = await db.staff.create({ data: { firstName: 'Role', lastName: 'Test', userId: user.id } });
+    const catalog = await service.listRoles(db, company);
+    for (const key of ['REAL_ESTATE_MANAGER', 'RENTAL_OFFICER', 'MATERIAL_MANAGER', 'SUPER_ADMIN', 'COMPANY_OWNER']) assert.ok(!catalog.some(role => role.key === key), key);
+    for (const key of ['CONSTRUCTION_MANAGER', 'SITE_ENGINEER', 'ADMIN', 'STAFF']) assert.ok(catalog.some(role => role.key === key), key);
+    const allowed = await service.listPermissions(db, company);
+    assert.ok(allowed.some(permission => permission.key === 'projects.read'));
+    assert.ok(!allowed.some(permission => permission.key === 'properties.read'));
+    assert.ok(catalog.find(role => role.key === 'ADMIN').rolePermissions.every(link => allowed.some(permission => permission.id === link.permissionId)));
+    const property = await db.rbacPermission.findUnique({ where: { key: 'properties.read' } });
+    const project = await db.rbacPermission.findUnique({ where: { key: 'projects.read' } });
+    const estate = await db.rbacRole.findUnique({ where: { key: 'REAL_ESTATE_MANAGER' } });
+    await assert.rejects(service.assignUserRoles(db, user.id, { roleIds: [estate.id] }, company), forbidden);
+    await assert.rejects(service.updateRole(db, estate.id, { name: 'Renamed' }, company), forbidden);
+    await assert.rejects(service.deleteRole(db, estate.id, company), forbidden);
+    await assert.rejects(service.createRole(db, { key: 'INVALID_' + randomUUID().replaceAll('-', '').toUpperCase(), name: 'Invalid', permissionIds: [property.id] }, company), forbidden);
+    const custom = await service.createRole(db, { key: 'CUSTOM_' + randomUUID().replaceAll('-', '').toUpperCase(), name: 'Project reader', permissionIds: [project.id] }, company);
+    await assert.rejects(service.updateRole(db, custom.id, { permissionIds: [property.id] }, company), forbidden);
+    await assert.rejects(service.setDirectPermission(db, user.id, { permissionId: property.id, effect: 'ALLOW' }, company), forbidden);
+    assert.equal(await db.rbacUserPermission.count({ where: { userId: user.id } }), 0);
+    await service.assignUserRoles(db, user.id, { roleIds: [custom.id] }, company);
+    await Promise.all(Array.from({ length: 3 }, () => service.setDirectPermission(db, user.id, { permissionId: project.id, effect: 'ALLOW' }, company)));
+    assert.equal(await db.rbacUserPermission.count({ where: { userId: user.id, permissionId: project.id } }), 1);
+    const assigned = await service.getUserAccess(db, user.id, company);
+    assert.equal(assigned.rbacUserRoles[0].role.id, custom.id);
+    assert.equal(assigned.rbacUserPermissions[0].permission.key, 'projects.read');
+    const staffService = new StaffService(central, null, { sync: async () => true }, null);
+    await assert.rejects(staffService.updateAccountRole(db, staff.id, 'REAL_ESTATE_MANAGER'), forbidden);
+    assert.equal((await staffService.updateAccountRole(db, staff.id, 'SITE_ENGINEER')).role, 'SITE_ENGINEER');
+    const changed = await central.company.update({ where: { id: company.id }, data: { constructionEnabled: false, realEstateEnabled: true } });
+    assert.ok(!(await service.listRoles(db, changed)).some(role => role.id === custom.id || role.key === 'SITE_ENGINEER'));
+    assert.ok((await service.listRoles(db, changed)).some(role => role.key === 'REAL_ESTATE_MANAGER'));
+    const scoped = await service.getUserAccess(db, user.id, changed);
+    assert.equal(scoped.rbacUserRoles.length, 0);
+    assert.equal(scoped.rbacUserPermissions.length, 0);
+    await assert.rejects(service.assignUserRoles(db, user.id, { roleIds: [custom.id] }, changed), forbidden);
+    await assert.rejects(staffService.updateAccountRole(db, staff.id, 'SITE_ENGINEER'), forbidden);
+    await service.assignUserRoles(db, user.id, { roleIds: [estate.id] }, changed);
+    assert.equal((await service.getUserAccess(db, user.id, changed)).rbacUserRoles[0].role.id, estate.id);
+    assert.equal((await staffService.updateAccountRole(db, staff.id, 'REAL_ESTATE_MANAGER')).role, 'REAL_ESTATE_MANAGER');
+  } finally { await manager.onModuleDestroy(); await central.onModuleDestroy(); }
+});
+
 test('email challenges serialize across processes, bind accounts, and preserve saved identity changes', {skip:!onboardingEnabled}, async t => {
   process.env.DATABASE_PROVIDER='postgres';
   process.env.CENTRAL_DATABASE_URL=centralTestUrl; process.env.CENTRAL_DATABASE_DIRECT_URL=centralTestUrl;

@@ -1,10 +1,13 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { CentralPrismaService } from '../../common/database/central-prisma.service';
+import { CompanyModules, companyPermissionKeys, companyRoleAllowed } from '../../common/database/company-access';
+import { isAppRole } from '../../common/database/roles';
 import {
   AssignUserRolesDto,
   CreateRoleDto,
@@ -34,14 +37,15 @@ export class RbacService {
     return rows.map((row: { userId: string }) => row.userId);
   }
 
-  listPermissions(tenantDb: any) {
+  listPermissions(tenantDb: any, company: CompanyModules) {
     return tenantDb.rbacPermission.findMany({
+      where: { key: { in: [...companyPermissionKeys(company)] } },
       orderBy: [{ workspace: 'asc' }, { module: 'asc' }, { action: 'asc' }],
     });
   }
 
-  listRoles(tenantDb: any) {
-    return tenantDb.rbacRole.findMany({
+  async listRoles(tenantDb: any, company: CompanyModules) {
+    const roles = await tenantDb.rbacRole.findMany({
       where: { deletedAt: null },
       include: {
         rolePermissions: { include: { permission: true } },
@@ -49,12 +53,23 @@ export class RbacService {
       },
       orderBy: [{ isSystem: 'desc' }, { name: 'asc' }],
     });
+    return roles.filter((role: any) => companyRoleAllowed(role, company)).map((role: any) => this.scopedRole(role, company));
   }
 
-  async createRole(tenantDb: any, data: CreateRoleDto) {
+  private scopedRole(role: any, company: CompanyModules) {
+    const allowed = companyPermissionKeys(company);
+    return { ...role, rolePermissions: role.rolePermissions.filter((link: any) => allowed.has(link.permission?.key)) };
+  }
+
+  private assertRole(role: any, company: CompanyModules) {
+    if (!companyRoleAllowed(role, company)) throw new ForbiddenException('This role is not available for your company’s enabled modules.');
+  }
+
+  async createRole(tenantDb: any, data: CreateRoleDto, company: CompanyModules) {
+    if (isAppRole(data.key)) throw new BadRequestException('This role key is reserved for a system role');
     const existing = await tenantDb.rbacRole.findFirst({ where: { key: data.key, deletedAt: null } });
     if (existing) throw new ConflictException(`Role key '${data.key}' already exists`);
-    await this.validatePermissions(tenantDb, data.permissionIds);
+    await this.validatePermissions(tenantDb, data.permissionIds, company);
     return tenantDb.rbacRole.create({
       data: {
         key: data.key,
@@ -69,10 +84,11 @@ export class RbacService {
     });
   }
 
-  async updateRole(tenantDb: any, id: string, data: UpdateRoleDto) {
-    const role = await tenantDb.rbacRole.findUnique({ where: { id } });
+  async updateRole(tenantDb: any, id: string, data: UpdateRoleDto, company: CompanyModules) {
+    const role = await tenantDb.rbacRole.findUnique({ where: { id }, include: { rolePermissions: { include: { permission: true } } } });
     if (!role || role.deletedAt) throw new NotFoundException('Role not found');
-    if (data.permissionIds) await this.validatePermissions(tenantDb, data.permissionIds);
+    this.assertRole(role, company);
+    if (data.permissionIds) await this.validatePermissions(tenantDb, data.permissionIds, company);
     const affected = await this.usersHoldingRole(tenantDb, id);
     const updated = await tenantDb.$transaction(async (tx: any) => {
       if (data.permissionIds) {
@@ -94,15 +110,16 @@ export class RbacService {
       });
     });
     await this.bumpSessionVersions(affected);
-    return updated;
+    return this.scopedRole(updated, company);
   }
 
-  async deleteRole(tenantDb: any, id: string) {
+  async deleteRole(tenantDb: any, id: string, company: CompanyModules) {
     const role = await tenantDb.rbacRole.findUnique({
       where: { id },
-      include: { _count: { select: { userRoles: true } } },
+      include: { _count: { select: { userRoles: true } }, rolePermissions: { include: { permission: true } } },
     });
     if (!role || role.deletedAt) throw new NotFoundException('Role not found');
+    this.assertRole(role, company);
     if (role.isSystem) throw new BadRequestException('System roles cannot be deleted');
     const affected = role._count.userRoles > 0 ? await this.usersHoldingRole(tenantDb, id) : [];
     await tenantDb.$transaction(async (tx: any) => {
@@ -113,7 +130,7 @@ export class RbacService {
     return { deleted: true };
   }
 
-  async getUserAccess(tenantDb: any, userId: string) {
+  async getUserAccess(tenantDb: any, userId: string, company: CompanyModules) {
     const user = await tenantDb.user.findUnique({
       where: { id: userId },
       select: {
@@ -122,28 +139,36 @@ export class RbacService {
         email: true,
         role: true,
         approvalLimit: true,
-        rbacUserRoles: { include: { role: true } },
+        rbacUserRoles: { include: { role: { include: { rolePermissions: { include: { permission: true } } } } } },
         rbacUserPermissions: { include: { permission: true } },
       },
     });
     if (!user) throw new NotFoundException('User not found');
-    return user;
+    const allowed = companyPermissionKeys(company);
+    return {
+      ...user,
+      rbacUserRoles: user.rbacUserRoles.filter((link: any) => !link.role.deletedAt && companyRoleAllowed(link.role, company))
+        .map((link: any) => ({ ...link, role: this.scopedRole(link.role, company) })),
+      rbacUserPermissions: user.rbacUserPermissions.filter((link: any) => allowed.has(link.permission?.key)),
+    };
   }
 
-  async setApprovalLimit(tenantDb: any, userId: string, approvalLimit: number) {
-    await this.getUserAccess(tenantDb, userId);
+  async setApprovalLimit(tenantDb: any, userId: string, approvalLimit: number, company: CompanyModules) {
+    await this.getUserAccess(tenantDb, userId, company);
     await tenantDb.user.update({ where: { id: userId }, data: { approvalLimit: approvalLimit > 0 ? approvalLimit : null } });
-    return this.getUserAccess(tenantDb, userId);
+    return this.getUserAccess(tenantDb, userId, company);
   }
 
-  async assignUserRoles(tenantDb: any, userId: string, data: AssignUserRolesDto) {
-    await this.getUserAccess(tenantDb, userId);
-    const roleCount = await tenantDb.rbacRole.count({
+  async assignUserRoles(tenantDb: any, userId: string, data: AssignUserRolesDto, company: CompanyModules) {
+    await this.getUserAccess(tenantDb, userId, company);
+    const roles = await tenantDb.rbacRole.findMany({
       where: { id: { in: data.roleIds }, deletedAt: null, isActive: true },
+      include: { rolePermissions: { include: { permission: true } } },
     });
-    if (roleCount !== data.roleIds.length) {
+    if (roles.length !== data.roleIds.length) {
       throw new BadRequestException('One or more roles are invalid or inactive');
     }
+    roles.forEach((role: any) => this.assertRole(role, company));
     await tenantDb.$transaction([
       tenantDb.rbacUserRole.deleteMany({ where: { userId } }),
       tenantDb.rbacUserRole.createMany({
@@ -151,45 +176,48 @@ export class RbacService {
       }),
     ]);
     await this.bumpSessionVersions([userId]);
-    return this.getUserAccess(tenantDb, userId);
+    return this.getUserAccess(tenantDb, userId, company);
   }
 
   async setDirectPermission(
     tenantDb: any,
     userId: string,
     data: SetDirectPermissionDto,
+    company: CompanyModules,
   ) {
-    await this.getUserAccess(tenantDb, userId);
+    await this.getUserAccess(tenantDb, userId, company);
     const permission = await tenantDb.rbacPermission.findUnique({
       where: { id: data.permissionId },
     });
     if (!permission) throw new NotFoundException('Permission not found');
-    await tenantDb.rbacUserPermission.upsert({
-      where: {
-        userId_permissionId: { userId, permissionId: data.permissionId },
-      },
-      update: { effect: data.effect, reason: data.reason },
-      create: {
-        userId,
-        permissionId: data.permissionId,
-        effect: data.effect,
-        reason: data.reason,
-      },
+    if (!companyPermissionKeys(company).has(permission.key)) throw new ForbiddenException('This permission is not available for your company’s enabled modules.');
+    await tenantDb.$transaction(async (tx: any) => {
+      // Legacy provisioned tenants lack the composite unique index required by
+      // Prisma upsert. Serialize on the existing user row, including first grants.
+      await tx.$queryRawUnsafe('SELECT id FROM users WHERE id = $1 FOR UPDATE', userId);
+      const where = { userId, permissionId: data.permissionId };
+      const updated = await tx.rbacUserPermission.updateMany({ where, data: { effect: data.effect, reason: data.reason } });
+      if (!updated.count) await tx.rbacUserPermission.create({ data: { ...where, effect: data.effect, reason: data.reason } });
     });
     await this.bumpSessionVersions([userId]);
-    return this.getUserAccess(tenantDb, userId);
+    return this.getUserAccess(tenantDb, userId, company);
   }
 
-  async removeDirectPermission(tenantDb: any, userId: string, permissionId: string) {
-    await tenantDb.rbacUserPermission.deleteMany({ where: { userId, permissionId } });
+  async removeDirectPermission(tenantDb: any, userId: string, permissionId: string, company: CompanyModules) {
+    await tenantDb.$transaction(async (tx: any) => {
+      await tx.$queryRawUnsafe('SELECT id FROM users WHERE id = $1 FOR UPDATE', userId);
+      await tx.rbacUserPermission.deleteMany({ where: { userId, permissionId } });
+    });
     await this.bumpSessionVersions([userId]);
-    return this.getUserAccess(tenantDb, userId);
+    return this.getUserAccess(tenantDb, userId, company);
   }
 
-  private async validatePermissions(tenantDb: any, permissionIds: string[]) {
-    const count = await tenantDb.rbacPermission.count({ where: { id: { in: permissionIds } } });
-    if (count !== permissionIds.length) {
+  private async validatePermissions(tenantDb: any, permissionIds: string[], company: CompanyModules) {
+    const permissions = await tenantDb.rbacPermission.findMany({ where: { id: { in: permissionIds } } });
+    if (permissions.length !== permissionIds.length) {
       throw new BadRequestException('One or more permission IDs are invalid');
     }
+    const allowed = companyPermissionKeys(company);
+    if (permissions.some((permission: any) => !allowed.has(permission.key))) throw new ForbiddenException('One or more permissions are not available for your company’s enabled modules.');
   }
 }

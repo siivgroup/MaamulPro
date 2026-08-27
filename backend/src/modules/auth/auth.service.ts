@@ -1,4 +1,5 @@
 import { AccountSecurityService } from '../../common/security/account-security.service';
+import { companyPermissionKeys } from '../../common/database/company-access';
 import {
   Injectable,
   UnauthorizedException,
@@ -16,7 +17,7 @@ import { revealDatabaseUrl } from '../../common/database/database-credentials';
 import { SubscriptionEntitlementService } from '../../common/subscriptions/subscription-entitlement.service';
 import { hasSubscriptionAccess } from '../../common/subscriptions/entitlement-policy';
 import { ENTERPRISE_CONFIG_KEY, parseEnterpriseModuleConfiguration } from '../../common/database/enterprise-config';
-import { ALL_PERMISSIONS, ROLE_PERMISSIONS } from '../../common/database/registry';
+import { ROLE_PERMISSIONS } from '../../common/database/registry';
 import type { AppRole } from '../../common/database/roles';
 
 @Injectable()
@@ -113,6 +114,7 @@ export class AuthService {
           const permSet = new Set<string>();
           const rbacRoles = (tenantUser as any).rbacUserRoles || [];
           for (const ur of rbacRoles) {
+            if (!ur.role?.isActive || ur.role.deletedAt) continue;
             for (const rp of ur.role.rolePermissions || []) {
               if (rp?.permission?.key) permSet.add(rp.permission.key);
             }
@@ -138,12 +140,9 @@ export class AuthService {
       }
     }
 
-    if (userPermissions.length === 0) {
-      const roleTemplate = ROLE_PERMISSIONS[companyUser.role as AppRole];
-      if (roleTemplate) userPermissions = [...roleTemplate];
-    }
-
     // 4. Update last login
+    const allowedPermissions = companyPermissionKeys(company);
+    userPermissions = userPermissions.filter(permission => allowedPermissions.has(permission));
     await this.central.companyUser.update({
       where: { id: companyUser.id },
       data: { lastLoginAt: new Date() },
@@ -278,7 +277,7 @@ export class AuthService {
     if (!claim.count) throw new UnauthorizedException('The impersonation grant is invalid or expired');
 
     const company = companyUser.company;
-    const permissions = [...ALL_PERMISSIONS];
+    const permissions = [...companyPermissionKeys(company)];
     const entitlements = this.entitlements.fromCompany(company);
     const accessGranted = hasSubscriptionAccess(company);
     const enterpriseConfiguration = await this.enterpriseConfiguration(company);
@@ -365,6 +364,7 @@ export class AuthService {
           const permSet = new Set<string>();
           const rbacRoles = (tenantUser as any).rbacUserRoles || [];
           for (const ur of rbacRoles) {
+            if (!ur.role?.isActive || ur.role.deletedAt) continue;
             for (const rp of ur.role.rolePermissions || []) {
               if (rp?.permission?.key) permSet.add(rp.permission.key);
             }
@@ -392,11 +392,7 @@ export class AuthService {
       }
     }
 
-    if (userPermissions.length === 0) {
-      const roleTemplate = ROLE_PERMISSIONS[companyUser.role as AppRole];
-      if (roleTemplate) userPermissions = [...roleTemplate];
-    }
-
+    const allowedPermissions = companyPermissionKeys(company);
     return {
       id: companyUser.id,
       email: companyUser.email,
@@ -404,7 +400,7 @@ export class AuthService {
       companyId: company.id,
       companyName: company.name,
       subdomain: company.subdomain,
-      permissions: user?.isImpersonating ? [...ALL_PERMISSIONS] : userPermissions,
+      permissions: user?.isImpersonating ? [...allowedPermissions] : userPermissions.filter(permission => allowedPermissions.has(permission)),
       constructionEnabled: company.constructionEnabled,
       realEstateEnabled: company.realEstateEnabled,
       materialManagementEnabled: company.materialManagementEnabled,

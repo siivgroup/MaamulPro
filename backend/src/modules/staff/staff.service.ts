@@ -1,6 +1,7 @@
 import { IdentitySyncService, identityChange } from '../../common/database/identity-sync.service';
 import { AccountSecurityService } from '../../common/security/account-security.service';
-import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
+import { companyAccountRoleAllowed } from '../../common/database/company-access';
 import { CentralPrismaService } from '../../common/database/central-prisma.service';
 import * as argon2 from 'argon2';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
@@ -62,6 +63,11 @@ export class StaffService {
     return { data, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   }
 
+  private async assertAccountRole(companyId: string, role: string) {
+    const company = await this.central.company.findUnique({ where: { id: companyId } });
+    if (!company || !companyAccountRoleAllowed(role, company)) throw new ForbiddenException('This role is not available for your company’s enabled modules.');
+  }
+
   getStaffOptions(tenantDb: any, department?: string) {
     return tenantDb.staff.findMany({
       where: { deletedAt: null, status: 'ACTIVE', ...(department ? { department } : {}) },
@@ -81,6 +87,7 @@ export class StaffService {
 
   async createStaff(tenantDb: any, companyId: string, data: CreateStaffDto) {
     if (!tenantDb) throw new BadRequestException('Tenant DB not available');
+    if (data.createAccount) await this.assertAccountRole(companyId, data.role || 'STAFF');
     const create = (centralDb: any) => tenantDb.$transaction(async (tx: any) => {
       const staff = await tx.staff.create({
         data: {
@@ -202,6 +209,7 @@ export class StaffService {
   }
 
   async createAccount(tenantDb: any, companyId: string, staffId: string, data: StaffAccountDto) {
+    await this.assertAccountRole(companyId, data.role);
     assertStrongPassword(data.temporaryPassword);
     const staff = await this.getStaffById(tenantDb, staffId);
     if (staff.userId) throw new ConflictException('Staff member already has a user account');
@@ -276,6 +284,9 @@ export class StaffService {
   async updateAccountRole(tenantDb: any, staffId: string, role: string) {
     const staff = await this.getStaffById(tenantDb, staffId);
     if (!staff.userId) throw new BadRequestException('Staff member has no user account');
+    const account = await this.central.companyUser.findUnique({ where: { id: staff.userId }, select: { companyId: true } });
+    if (!account) throw new NotFoundException('User account not found');
+    await this.assertAccountRole(account.companyId, role);
     await this.central.companyUser.update({ where: { id: staff.userId }, data: { role, ...identityChange() } });
     return { role, ...await this.syncAccount(staff.userId) };
   }

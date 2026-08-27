@@ -21,7 +21,9 @@ test('every email shares accessible branding, useful text, and escaped dynamic c
   for (const fixture of emailFixtures()) {
     const rendered = renderEmail(fixture);
     assert.match(rendered.html, /max-width:600px/);
-    assert.match(rendered.html, /#0E8B8B/);
+    assert.match(rendered.html, /#2A3442/);
+    assert.match(rendered.html, /<td align="center"[^>]*text-align:center[^>]*><img[^>]*margin:0 auto/);
+    assert.doesNotMatch(rendered.html, /border-top/);
     assert.match(rendered.html, /email-logo\.png/);
     assert.match(rendered.html, /alt="[^"]+ logo"/);
     assert.match(rendered.text, /MaamulPro/);

@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
-import { RequirePermissions } from '../../common/decorators/permissions.decorator';
-import { GetTenantDb } from '../../common/decorators/tenant-context.decorator';
+import { RequireAnyPermission, RequirePermissions } from '../../common/decorators/permissions.decorator';
+import { GetTenantContext, GetTenantDb } from '../../common/decorators/tenant-context.decorator';
+import { CompanyModules } from '../../common/database/company-access';
 import { TenantAccessGuard } from '../../common/guards/tenant-access.guard';
 import {
   AssignUserRolesDto,
@@ -18,38 +19,38 @@ export class RbacController {
 
   @Get('permissions')
   @RequirePermissions('roles.read')
-  listPermissions(@GetTenantDb() db: any) {
-    return this.rbac.listPermissions(db);
+  listPermissions(@GetTenantDb() db: any, @GetTenantContext() company: CompanyModules) {
+    return this.rbac.listPermissions(db, company);
   }
 
   @Get('roles')
-  @RequirePermissions('roles.read')
-  listRoles(@GetTenantDb() db: any) {
-    return this.rbac.listRoles(db);
+  @RequireAnyPermission('roles.read', 'users.create', 'users.update')
+  listRoles(@GetTenantDb() db: any, @GetTenantContext() company: CompanyModules) {
+    return this.rbac.listRoles(db, company);
   }
 
   @Post('roles')
   @RequirePermissions('roles.create')
-  createRole(@GetTenantDb() db: any, @Body() body: CreateRoleDto) {
-    return this.rbac.createRole(db, body);
+  createRole(@GetTenantDb() db: any, @Body() body: CreateRoleDto, @GetTenantContext() company: CompanyModules) {
+    return this.rbac.createRole(db, body, company);
   }
 
   @Patch('roles/:id')
   @RequirePermissions('roles.update')
-  updateRole(@GetTenantDb() db: any, @Param('id') id: string, @Body() body: UpdateRoleDto) {
-    return this.rbac.updateRole(db, id, body);
+  updateRole(@GetTenantDb() db: any, @Param('id') id: string, @Body() body: UpdateRoleDto, @GetTenantContext() company: CompanyModules) {
+    return this.rbac.updateRole(db, id, body, company);
   }
 
   @Delete('roles/:id')
   @RequirePermissions('roles.delete')
-  deleteRole(@GetTenantDb() db: any, @Param('id') id: string) {
-    return this.rbac.deleteRole(db, id);
+  deleteRole(@GetTenantDb() db: any, @Param('id') id: string, @GetTenantContext() company: CompanyModules) {
+    return this.rbac.deleteRole(db, id, company);
   }
 
   @Get('users/:userId')
   @RequirePermissions('users.read', 'roles.read')
-  getUserAccess(@GetTenantDb() db: any, @Param('userId') userId: string) {
-    return this.rbac.getUserAccess(db, userId);
+  getUserAccess(@GetTenantDb() db: any, @Param('userId') userId: string, @GetTenantContext() company: CompanyModules) {
+    return this.rbac.getUserAccess(db, userId, company);
   }
 
   @Patch('users/:userId/roles')
@@ -58,14 +59,15 @@ export class RbacController {
     @GetTenantDb() db: any,
     @Param('userId') userId: string,
     @Body() body: AssignUserRolesDto,
+    @GetTenantContext() company: CompanyModules,
   ) {
-    return this.rbac.assignUserRoles(db, userId, body);
+    return this.rbac.assignUserRoles(db, userId, body, company);
   }
 
   @Patch('users/:userId/approval-limit')
   @RequirePermissions('users.update', 'roles.update')
-  setApprovalLimit(@GetTenantDb() db: any, @Param('userId') userId: string, @Body() body: SetApprovalLimitDto) {
-    return this.rbac.setApprovalLimit(db, userId, body.approvalLimit);
+  setApprovalLimit(@GetTenantDb() db: any, @Param('userId') userId: string, @Body() body: SetApprovalLimitDto, @GetTenantContext() company: CompanyModules) {
+    return this.rbac.setApprovalLimit(db, userId, body.approvalLimit, company);
   }
 
   @Post('users/:userId/permissions')
@@ -74,8 +76,9 @@ export class RbacController {
     @GetTenantDb() db: any,
     @Param('userId') userId: string,
     @Body() body: SetDirectPermissionDto,
+    @GetTenantContext() company: CompanyModules,
   ) {
-    return this.rbac.setDirectPermission(db, userId, body);
+    return this.rbac.setDirectPermission(db, userId, body, company);
   }
 
   @Delete('users/:userId/permissions/:permissionId')
@@ -84,7 +87,8 @@ export class RbacController {
     @GetTenantDb() db: any,
     @Param('userId') userId: string,
     @Param('permissionId') permissionId: string,
+    @GetTenantContext() company: CompanyModules,
   ) {
-    return this.rbac.removeDirectPermission(db, userId, permissionId);
+    return this.rbac.removeDirectPermission(db, userId, permissionId, company);
   }
 }

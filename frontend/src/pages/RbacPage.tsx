@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Check, ChevronDown, ChevronRight, Edit3, Info, Plus, Search, Shield, ShieldCheck, ShieldX, Trash2, UserCheck, Users, X } from 'lucide-react';
 import AppShell from '../components/maamulpro/AppShell';
 import { EmptyState, ErrorAlert, LoadingState, Modal, PageHeader } from '../components/maamulpro/PageKit';
@@ -14,7 +14,7 @@ type UserAccess = { id: string; name: string; email: string; role?: string; appr
 type Tab = 'roles' | 'users';
 
 const RbacPage = () => {
-    const { hasPermission } = usePermissions();
+    const { user, hasPermission } = usePermissions();
     const canCreateRole = hasPermission('roles.create');
     const canEditRole = hasPermission('roles.update');
     const canDeleteRole = hasPermission('roles.delete');
@@ -40,6 +40,9 @@ const RbacPage = () => {
     const [loading, setLoading] = useState(true);
     const [savingRole, setSavingRole] = useState(false);
     const [loadingUser, setLoadingUser] = useState(false);
+    const [savingAccess, setSavingAccess] = useState(false);
+    const accessPending = useRef(false);
+    const accountRoles = roles.filter(role => role.isSystem && role.isActive);
 
     const load = () => Promise.all([
         api<Permission[]>('/api/rbac/permissions'),
@@ -53,8 +56,9 @@ const RbacPage = () => {
 
     useEffect(() => {
         setLoading(true);
+        setRoles([]); setPermissions([]); setAccess(null); setViewingRole(null); setShowRoleModal(false);
         load().catch((reason) => setError(reason.message)).finally(() => setLoading(false));
-    }, []);
+    }, [user?.constructionEnabled, user?.realEstateEnabled, user?.materialManagementEnabled]);
 
     const groups = useMemo(
         () => permissions.reduce<Record<string, Permission[]>>((result, permission) => {
@@ -165,7 +169,8 @@ const RbacPage = () => {
     };
 
     const toggleUserRole = async (roleId: string) => {
-        if (!access) return;
+        if (!access || accessPending.current) return;
+        accessPending.current = true; setSavingAccess(true); setError('');
         const current = access.rbacUserRoles.map((item) => item.role.id);
         const roleIds = current.includes(roleId) ? current.filter((id) => id !== roleId) : [...current, roleId];
         try {
@@ -174,19 +179,24 @@ const RbacPage = () => {
             refreshSession(true).catch(() => undefined);
         } catch (reason) {
             const msg = reason instanceof Error ? reason.message : 'Unable to assign role';
-            toast.error(msg);
+            setError(msg);
+        } finally {
+            accessPending.current = false; setSavingAccess(false);
         }
     };
 
     const changeSystemRole = async (role: string) => {
-        if (!staffId || !access) return;
+        if (!staffId || !access || accessPending.current || !accountRoles.some(item => item.key === role)) return;
+        accessPending.current = true; setSavingAccess(true); setError('');
         try {
             await api(`/api/staff/${staffId}/account/role`, { method: 'PATCH', silent: true, body: JSON.stringify({ role }) });
             setAccess({ ...access, role });
             toast.success('System role updated.');
             refreshSession(true).catch(() => undefined);
         } catch (reason) {
-            toast.error(reason instanceof Error ? reason.message : 'Unable to update system role');
+            setError(reason instanceof Error ? reason.message : 'Unable to update system role');
+        } finally {
+            accessPending.current = false; setSavingAccess(false);
         }
     };
 
@@ -246,6 +256,7 @@ const RbacPage = () => {
         <AppShell>
             <PageHeader
                 title="Roles & Permissions"
+                description="Only roles and permissions for your company’s enabled modules are available."
                 actions={tab === 'roles' && canCreateRole ? <button className="btn btn-primary flex items-center gap-2" onClick={openCreateRole}><Plus size={16} /> New role</button> : undefined}
             />
 
@@ -375,13 +386,15 @@ const RbacPage = () => {
                                         </span>
                                     )}
                                     {access.role && canAssign && (
-                                        <select className="form-select h-7 py-0 text-xs" value={access.role} title="System role — drives default permissions when no RBAC roles are assigned" onChange={(e) => changeSystemRole(e.target.value)}>
-                                            {['GENERAL_MANAGER','ADMIN','MANAGER','STAFF','CONSTRUCTION_MANAGER','SITE_ENGINEER','PROJECT_SUPERVISOR','PROCUREMENT_OFFICER','STOREKEEPER','MANPOWER_SUPERVISOR','REAL_ESTATE_MANAGER','SALES_AGENT','RENTAL_OFFICER','PROPERTY_SUPERVISOR','MATERIAL_MANAGER','SALES_STAFF','INVENTORY_OFFICER','SUPPLIER_OFFICER','DELIVERY_OFFICER'].map((r) => (
-                                                <option key={r} value={r}>{r.replace(/_/g, ' ')}</option>
+                                        <select className="form-select h-7 py-0 text-xs" disabled={savingAccess} value={accountRoles.some(role => role.key === access.role) ? access.role : ''} title="System role — drives default permissions when no RBAC roles are assigned" onChange={(e) => changeSystemRole(e.target.value)}>
+                                            <option value="" disabled>Select an enabled role</option>
+                                            {accountRoles.map((role) => (
+                                                <option key={role.key} value={role.key}>{role.name}</option>
                                             ))}
                                         </select>
                                     )}
                                 </div>
+                                {savingAccess && <p role="status" className="text-sm text-primary">Saving access…</p>}
                                 <div className="grid gap-3 sm:grid-cols-2">
                                     {roles.filter((r) => r.isActive).map((role) => {
                                         const isAssigned = access.rbacUserRoles.some((item) => item.role.id === role.id);
@@ -390,7 +403,7 @@ const RbacPage = () => {
                                                 key={role.id}
                                                 className={`flex cursor-pointer items-center gap-3 rounded-lg border p-4 transition-all ${isAssigned ? 'border-primary/30 bg-primary/5 dark:border-primary/20 dark:bg-primary/10' : 'border-white-light hover:border-primary/20 dark:border-[#191e3a] dark:hover:border-primary/20'}`}
                                             >
-                                                <input className="form-checkbox text-primary" type="checkbox" checked={isAssigned} disabled={!canAssign} onChange={() => toggleUserRole(role.id)} />
+                                                <input className="form-checkbox text-primary" type="checkbox" checked={isAssigned} disabled={!canAssign || savingAccess} onChange={() => toggleUserRole(role.id)} />
                                                 <div className="min-w-0 flex-1">
                                                     <span className="block font-semibold leading-tight">{role.name}</span>
                                                     <span className="block text-xs text-white-dark">{role.rolePermissions.length} permissions</span>

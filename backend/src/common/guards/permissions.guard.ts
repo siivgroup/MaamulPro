@@ -10,6 +10,7 @@ import { ROLES_KEY } from '../decorators/roles.decorator';
 import { CentralPrismaService } from '../database/central-prisma.service';
 import { ROLE_PERMISSIONS } from '../database/registry';
 import type { AppRole } from '../database/roles';
+import { companyPermissionKeys } from '../database/company-access';
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
@@ -56,15 +57,18 @@ export class PermissionsGuard implements CanActivate {
     const permissions = new Set<string>();
     const rbacRoles = tenantUser.rbacUserRoles || [];
     for (const assignment of rbacRoles) {
+      if (!assignment.role?.isActive || assignment.role.deletedAt) continue;
       for (const rolePermission of assignment.role?.rolePermissions || []) {
         if (rolePermission.permission?.key) permissions.add(rolePermission.permission.key);
       }
     }
     const directPerms = tenantUser.rbacUserPermissions || [];
-    for (const direct of directPerms) {
+    for (const direct of directPerms.filter((item: any) => item.effect === 'ALLOW')) {
+      if (direct.permission?.key) permissions.add(direct.permission.key);
+    }
+    for (const direct of directPerms.filter((item: any) => item.effect === 'DENY')) {
       if (!direct.permission?.key) continue;
       if (direct.effect === 'DENY') permissions.delete(direct.permission.key);
-      else permissions.add(direct.permission.key);
     }
     if (rbacRoles.length === 0 && directPerms.length === 0) {
       const roleTemplate = ROLE_PERMISSIONS[user.role as AppRole];
@@ -105,6 +109,13 @@ export class PermissionsGuard implements CanActivate {
       if (user.isSuperAdmin === true && !user.isImpersonating) return true;
       throw new ForbiddenException('Platform administrator access is required');
     }
+    // Company modules cap every grant, including owners, old assignments and
+    // cached permissions. A role cannot enable a product the company lacks.
+    const allowed = companyPermissionKeys(request.tenantContext);
+    if (requiredPermissions?.some(permission => !allowed.has(permission))
+      || (anyOfPermissions?.length && !anyOfPermissions.some(permission => allowed.has(permission)))) {
+      throw new ForbiddenException('The required module is not enabled for this company');
+    }
     if (user.isSuperAdmin === true || user.isImpersonating) {
       return true;
     }
@@ -126,11 +137,11 @@ export class PermissionsGuard implements CanActivate {
     let userPermissions: string[] | null = null;
     const loadPermissions = async () => {
       if (userPermissions) return userPermissions;
-      userPermissions = await this.currentPermissions(
+      userPermissions = (await this.currentPermissions(
         request.tenantDb,
         user,
         request.tenantContext?.companyId || user.companyId,
-      );
+      )).filter(permission => allowed.has(permission));
       user.permissions = userPermissions;
       return userPermissions;
     };
