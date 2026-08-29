@@ -113,7 +113,18 @@ export class ReportsController {
     if (!report) throw new ForbiddenException('Report not found');
     requireReportPermission(user, report.workspace);
     if (!['csv', 'xls', 'pdf'].includes(format)) throw new BadRequestException('Format must be csv, xls, or pdf');
-    const file = await this.reportsService.exportReport(db, reportId, format as 'csv' | 'xls' | 'pdf', { startDate, endDate, entityId, projectId });
+    let branding: { companyName: string; companyAddress: string; companyPhone: string; companyEmail: string } | undefined;
+    if (format === 'pdf') {
+      const configRows: { key: string; value: string }[] = await db.systemConfig.findMany({ select: { key: true, value: true } });
+      const cfg = Object.fromEntries(configRows.map((r) => [r.key, r.value]));
+      branding = {
+        companyName: cfg.company_name || user.companyName || '',
+        companyAddress: cfg.company_address || '',
+        companyPhone: cfg.company_phone || '',
+        companyEmail: cfg.company_email || '',
+      };
+    }
+    const file = await this.reportsService.exportReport(db, reportId, format as 'csv' | 'xls' | 'pdf', { startDate, endDate, entityId, projectId }, branding);
     response?.setHeader('Content-Type', file.contentType);
     response?.setHeader('Content-Disposition', `attachment; filename="${file.filename}"`);
     return new StreamableFile(file.content);

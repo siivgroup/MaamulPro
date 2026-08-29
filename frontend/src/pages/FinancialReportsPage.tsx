@@ -7,7 +7,9 @@ import {
     money,
     shortDate,
 } from '../components/maamulpro/PageKit';
+import { ReportHeader } from '../components/maamulpro/ReportHeader';
 import { api } from '../lib/api';
+import { useBranding } from '../hooks/useBranding';
 
 // ── Types ────────────────────────────────────────────────────
 
@@ -572,25 +574,39 @@ type TabId = (typeof TABS)[number]['id'];
 export default function FinancialReportsPage() {
     const [tab, setTab] = useState<TabId>('trial-balance');
     const printRef = useRef<HTMLDivElement>(null);
+    const branding = useBranding();
 
     function handlePrint() {
+        const prev = document.title;
+        document.title = '';
         window.print();
+        setTimeout(() => { document.title = prev; }, 500);
     }
+
+    const activeTab = TABS.find((t) => t.id === tab);
 
     return (
         <AppShell>
-            <div className="p-5">
-                <PageHeader
-                    title="Financial Reports"
-                    actions={
-                        <button className="btn btn-outline-primary btn-sm" onClick={handlePrint}>
-                            Print / Export PDF
-                        </button>
-                    }
-                />
+            <style>{`
+                @media print {
+                    .print\\:hidden { display: none !important; }
+                    [class*="layout"], [class*="wrapper"] { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+                }
+            `}</style>
+            <div className="p-5 print:p-0">
+                <div className="print:hidden">
+                    <PageHeader
+                        title="Financial Reports"
+                        actions={
+                            <button className="btn btn-outline-primary btn-sm" onClick={handlePrint}>
+                                Print / Export PDF
+                            </button>
+                        }
+                    />
+                </div>
 
-                {/* Tabs */}
-                <div className="mb-5 border-b border-white-light dark:border-[#1b2e4b]">
+                {/* Tabs — hidden in print */}
+                <div className="mb-5 border-b border-white-light dark:border-[#1b2e4b] print:hidden">
                     <nav className="flex gap-1">
                         {TABS.map((t) => (
                             <button
@@ -609,10 +625,15 @@ export default function FinancialReportsPage() {
                 </div>
 
                 <div ref={printRef}>
+                    <ReportHeader branding={branding} title={activeTab?.label ?? 'Financial Report'} />
                     {tab === 'trial-balance' && <TrialBalanceTab />}
                     {tab === 'income-statement' && <IncomeStatementTab />}
                     {tab === 'balance-sheet' && <BalanceSheetTab />}
                     {tab === 'general-ledger' && <GeneralLedgerTab />}
+                    <div className="mt-8 flex justify-between border-t border-white-light pt-3 text-[10px] text-white-dark dark:border-[#1b2e4b] hidden print:flex">
+                        <span>{branding?.companyName || 'MaamulPro'} · Confidential</span>
+                        <span>Generated {new Date().toLocaleString()}</span>
+                    </div>
                 </div>
             </div>
         </AppShell>

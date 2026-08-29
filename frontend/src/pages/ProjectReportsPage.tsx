@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import AppShell from '../components/maamulpro/AppShell';
+import { AuthenticatedImage } from '../components/maamulpro/AuthenticatedImage';
 import { EmptyState, ErrorAlert, LoadingState, formatDescription, money, shortDate, StatusPill } from '../components/maamulpro/PageKit';
 import { api, sessionStore } from '../lib/api';
+import { useBranding } from '../hooks/useBranding';
 
 type ReportWorkspace = 'construction' | 'real_estate' | 'material_management' | 'payroll' | 'core';
 
@@ -206,6 +208,7 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
     const view = !entityId ? 'home' : !category ? 'overview' : !txnId ? 'category' : 'detail';
     const sessionUser = sessionStore.get()?.user;
     const generatedBy = sessionUser?.name || sessionUser?.email || 'User';
+    const branding = useBranding();
 
     const querySuffix = useMemo(() => {
         const params = new URLSearchParams();
@@ -266,7 +269,12 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
     const base = basePath.replace(/\/$/, '');
     const entityName = overview?.project.name || ledger?.project.name || detail?.project.name || entities.find((p) => p.id === entityId)?.name || cfg.entitySingular;
 
-    const printNow = () => window.print();
+    const printNow = () => {
+        const prev = document.title;
+        document.title = '';
+        window.print();
+        setTimeout(() => { document.title = prev; }, 500);
+    };
 
     const setDateRange = (nextStart: string, nextEnd: string) => {
         const params = new URLSearchParams(searchParams);
@@ -423,13 +431,13 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
         return (
             <div>
                 <button type="button" className="print:hidden btn btn-outline-secondary mb-3" onClick={() => navigate(base)}>← Back to {cfg.entityPlural}</button>
-                <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+                <div className="print:hidden mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                     <div>
                         <div className="text-xs font-bold uppercase tracking-[0.14em] text-primary">{cfg.overviewEyebrow}</div>
                         <h1 className="mt-1 text-2xl font-extrabold text-secondary dark:text-white sm:text-3xl">{p.name}</h1>
                         <p className="mt-1 text-sm text-white-dark">{p.location || '—'}</p>
                     </div>
-                    <button type="button" className="print:hidden btn btn-primary" onClick={printNow}>Print summary</button>
+                    <button type="button" className="btn btn-primary" onClick={printNow}>Print summary</button>
                 </div>
 
                 <div className="print:hidden mb-5 grid gap-3 rounded-xl border border-white-light bg-white p-4 sm:grid-cols-2 lg:grid-cols-5 dark:border-dark dark:bg-[#0e1726]">
@@ -441,21 +449,27 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
                 </div>
 
                 <div className="print-sheet mx-auto max-w-3xl rounded-2xl border border-white-light bg-white p-7 shadow-sm dark:border-dark dark:bg-[#0e1726]">
-                    <div className="flex items-start justify-between">
-                        <div className="w-16 text-[10px] leading-relaxed text-white-dark">
-                            {new Date(overview.generatedAt).toLocaleString()}
-                            <div className="italic">Accrual Basis</div>
+                    {/* Letterhead: branding left, report info right */}
+                    <div className="mb-5 flex items-start justify-between gap-6 border-b-2 border-secondary/20 pb-5 dark:border-white/20">
+                        <div className="flex min-w-0 items-center gap-3">
+                            {branding?.logoUrl && (
+                                <AuthenticatedImage src={branding.logoUrl} alt={branding.companyName || 'Logo'} className="h-14 w-auto max-w-[100px] flex-shrink-0 object-contain" />
+                            )}
+                            <div className="min-w-0">
+                                <div className="text-base font-extrabold text-secondary dark:text-white">{branding?.companyName || ''}</div>
+                                {branding?.companyAddress && <div className="mt-0.5 text-xs text-white-dark">{branding.companyAddress}</div>}
+                                {(branding?.companyPhone || branding?.companyEmail) && (
+                                    <div className="text-xs text-white-dark">{[branding.companyPhone, branding.companyEmail].filter(Boolean).join(' · ')}</div>
+                                )}
+                                <div className="mt-1 text-[10px] italic text-white-dark">Accrual Basis</div>
+                            </div>
                         </div>
-                        <div className="flex-1 text-center">
-                            <div className="text-sm font-extrabold tracking-wide text-secondary dark:text-white">MAAMULPRO</div>
-                            <div className="mt-1 text-lg font-bold text-secondary dark:text-white">{p.name} · Summary</div>
-                            <div className="mt-0.5 text-xs text-white-dark">All Transactions</div>
+                        <div className="flex-shrink-0 text-right">
+                            <div className="text-xl font-extrabold text-secondary dark:text-white">{p.name}</div>
+                            <div className="text-sm font-semibold text-primary">Summary Report</div>
+                            <div className="mt-1 font-mono text-xs text-white-dark">{periodLabel}</div>
+                            <div className="mt-0.5 text-[10px] text-white-dark">{new Date(overview.generatedAt).toLocaleString()}</div>
                         </div>
-                        <div className="w-16" />
-                    </div>
-                    <div className="mt-4 flex justify-between border-b-2 border-secondary pb-2 text-xs font-bold dark:border-white">
-                        <span />
-                        <span className="font-mono">{periodLabel}</span>
                     </div>
                     <div className="mt-2">
                         <div className="py-2 text-[13px] font-bold">Ordinary Income/Expense</div>
@@ -494,6 +508,10 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
                     <p className="print:hidden mt-5 text-center text-[11px] italic text-white-dark">
                         Click a category total or line to open its transaction register.
                     </p>
+                    <div className="mt-6 flex justify-between border-t border-white-light pt-3 text-[10px] text-white-dark dark:border-dark">
+                        <span>{branding?.companyName || 'MaamulPro'} · Confidential</span>
+                        <span>Generated {new Date().toLocaleString()}</span>
+                    </div>
                 </div>
             </div>
         );
@@ -517,13 +535,13 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
         return (
             <div>
                 <button type="button" className="print:hidden btn btn-outline-secondary mb-3" onClick={() => navigate(`${base}/${entityId}`)}>← Back to {ledger.project.name}</button>
-                <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+                <div className="print:hidden mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                     <div>
                         <div className="text-xs font-bold uppercase tracking-[0.14em] text-primary">{ledger.project.name}</div>
                         <h1 className="mt-1 text-2xl font-extrabold text-secondary dark:text-white sm:text-3xl">{meta.label}</h1>
                         <p className="mt-1 text-sm text-white-dark">{meta.desc} · {ledger.rows.length} entries · {money(ledger.total)} total</p>
                     </div>
-                    <button type="button" className="print:hidden btn btn-primary" onClick={printNow}>Print</button>
+                    <button type="button" className="btn btn-primary" onClick={printNow}>Print</button>
                 </div>
                 {ledger.filter && (
                     <div className="print:hidden mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm text-primary">
@@ -535,81 +553,95 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
                     <div className="panel"><EmptyState title={`No ${meta.label.toLowerCase()} entries`} description="Nothing recorded for this selection in the period." /></div>
                 ) : (
                     <div className="print-sheet mx-auto max-w-6xl rounded-2xl border border-white-light bg-white p-7 shadow-sm dark:border-dark dark:bg-[#0e1726]">
-                        <div className="mb-6 flex flex-col items-center border-b-2 border-secondary/50 pb-4 dark:border-white/50">
-                            <div className="text-sm font-extrabold tracking-wide text-secondary dark:text-white">MAAMULPRO</div>
-                            <div className="mt-1 text-lg font-bold text-secondary dark:text-white">Transaction Detail By Account</div>
-                            <div className="text-xs text-white-dark">All Transactions</div>
+                        <div className="mb-6 flex items-start justify-between gap-6 border-b-2 border-secondary/20 pb-5 dark:border-white/20">
+                            <div className="flex min-w-0 items-center gap-3">
+                                {branding?.logoUrl && (
+                                    <AuthenticatedImage src={branding.logoUrl} alt={branding.companyName || 'Logo'} className="h-12 w-auto max-w-[90px] flex-shrink-0 object-contain" />
+                                )}
+                                <div className="min-w-0">
+                                    <div className="text-base font-extrabold text-secondary dark:text-white">{branding?.companyName || 'Company'}</div>
+                                    {branding?.companyAddress && <div className="mt-0.5 text-xs text-white-dark">{branding.companyAddress}</div>}
+                                    {(branding?.companyPhone || branding?.companyEmail) && (
+                                        <div className="text-xs text-white-dark">{[branding.companyPhone, branding.companyEmail].filter(Boolean).join(' · ')}</div>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="flex-shrink-0 text-right">
+                                <div className="text-lg font-extrabold text-secondary dark:text-white">Transaction Detail</div>
+                                <div className="text-sm font-semibold text-primary">By Account</div>
+                                <div className="mt-1 text-xs text-white-dark">All Transactions</div>
+                                <div className="mt-0.5 text-[10px] text-white-dark">{new Date().toLocaleString()}</div>
+                            </div>
                         </div>
                         {groupedEntries.map(([groupName, rows]) => {
                             let runningBalance = 0;
                             return (
                                 <div key={groupName} className="mb-8 last:mb-0">
                                     <h3 className="mb-3 text-[13px] font-bold text-secondary dark:text-white">{meta.label} / {groupName}</h3>
-                                    <div className="overflow-hidden">
-                                        <div className="table-responsive">
-                                            <table className="table-hover text-[12px]">
-                                                <thead>
-                                                    <tr className="border-b border-secondary/20 dark:border-white/20">
-                                                        <th>Type</th>
-                                                        <th>Date</th>
-                                                        <th>Adj</th>
-                                                        <th>Name</th>
-                                                        <th>Memo</th>
-                                                        <th>Clr</th>
-                                                        <th>Split</th>
-                                                        <th className="text-right">Debit</th>
-                                                        <th className="text-right">Credit</th>
-                                                        <th className="text-right">Balance</th>
-                                                        <th className="print:hidden w-8" />
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {rows.map((row) => {
-                                                        const amount = Number(row.amount);
-                                                        // Use heuristics to define credit vs debit
-                                                        let debit = 0;
-                                                        let credit = 0;
-                                                        
-                                                        if (row.type === 'INCOME' || (workspace === 'real_estate' && category === 'rentals')) {
-                                                            credit = amount;
-                                                        } else {
-                                                            debit = amount;
-                                                        }
-                                                        
-                                                        runningBalance += debit - credit;
-
-                                                        const typeLabel = row.category === 'manpower' ? 'Labor' : row.category === 'materials' ? 'Material' : 'Expense';
-
-                                                        return (
-                                                            <tr key={row.id} className="cursor-pointer" onClick={() => navigate(`${base}/${entityId}/${category}/${row.id}`)}>
-                                                                <td className="whitespace-nowrap">{typeLabel}</td>
-                                                                <td className="whitespace-nowrap">{shortDate(row.date)}</td>
-                                                                <td></td>
-                                                                <td className="whitespace-nowrap font-medium">{cfg.secondaryValue(category, row) !== '—' ? cfg.secondaryValue(category, row) : row.enteredBy}</td>
-                                                                <td className="max-w-[200px] truncate">{row.description || row.notes || '—'}</td>
-                                                                <td></td>
-                                                                <td className="whitespace-nowrap">Cash / AP</td>
-                                                                <td className={`text-right ${amountClass}`}>{debit ? money(debit) : ''}</td>
-                                                                <td className={`text-right ${amountClass}`}>{credit ? money(credit) : ''}</td>
-                                                                <td className={`text-right ${amountClass}`}>{money(runningBalance)}</td>
-                                                                <td className="print:hidden text-white-dark">›</td>
-                                                            </tr>
-                                                        );
-                                                    })}
-                                                    <tr className="border-t-[3px] border-double border-secondary/30 font-bold dark:border-white/30">
-                                                        <td colSpan={7} className="text-right">Total {groupName}</td>
-                                                        <td className={`text-right ${amountClass}`}>{money(rows.reduce((s, r) => s + (r.type === 'INCOME' || (workspace === 'real_estate' && category === 'rentals') ? 0 : Number(r.amount)), 0))}</td>
-                                                        <td className={`text-right ${amountClass}`}>{money(rows.reduce((s, r) => s + (r.type === 'INCOME' || (workspace === 'real_estate' && category === 'rentals') ? Number(r.amount) : 0), 0))}</td>
-                                                        <td className={`text-right ${amountClass}`}>{money(runningBalance)}</td>
-                                                        <td className="print:hidden" />
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                    <div className="overflow-x-auto rounded-xl border border-white-light dark:border-[#1b2e4b]">
+                                        <table className="w-full text-[12px]">
+                                            <thead>
+                                                <tr className="bg-primary/8 dark:bg-primary/15">
+                                                    <th className="py-2.5 pl-3 pr-2 text-left text-[11px] font-bold uppercase tracking-wide text-primary/80 dark:text-primary/60">Type</th>
+                                                    <th className="py-2.5 px-2 text-left text-[11px] font-bold uppercase tracking-wide text-primary/80 dark:text-primary/60">Date</th>
+                                                    <th className="py-2.5 px-2 text-left text-[11px] font-bold uppercase tracking-wide text-primary/80 dark:text-primary/60">Name</th>
+                                                    <th className="py-2.5 px-2 text-left text-[11px] font-bold uppercase tracking-wide text-primary/80 dark:text-primary/60">Memo</th>
+                                                    <th className="py-2.5 px-2 text-left text-[11px] font-bold uppercase tracking-wide text-primary/80 dark:text-primary/60">Split</th>
+                                                    <th className="py-2.5 px-2 text-right text-[11px] font-bold uppercase tracking-wide text-primary/80 dark:text-primary/60">Debit</th>
+                                                    <th className="py-2.5 px-2 text-right text-[11px] font-bold uppercase tracking-wide text-primary/80 dark:text-primary/60">Credit</th>
+                                                    <th className="py-2.5 pl-2 pr-3 text-right text-[11px] font-bold uppercase tracking-wide text-primary/80 dark:text-primary/60">Balance</th>
+                                                    <th className="print:hidden w-6" />
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-white-light dark:divide-[#1b2e4b]">
+                                                {rows.map((row, idx) => {
+                                                    const amount = Number(row.amount);
+                                                    let debit = 0;
+                                                    let credit = 0;
+                                                    if (row.type === 'INCOME' || (workspace === 'real_estate' && category === 'rentals')) {
+                                                        credit = amount;
+                                                    } else {
+                                                        debit = amount;
+                                                    }
+                                                    runningBalance += debit - credit;
+                                                    const typeLabel = row.category === 'manpower' ? 'Labor' : row.category === 'materials' ? 'Material' : 'Expense';
+                                                    return (
+                                                        <tr
+                                                            key={row.id}
+                                                            className={`cursor-pointer transition-colors hover:bg-primary/5 dark:hover:bg-primary/10 ${idx % 2 === 1 ? 'bg-white-light/30 dark:bg-white/[0.02]' : ''}`}
+                                                            onClick={() => navigate(`${base}/${entityId}/${category}/${row.id}`)}
+                                                        >
+                                                            <td className="py-2 pl-3 pr-2 whitespace-nowrap">
+                                                                <span className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold ${debit ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'}`}>{typeLabel}</span>
+                                                            </td>
+                                                            <td className="py-2 px-2 whitespace-nowrap text-white-dark">{shortDate(row.date)}</td>
+                                                            <td className="py-2 px-2 whitespace-nowrap font-medium">{cfg.secondaryValue(category, row) !== '—' ? cfg.secondaryValue(category, row) : row.enteredBy}</td>
+                                                            <td className="py-2 px-2 max-w-[180px] truncate text-white-dark">{row.description || row.notes || '—'}</td>
+                                                            <td className="py-2 px-2 whitespace-nowrap text-white-dark">Cash / AP</td>
+                                                            <td className={`py-2 px-2 text-right ${amountClass} ${debit ? 'text-danger' : 'text-white-dark/30'}`}>{debit ? money(debit) : '—'}</td>
+                                                            <td className={`py-2 px-2 text-right ${amountClass} ${credit ? 'text-success' : 'text-white-dark/30'}`}>{credit ? money(credit) : '—'}</td>
+                                                            <td className={`py-2 pl-2 pr-3 text-right ${amountClass}`}>{money(runningBalance)}</td>
+                                                            <td className="print:hidden py-2 pr-2 text-white-dark/40 text-center">›</td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                                <tr className="bg-secondary/5 dark:bg-white/5">
+                                                    <td colSpan={5} className="py-2.5 pl-3 pr-2 text-right text-[11px] font-bold uppercase tracking-wide text-secondary dark:text-white">Total {groupName}</td>
+                                                    <td className={`py-2.5 px-2 text-right text-[11px] ${amountClass} text-danger`}>{money(rows.reduce((s, r) => s + (r.type === 'INCOME' || (workspace === 'real_estate' && category === 'rentals') ? 0 : Number(r.amount)), 0))}</td>
+                                                    <td className={`py-2.5 px-2 text-right text-[11px] ${amountClass} text-success`}>{money(rows.reduce((s, r) => s + (r.type === 'INCOME' || (workspace === 'real_estate' && category === 'rentals') ? Number(r.amount) : 0), 0))}</td>
+                                                    <td className={`py-2.5 pl-2 pr-3 text-right text-[11px] border-t-2 border-secondary/30 dark:border-white/30 ${amountClass}`}>{money(runningBalance)}</td>
+                                                    <td className="print:hidden" />
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             );
                         })}
+                        <div className="mt-6 flex justify-between border-t border-white-light pt-3 text-[10px] text-white-dark dark:border-dark">
+                            <span>{branding?.companyName || 'MaamulPro'} · Confidential</span>
+                            <span>Generated {new Date().toLocaleString()}</span>
+                        </div>
                     </div>
                 )}
             </div>
@@ -622,7 +654,7 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
         return (
             <div>
                 <button type="button" className="print:hidden btn btn-outline-secondary mb-3" onClick={() => navigate(`${base}/${entityId}/${detail.category}`)}>← Back to {detail.label}</button>
-                <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+                <div className="print:hidden mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                     <div>
                         <div className="text-xs font-bold uppercase tracking-[0.14em] text-primary">{detail.project.name} · {detail.label}</div>
                         <h1 className="mt-1 text-2xl font-extrabold text-secondary dark:text-white sm:text-3xl">Transaction detail</h1>
@@ -630,14 +662,19 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
                             {t.worker || t.item || t.description || detail.label} · {shortDate(t.date)}
                         </p>
                     </div>
-                    <button type="button" className="print:hidden btn btn-primary" onClick={printNow}>Print voucher</button>
+                    <button type="button" className="btn btn-primary" onClick={printNow}>Print voucher</button>
                 </div>
 
                 <div className="print-sheet mx-auto max-w-xl overflow-hidden rounded-2xl border border-white-light bg-white shadow-sm dark:border-dark dark:bg-[#0e1726]">
                     <div className="flex items-start justify-between bg-secondary/90 px-7 py-6 text-white">
-                        <div>
-                            <div className="text-sm font-bold">MAAMULPRO — Transaction Voucher</div>
-                            <div className="mt-1 text-xs text-white/70">{detail.project.name} · {detail.label}</div>
+                        <div className="flex items-center gap-3">
+                            {branding?.logoUrl && (
+                                <AuthenticatedImage src={branding.logoUrl} alt={branding.companyName || 'Logo'} className="h-8 w-auto max-w-[70px] flex-shrink-0 object-contain opacity-90" />
+                            )}
+                            <div>
+                                <div className="text-sm font-bold">{branding?.companyName || 'Company'} — Transaction Voucher</div>
+                                <div className="mt-1 text-xs text-white/70">{detail.project.name} · {detail.label}</div>
+                            </div>
                         </div>
                         <div className="text-right text-xs text-primary/90">{shortDate(t.date)}</div>
                     </div>
@@ -665,7 +702,7 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
                         </div>
                         <div className="mt-6 flex justify-between border-t border-white-light pt-3 text-[10px] text-white-dark dark:border-dark">
                             <span>Generated by {generatedBy}</span>
-                            <span>MaamulPro Reports</span>
+                            <span>{branding?.companyName || 'MaamulPro'} Reports</span>
                         </div>
                     </div>
                 </div>
@@ -677,9 +714,8 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
         <AppShell>
             <style>{`
                 @media print {
-                    aside, header, .main-header, .sidebar, nav, .print\\:hidden { display: none !important; }
-                    .main-content, main, .content { margin: 0 !important; padding: 0 !important; width: 100% !important; }
-                    .print-sheet { box-shadow: none !important; border: none !important; max-width: 100% !important; }
+                    .print\\:hidden { display: none !important; }
+                    [class*="layout"], [class*="wrapper"] { margin: 0 !important; padding: 0 !important; width: 100% !important; }
                 }
             `}</style>
             {stepper}

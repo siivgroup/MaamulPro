@@ -64,12 +64,13 @@ export class ReportsService {
     reportId: string,
     format: 'csv' | 'xls' | 'pdf',
     query: { startDate?: string; endDate?: string; entityId?: string; projectId?: string },
+    branding?: { companyName: string; companyAddress: string; companyPhone: string; companyEmail: string },
   ) {
     const result = await this.runReport(db, reportId, query);
     const stamp = new Date().toISOString().slice(0, 10);
     if (format === 'csv') return { filename: `${reportId}-${stamp}.csv`, contentType: 'text/csv; charset=utf-8', content: Buffer.from(this.reportCsv(result), 'utf8') };
     if (format === 'xls') return { filename: `${reportId}-${stamp}.xls`, contentType: 'application/vnd.ms-excel; charset=utf-8', content: Buffer.from(this.reportSpreadsheetXml(result), 'utf8') };
-    return { filename: `${reportId}-${stamp}.pdf`, contentType: 'application/pdf', content: this.reportPdf(result) };
+    return { filename: `${reportId}-${stamp}.pdf`, contentType: 'application/pdf', content: this.reportPdf(result, branding) };
   }
 
   reportCsv(result: { report: { title: string }; summary: any; rows: any[] }) {
@@ -89,8 +90,31 @@ export class ReportsService {
     return `<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Worksheet ss:Name="Report"><Table>${row([result.report.title])}${row([])}${row(['Metric', 'Value'])}${Object.entries(result.summary).map(([key, value]) => row([key, value])).join('')}${row([])}${row(columns)}${result.rows.map((item) => row(columns.map((column) => item[column]))).join('')}</Table></Worksheet></Workbook>`;
   }
 
-  private reportPdf(result: { report: { title: string }; summary: any; rows: any[] }) {
-    const lines = [result.report.title, '', ...Object.entries(result.summary).map(([key, value]) => `${key}: ${this.exportValue(value)}`), '', ...result.rows.slice(0, 35).map((row) => Object.values(row).slice(0, 5).map((value) => this.exportValue(value)).join(' | '))];
+  private reportPdf(
+    result: { report: { title: string }; summary: any; rows: any[] },
+    branding?: { companyName: string; companyAddress: string; companyPhone: string; companyEmail: string },
+  ) {
+    const sep = '-'.repeat(72);
+    const brandLines: string[] = [];
+    if (branding?.companyName) brandLines.push(branding.companyName);
+    if (branding?.companyAddress) brandLines.push(branding.companyAddress);
+    const contact = [branding?.companyPhone, branding?.companyEmail].filter(Boolean).join('  |  ');
+    if (contact) brandLines.push(contact);
+    if (brandLines.length) brandLines.push(sep);
+
+    const lines = [
+      ...brandLines,
+      result.report.title,
+      `Generated: ${new Date().toLocaleDateString()}`,
+      sep,
+      'SUMMARY',
+      ...Object.entries(result.summary).map(([key, value]) => `  ${key}: ${this.exportValue(value)}`),
+      sep,
+      'DATA',
+      ...result.rows.slice(0, 30).map((row) => Object.values(row).slice(0, 5).map((value) => this.exportValue(value)).join(' | ')),
+      sep,
+      branding?.companyName ? `${branding.companyName} - Confidential` : 'Confidential',
+    ];
     const escaped = lines.map((line) => line.replace(/[^\x20-\x7E]/g, '?').replace(/([\\()])/g, '\\$1'));
     const content = `BT /F1 10 Tf 40 760 Td 14 TL ${escaped.map((line, index) => `${index ? 'T* ' : ''}(${line.slice(0, 110)}) Tj`).join(' ')} ET`;
     const objects = [

@@ -181,8 +181,8 @@ const Sidebar = () => {
                 <div className="h-full bg-white dark:bg-black">
                     <div className="flex items-center justify-between px-4 py-3">
                         <NavLink className="main-logo flex shrink-0 items-center" to={home}>
-                            <img alt="MaamulPro" className="ml-[5px] w-8 flex-none" src="/assets/images/logo.svg" />
-                            {!collapsed && <span className="ml-1.5 text-2xl font-semibold align-middle dark:text-white-light">MaamulPro</span>}
+                            <img alt={session?.user.companyName || 'MaamulPro'} className="ml-[5px] w-8 flex-none" src="/assets/images/logo.svg" />
+                            {!collapsed && <span className="ml-1.5 text-2xl font-semibold align-middle dark:text-white-light">{session?.user.companyName || 'MaamulPro'}</span>}
                         </NavLink>
                         <button className="collapse-icon flex h-8 w-8 rounded-full transition duration-300 hover:bg-gray-500/10 dark:text-white-light dark:hover:bg-dark-light/10" onClick={() => dispatch(toggleSidebar())} type="button">
                             <IconCaretsDown className="m-auto rotate-90" />
