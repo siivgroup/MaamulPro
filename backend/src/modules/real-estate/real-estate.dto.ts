@@ -20,7 +20,7 @@ export class DealDto {
   @IsString() clientId: string;
   @IsIn(['SALE', 'RENTAL']) type: string;
   @IsOptional() @IsIn(['PAID', 'PARTIAL', 'PENDING', 'OVERDUE', 'REFUNDED']) paymentStatus?: string;
-  @Type(() => Number) @IsNumber() @Min(0) totalAmount: number;
+  @Type(() => Number) @IsNumber() @Min(0.01) totalAmount: number;
   @IsOptional() @Type(() => Number) @IsNumber() @Min(0) paidAmount?: number;
   @IsOptional() @IsString() @MaxLength(2000) notes?: string;
   @IsOptional() @Type(() => Date) @IsDate() closedAt?: Date;
@@ -39,7 +39,7 @@ export class TenantDto {
 export class RentalContractDto {
   @IsString() tenantId: string;
   @IsString() propertyId: string;
-  @Type(() => Number) @IsNumber() @Min(0) monthlyRent: number;
+  @Type(() => Number) @IsNumber() @Min(0.01) monthlyRent: number;
   @Type(() => Date) @IsDate() startDate: Date;
   @Type(() => Date) @IsDate() endDate: Date;
   @IsOptional() @Type(() => Date) @IsDate() renewalDate?: Date;
@@ -56,7 +56,7 @@ export class RentPaymentDto {
   @IsOptional() @IsString() contractId?: string;
   @Type(() => Date) @IsDate() dueDate: Date;
   @IsOptional() @Type(() => Date) @IsDate() paidDate?: Date;
-  @Type(() => Number) @IsNumber() @Min(0) amountDue: number;
+  @Type(() => Number) @IsNumber() @Min(0.01) amountDue: number;
   @IsOptional() @Type(() => Number) @IsNumber() @Min(0) amountPaid?: number;
   @IsOptional() @IsIn(['PAID', 'UNPAID', 'LATE', 'PARTIAL']) status?: string;
   @IsOptional() @IsString() @MaxLength(120) receiptNo?: string;

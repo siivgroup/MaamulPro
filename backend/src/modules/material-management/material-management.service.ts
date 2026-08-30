@@ -159,6 +159,15 @@ export class MaterialManagementService {
       });
       if (!order) throw new NotFoundException('Purchase order not found');
       if (order.status === status) return order;
+      const allowed: Record<string, string[]> = {
+        DRAFT: ['ORDERED', 'RECEIVED', 'CANCELLED'],
+        ORDERED: ['RECEIVED', 'CANCELLED'],
+        RECEIVED: [],
+        CANCELLED: ['DRAFT'],
+      };
+      if (!allowed[order.status]?.includes(status)) {
+        throw new BadRequestException(`Cannot transition purchase order from ${order.status} to ${status}`);
+      }
 
       // Claim the transition before changing stock. The version predicate
       // prevents two requests from receiving the same order twice.
@@ -453,6 +462,16 @@ export class MaterialManagementService {
         include: { items: { include: { material: true } } },
       });
       if (!existing) throw new NotFoundException('Transportation record not found');
+      if (existing.status === status) return existing;
+      const allowed: Record<string, string[]> = {
+        PENDING: ['IN_TRANSIT', 'DELIVERED', 'CANCELLED'],
+        IN_TRANSIT: ['DELIVERED', 'CANCELLED'],
+        DELIVERED: [],
+        CANCELLED: [],
+      };
+      if (!allowed[existing.status]?.includes(status)) {
+        throw new BadRequestException(`Cannot transition delivery from ${existing.status} to ${status}`);
+      }
       const record = await tx.transportationRecord.update({
         where: { id },
         data: {

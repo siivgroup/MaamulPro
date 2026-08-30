@@ -384,7 +384,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
                         if (f.type === 'number') return [f.name, v === '' ? undefined : Number(v)];
                         return [f.name, v === '' ? undefined : v];
                     }));
-                    const created = await api<Record<string, any>>(cfg.endpoint || inlineCreate.field.lookup!.endpoint, { method: 'POST', body: JSON.stringify(payload), silent: true });
+                    const created = await api<Record<string, any>>(cfg.endpoint || inlineCreate.field.lookup!.endpoint.replace(/\/options$/, ''), { method: 'POST', body: JSON.stringify(payload), silent: true });
                     const { options } = await refreshLookup(inlineCreate.field);
                     const newId = String(created[inlineCreate.field.lookup!.valueKey || 'id']);
                     const target = inlineCreate.field.name;

@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import {
   DealDto,
   PropertyDto,
@@ -11,21 +11,12 @@ import { AccountingService } from '../accounting/accounting.service';
 
 @Injectable()
 export class RealEstateService {
-  private readonly logger = new Logger(RealEstateService.name);
   constructor(
     private readonly entitlements: SubscriptionEntitlementService,
     private readonly accounting: AccountingService,
   ) {}
 
-  // See material-management for the rationale — a ledger post that
-  // fails must not block the source-record write, so wrap in try/catch
-  // and log. Missing default accounts are the most common cause.
-  private async safePost(fn: () => Promise<unknown>) {
-    try { await fn(); } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      this.logger.warn(`Journal post skipped: ${message}`);
-    }
-  }
+  // Financial source records and journal entries commit atomically.
   getProperties(tenantDb: any, query?: { type?: string; status?: string; search?: string }) {
     const where: any = { deletedAt: null };
     if (query?.type) where.type = query.type;
@@ -201,7 +192,7 @@ export class RealEstateService {
         where: { dealId: id, deletedAt: null },
         data: { deletedAt: new Date(), version: { increment: 1 } },
       });
-      await this.safePost(() => this.accounting.retractPriorForSource(tx, 'DEAL', id));
+      await this.accounting.retractPriorForSource(tx, 'DEAL', id);
       await this.syncDealPropertyStatus(tx, deal.propertyId);
       return { deleted: true };
     });
@@ -511,9 +502,9 @@ export class RealEstateService {
         where: { referenceId: { startsWith: `rentpayment:${id}:` }, deletedAt: null },
         data: { deletedAt: new Date(), version: { increment: 1 } },
       });
-      await this.safePost(() => this.accounting.retractPriorForSource(tx, 'RENT_INVOICE', id));
-      await this.safePost(() => this.accounting.retractPriorForSource(tx, 'RENT_RECEIPT', id));
-      await this.safePost(() => this.accounting.retractPriorForSource(tx, 'RENT_PAYMENT', id));
+      await this.accounting.retractPriorForSource(tx, 'RENT_INVOICE', id);
+      await this.accounting.retractPriorForSource(tx, 'RENT_RECEIPT', id);
+      await this.accounting.retractPriorForSource(tx, 'RENT_PAYMENT', id);
       return { deleted: true };
     });
   }
@@ -547,7 +538,7 @@ export class RealEstateService {
 
   private async claimAvailableProperty(tx: any, propertyId: string) {
     const property = await this.lockPropertyRow(tx, propertyId);
-    if (['SOLD', 'RENTED'].includes(property.status)) {
+    if (property.status !== 'AVAILABLE') {
       throw new ConflictException('Property is not available for a new deal');
     }
   }
@@ -598,7 +589,7 @@ export class RealEstateService {
       where: { dealId: deal.id, deletedAt: null },
       data: { deletedAt: new Date(), version: { increment: 1 } },
     });
-    await this.safePost(() => this.accounting.retractPriorForSource(tx, 'DEAL', deal.id));
+    await this.accounting.retractPriorForSource(tx, 'DEAL', deal.id);
     if (deal.paymentStatus === 'REFUNDED' || Number(deal.totalAmount) <= 0) return;
 
     const fullDeal = await tx.deal.findUnique({
@@ -627,8 +618,7 @@ export class RealEstateService {
           propertyId: deal.propertyId,
         },
       });
-      await this.safePost(() =>
-        this.accounting.postFinancialEvent(tx, {
+      await this.accounting.postFinancialEvent(tx, {
           tx, tenantId: 'system',
           sourceType: 'DEAL',
           sourceId: deal.id,
@@ -637,8 +627,7 @@ export class RealEstateService {
           drKey: isRental ? 'RENTAL_RECEIPT_CASH' : 'DEAL_SALE_CASH',
           crKey: isRental ? 'RENTAL_INVOICE_REVENUE' : 'DEAL_SALE_REVENUE',
           amount: paid,
-        }),
-      );
+        });
     }
     if (total - paid > 0) {
       await tx.transaction.create({
@@ -652,8 +641,7 @@ export class RealEstateService {
           propertyId: deal.propertyId,
         },
       });
-      await this.safePost(() =>
-        this.accounting.postFinancialEvent(tx, {
+      await this.accounting.postFinancialEvent(tx, {
           tx, tenantId: 'system',
           sourceType: 'DEAL',
           sourceId: deal.id,
@@ -662,8 +650,7 @@ export class RealEstateService {
           drKey: isRental ? 'RENTAL_INVOICE_AR' : 'SALES_INVOICE_AR',
           crKey: isRental ? 'RENTAL_INVOICE_REVENUE' : 'DEAL_SALE_REVENUE',
           amount: total - paid,
-        }),
-      );
+        });
     }
   }
 
@@ -687,10 +674,10 @@ export class RealEstateService {
       data: { deletedAt: new Date(), version: { increment: 1 } },
     });
     // Accrual: keep invoice (AR/Revenue for full due) separate from receipt (Cash/AR for paid)
-    await this.safePost(() => this.accounting.retractPriorForSource(tx, 'RENT_INVOICE', payment.id));
-    await this.safePost(() => this.accounting.retractPriorForSource(tx, 'RENT_RECEIPT', payment.id));
+    await this.accounting.retractPriorForSource(tx, 'RENT_INVOICE', payment.id);
+    await this.accounting.retractPriorForSource(tx, 'RENT_RECEIPT', payment.id);
     // Legacy source key used by older posts
-    await this.safePost(() => this.accounting.retractPriorForSource(tx, 'RENT_PAYMENT', payment.id));
+    await this.accounting.retractPriorForSource(tx, 'RENT_PAYMENT', payment.id);
 
     const contract = payment.contractId
       ? await tx.rentalContract.findUnique({
@@ -708,8 +695,7 @@ export class RealEstateService {
     const due = Number(payment.amountDue);
 
     if (due > 0) {
-      await this.safePost(() =>
-        this.accounting.postFinancialEvent(tx, {
+      await this.accounting.postFinancialEvent(tx, {
           tx, tenantId: 'system',
           sourceType: 'RENT_INVOICE',
           sourceId: payment.id,
@@ -719,8 +705,7 @@ export class RealEstateService {
           drKey: 'RENTAL_INVOICE_AR',
           crKey: 'RENTAL_INVOICE_REVENUE',
           amount: due,
-        }),
-      );
+        });
     }
 
     if (paid > 0) {
@@ -735,8 +720,7 @@ export class RealEstateService {
           propertyId,
         },
       });
-      await this.safePost(() =>
-        this.accounting.postFinancialEvent(tx, {
+      await this.accounting.postFinancialEvent(tx, {
           tx, tenantId: 'system',
           sourceType: 'RENT_RECEIPT',
           sourceId: payment.id,
@@ -746,8 +730,7 @@ export class RealEstateService {
           drKey: 'RENTAL_RECEIPT_CASH',
           crKey: 'RENTAL_RECEIPT_AR',
           amount: paid,
-        }),
-      );
+        });
     }
   }
 }

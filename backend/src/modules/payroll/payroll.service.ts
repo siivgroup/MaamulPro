@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { PayrollItemDto, PayrollTransitionDto, SavePayrollDto } from './dto/payroll.dto';
 import { AccountingService } from '../accounting/accounting.service';
 import { AccountMappingsService } from '../accounting/account-mappings.service';
@@ -9,8 +9,6 @@ const roundToCents = (n: number): number => Math.round(n * 100) / 100;
 
 @Injectable()
 export class PayrollService {
-  private readonly logger = new Logger(PayrollService.name);
-
   constructor(
     private readonly accounting: AccountingService,
     private readonly mappings: AccountMappingsService,
@@ -22,13 +20,6 @@ export class PayrollService {
     if (['COMPANY_OWNER', 'SUPER_ADMIN'].includes(approver.role)) return;
     if (approver.approvalLimit != null && amount > Number(approver.approvalLimit)) {
       throw new BadRequestException(`Payroll total exceeds your approval limit of ${Number(approver.approvalLimit).toFixed(2)}`);
-    }
-  }
-
-  private async safePost(fn: () => Promise<unknown>) {
-    try { await fn(); } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      this.logger.warn(`Journal post skipped: ${message}`);
     }
   }
 
@@ -67,42 +58,40 @@ export class PayrollService {
       },
     });
 
-    await this.safePost(async () => {
-      await this.accounting.retractPriorForSource(tx, 'PAYROLL', payroll.id, userId);
-      const resolved = await this.mappings.resolveMany(tx, [
-        'PAYROLL_EXPENSE',
-        'PAYROLL_CASH',
-        'PAYROLL_TAX_PAYABLE',
-        'PAYROLL_DEDUCTIONS_PAYABLE',
-      ]);
-      // Honor an explicit cash/payout account when one is supplied; fall back
-      // to the PAYROLL_CASH mapping otherwise.
-      const cashCode = cashAccountCode || resolved.PAYROLL_CASH;
-      const expenseCode = payroll.expenseAccountCode || resolved.PAYROLL_EXPENSE;
-      const expenseAmount = gross > 0 ? gross : net;
-      const lines: { accountCode: string; debit: number; credit: number }[] = [
-        { accountCode: expenseCode, debit: expenseAmount, credit: 0 },
-      ];
-      if (net > 0) lines.push({ accountCode: cashCode, debit: 0, credit: net });
-      if (tax > 0) lines.push({ accountCode: resolved.PAYROLL_TAX_PAYABLE, debit: 0, credit: tax });
-      if (deductions > 0) lines.push({ accountCode: resolved.PAYROLL_DEDUCTIONS_PAYABLE, debit: 0, credit: deductions });
-      // If withholdings weren't broken out, credit cash for the full expense.
-      if (lines.length === 1) {
-        lines.push({ accountCode: cashCode, debit: 0, credit: expenseAmount });
-      }
-      await this.accounting.postJournalBatch(tx, {
-        tenantId: 'system',
-        userId,
-        tx,
-        dto: {
-          date: paymentDate,
-          memo: description,
-          sourceType: 'PAYROLL',
-          sourceId: payroll.id,
-          sourceRef: `PAYROLL-${payroll.id}`,
-          lines,
-        },
-      });
+    await this.accounting.retractPriorForSource(tx, 'PAYROLL', payroll.id, userId);
+    const resolved = await this.mappings.resolveMany(tx, [
+      'PAYROLL_EXPENSE',
+      'PAYROLL_CASH',
+      'PAYROLL_TAX_PAYABLE',
+      'PAYROLL_DEDUCTIONS_PAYABLE',
+    ]);
+    // Honor an explicit cash/payout account when one is supplied; fall back
+    // to the PAYROLL_CASH mapping otherwise.
+    const cashCode = cashAccountCode || resolved.PAYROLL_CASH;
+    const expenseCode = payroll.expenseAccountCode || resolved.PAYROLL_EXPENSE;
+    const expenseAmount = gross > 0 ? gross : net;
+    const lines: { accountCode: string; debit: number; credit: number }[] = [
+      { accountCode: expenseCode, debit: expenseAmount, credit: 0 },
+    ];
+    if (net > 0) lines.push({ accountCode: cashCode, debit: 0, credit: net });
+    if (tax > 0) lines.push({ accountCode: resolved.PAYROLL_TAX_PAYABLE, debit: 0, credit: tax });
+    if (deductions > 0) lines.push({ accountCode: resolved.PAYROLL_DEDUCTIONS_PAYABLE, debit: 0, credit: deductions });
+    // If withholdings weren't broken out, credit cash for the full expense.
+    if (lines.length === 1) {
+      lines.push({ accountCode: cashCode, debit: 0, credit: expenseAmount });
+    }
+    await this.accounting.postJournalBatch(tx, {
+      tenantId: 'system',
+      userId,
+      tx,
+      dto: {
+        date: paymentDate,
+        memo: description,
+        sourceType: 'PAYROLL',
+        sourceId: payroll.id,
+        sourceRef: `PAYROLL-${payroll.id}`,
+        lines,
+      },
     });
   }
 

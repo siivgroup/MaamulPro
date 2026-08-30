@@ -16,8 +16,27 @@ test('money and inventory workflows keep database-backed concurrency controls', 
   assert.match(materials, /quantity: \{ gte: quantity \}/);
   assert.match(materials, /quantity: \{ increment: direction \* quantity \}/);
   assert.match(materials, /Insufficient stock/i);
+  assert.match(materials, /DRAFT: \['ORDERED', 'RECEIVED', 'CANCELLED'\]/);
+  assert.match(materials, /PENDING: \['IN_TRANSIT', 'DELIVERED', 'CANCELLED'\]/);
   assert.match(rentals, /FOR UPDATE/);
   assert.match(rentals, /concurrent claims on the same property serialize/);
+  assert.match(rentals, /property\.status !== 'AVAILABLE'/);
+});
+
+test('real-estate financial documents require positive amounts', async () => {
+  const dto = await read('../src/modules/real-estate/real-estate.dto.ts');
+  assert.match(dto, /@Min\(0\.01\) totalAmount: number/);
+  assert.match(dto, /@Min\(0\.01\) monthlyRent: number/);
+  assert.match(dto, /@Min\(0\.01\) amountDue: number/);
+});
+
+test('real-estate and payroll never swallow accounting failures', async () => {
+  const [realEstate, payroll] = await Promise.all([
+    read('../src/modules/real-estate/real-estate.service.ts'),
+    read('../src/modules/payroll/payroll.service.ts'),
+  ]);
+  assert.doesNotMatch(realEstate, /safePost/);
+  assert.doesNotMatch(payroll, /safePost/);
 });
 
 import { createRequire } from 'node:module';

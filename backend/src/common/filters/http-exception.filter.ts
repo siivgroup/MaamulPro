@@ -17,10 +17,17 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
+    const databaseCode = typeof exception === 'object' && exception !== null ? String((exception as any).code || '') : '';
+    const uniqueConflict = databaseCode === 'P2002' || databaseCode === '23505';
+    const missingRelation = databaseCode === 'P2003' || databaseCode === '23503';
+    const missingRecord = databaseCode === 'P2025';
 
     const status =
       exception instanceof SetupError ? HttpStatus.SERVICE_UNAVAILABLE : exception instanceof HttpException
         ? exception.getStatus()
+        : uniqueConflict ? HttpStatus.CONFLICT
+        : missingRelation ? HttpStatus.BAD_REQUEST
+        : missingRecord ? HttpStatus.NOT_FOUND
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
     const exceptionResponse =
@@ -28,7 +35,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         ? exception.getResponse()
         : null;
 
-    let message = 'Internal server error';
+    let message = uniqueConflict
+      ? 'A record with these unique details already exists'
+      : missingRelation ? 'A referenced record does not exist'
+      : missingRecord ? 'Record not found'
+      : 'Internal server error';
     let errors: any = null;
     const metadata: Record<string, unknown> = {};
 
@@ -41,7 +52,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       for (const key of ['code', 'stage', 'retryable', 'nextAction', 'onboardingId']) {
         if (resObj[key] !== undefined) metadata[key] = resObj[key];
       }
-    } else if (process.env.NODE_ENV !== 'production' && exception instanceof Error) {
+    } else if (!uniqueConflict && !missingRelation && !missingRecord && process.env.NODE_ENV !== 'production' && exception instanceof Error) {
       message = exception.message;
     }
 
