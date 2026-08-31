@@ -55,8 +55,7 @@ module.exports = {
                 },
             },
             fontFamily: {
-                nunito: ['Plus Jakarta Sans', 'sans-serif'],
-                'plus-jakarta-sans': ['Plus Jakarta Sans', 'sans-serif'],
+                montserrat: ['Montserrat', 'sans-serif'],
             },
             spacing: {
                 4.5: '18px',
