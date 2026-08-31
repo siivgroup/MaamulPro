@@ -41,6 +41,11 @@ export const constructionMaterialFields: CrudField[] = [
     { name: 'photoUrl', label: 'Material image (Optional)', type: 'image', uploadFolder: 'materials' },
 ];
 
+const outsideWorkerQuickFields: CrudField[] = [
+    { name: 'name', label: 'Worker name', required: true, placeholder: 'Ahmed Cali' },
+    { name: 'phone', label: 'Phone' },
+];
+
 export const expenseFields: CrudField[] = [
     { name: 'amount', label: 'Amount', type: 'number', required: true, placeholder: '1500' },
     { name: 'description', label: 'Description', required: true, placeholder: 'Iibsiga sibidhka goobta' },
@@ -48,4 +53,5 @@ export const expenseFields: CrudField[] = [
     { name: 'date', label: 'Date', type: 'date' },
     { name: 'projectId', label: 'Project', lookup: { endpoint: '/api/construction/projects/options', labelKeys: ['name'], create: { fields: projectQuickFields, permission: 'projects.create' } } },
     { name: 'staffId', label: 'Staff member', lookup: { endpoint: '/api/staff/options', labelKeys: ['firstName', 'lastName'] }, hideWhen: (form) => form.category === 'UNSKILLED_LABOR' },
+    { name: 'outsideWorkerId', label: 'Outside worker', hint: 'Daily/outside worker for this project.', lookup: { endpoint: '/api/construction/outside-workers/options', labelKeys: ['name'], create: { fields: outsideWorkerQuickFields, endpoint: '/api/construction/outside-workers', permission: 'construction_expenses.create' } }, hideWhen: (form) => form.category !== 'UNSKILLED_LABOR' },
 ];

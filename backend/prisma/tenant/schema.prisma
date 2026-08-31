@@ -1043,23 +1043,42 @@ model DailyOperationalExpense {
   amount          Decimal  @db.Decimal(12, 2)
   description     String
   category        String   @default("OTHER")
+  outsideWorkerId String?  @map("outside_worker_id")
   date            DateTime @default(now())
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  staff        Staff?   @relation(fields: [staffId], references: [id], onDelete: SetNull)
-  project      Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  recordedBy   User?    @relation("ExpenseRecorder", fields: [recordedByUserId], references: [id], onDelete: SetNull)
+  staff         Staff?         @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  project       Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  recordedBy    User?          @relation("ExpenseRecorder", fields: [recordedByUserId], references: [id], onDelete: SetNull)
+  outsideWorker OutsideWorker? @relation(fields: [outsideWorkerId], references: [id], onDelete: SetNull)
 
   @@index([staffId])
   @@index([projectId])
   @@index([recordedByUserId])
+  @@index([outsideWorkerId])
   @@index([date])
   @@index([category])
   @@index([deletedAt, projectId, date])
   @@map("daily_operational_expenses")
+}
+
+model OutsideWorker {
+  id    String  @id @default(cuid())
+  name  String
+  phone String?
+  notes String?
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  dailyExpenses DailyOperationalExpense[]
+
+  @@index([deletedAt])
+  @@map("outside_workers")
 }
 
 model WorkerLedgerEntry {

@@ -38,6 +38,13 @@ export class DailyExpenseDto {
   @IsOptional() @Type(() => Date) @IsDate() date?: Date;
   @IsOptional() @IsString() staffId?: string;
   @IsOptional() @IsString() projectId?: string;
+  @IsOptional() @IsString() outsideWorkerId?: string;
+}
+
+export class OutsideWorkerDto {
+  @IsString() @MaxLength(200) name: string;
+  @IsOptional() @IsString() @MaxLength(40) phone?: string;
+  @IsOptional() @IsString() @MaxLength(1000) notes?: string;
 }
 
 export class WorkerLedgerDto {

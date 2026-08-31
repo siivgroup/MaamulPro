@@ -87,6 +87,7 @@ export const ModelName = {
   TransportationItem: 'TransportationItem',
   WorkerType: 'WorkerType',
   DailyOperationalExpense: 'DailyOperationalExpense',
+  OutsideWorker: 'OutsideWorker',
   WorkerLedgerEntry: 'WorkerLedgerEntry',
   Property: 'Property',
   Deal: 'Deal',
@@ -707,6 +708,7 @@ export const DailyOperationalExpenseScalarFieldEnum = {
   amount: 'amount',
   description: 'description',
   category: 'category',
+  outsideWorkerId: 'outsideWorkerId',
   date: 'date',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -714,6 +716,19 @@ export const DailyOperationalExpenseScalarFieldEnum = {
 } as const
 
 export type DailyOperationalExpenseScalarFieldEnum = (typeof DailyOperationalExpenseScalarFieldEnum)[keyof typeof DailyOperationalExpenseScalarFieldEnum]
+
+
+export const OutsideWorkerScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  phone: 'phone',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type OutsideWorkerScalarFieldEnum = (typeof OutsideWorkerScalarFieldEnum)[keyof typeof OutsideWorkerScalarFieldEnum]
 
 
 export const WorkerLedgerEntryScalarFieldEnum = {

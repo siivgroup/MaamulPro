@@ -11,7 +11,7 @@
 import { Pool } from "pg";
 import { connectionTimeoutMillis, getDatabaseConnectionPair } from "./database-url";
 
-export const CURRENT_TENANT_SCHEMA_VERSION = 24;
+export const CURRENT_TENANT_SCHEMA_VERSION = 25;
 
 export const TENANT_SCHEMA_STATEMENTS: string[] = [
   // ── Enum types ─────────────────────────────────────────────
@@ -537,7 +537,18 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
     "amount" DECIMAL(12,2) NOT NULL,
     "description" TEXT NOT NULL,
     "category" TEXT NOT NULL DEFAULT 'OTHER',
+    "outside_worker_id" TEXT,
     "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "outside_workers" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "phone" TEXT,
+    "notes" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at" TIMESTAMP(3)
@@ -1657,6 +1668,24 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
       FOREIGN KEY ("supplier_id") REFERENCES "suppliers"("id") ON DELETE SET NULL;
   EXCEPTION WHEN duplicate_object THEN null; END $$`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "construction_inventory_transactions_source_ref_key" ON "construction_inventory_transactions"("source_ref")`,
+
+  // ── Unskilled labor outside worker (v25) ───────────────────────
+  `CREATE TABLE IF NOT EXISTS "outside_workers" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "phone" TEXT,
+    "notes" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" TIMESTAMP(3)
+  )`,
+  `ALTER TABLE "daily_operational_expenses" ADD COLUMN IF NOT EXISTS "outside_worker_id" TEXT`,
+  `DO $$ BEGIN
+    ALTER TABLE "daily_operational_expenses" ADD CONSTRAINT "daily_operational_expenses_outside_worker_id_fkey"
+      FOREIGN KEY ("outside_worker_id") REFERENCES "outside_workers"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+  `CREATE INDEX IF NOT EXISTS "daily_operational_expenses_outside_worker_id_idx" ON "daily_operational_expenses"("outside_worker_id")`,
+  `CREATE INDEX IF NOT EXISTS "outside_workers_deleted_at_idx" ON "outside_workers"("deleted_at")`,
   `CREATE INDEX IF NOT EXISTS "construction_inventory_transactions_supplier_id_idx" ON "construction_inventory_transactions"("supplier_id")`,
 ];
 

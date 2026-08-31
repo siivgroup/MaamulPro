@@ -538,7 +538,7 @@ export class ConstructionService {
     if (projectId) where.projectId = projectId;
     return tenantDb.dailyOperationalExpense.findMany({
       where,
-      include: { staff: true, project: true, recordedBy: true },
+      include: { staff: true, project: true, recordedBy: true, outsideWorker: true },
       orderBy: { date: 'desc' },
     });
   }
@@ -546,10 +546,22 @@ export class ConstructionService {
   async getDailyExpense(tenantDb: any, id: string) {
     const expense = await tenantDb.dailyOperationalExpense.findFirst({
       where: { id, deletedAt: null },
-      include: { staff: true, project: true, recordedBy: true },
+      include: { staff: true, project: true, recordedBy: true, outsideWorker: true },
     });
     if (!expense) throw new NotFoundException('Operational expense not found');
     return expense;
+  }
+
+  getOutsideWorkerOptions(tenantDb: any) {
+    return tenantDb.outsideWorker.findMany({
+      where: { deletedAt: null },
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  createOutsideWorker(tenantDb: any, data: { name: string; phone?: string; notes?: string }) {
+    return tenantDb.outsideWorker.create({ data });
   }
 
   async createDailyExpense(tenantDb: any, userId: string, data: DailyExpenseDto) {

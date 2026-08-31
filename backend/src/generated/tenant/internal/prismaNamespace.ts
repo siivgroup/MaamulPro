@@ -433,6 +433,7 @@ export const ModelName = {
   TransportationItem: 'TransportationItem',
   WorkerType: 'WorkerType',
   DailyOperationalExpense: 'DailyOperationalExpense',
+  OutsideWorker: 'OutsideWorker',
   WorkerLedgerEntry: 'WorkerLedgerEntry',
   Property: 'Property',
   Deal: 'Deal',
@@ -461,7 +462,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "systemConfig" | "user" | "rbacPermission" | "rbacRole" | "rbacRolePermission" | "rbacUserRole" | "rbacUserPermission" | "staff" | "category" | "transaction" | "activityLog" | "operationalAlert" | "operationalAlertRead" | "project" | "projectTask" | "material" | "inventoryTransaction" | "constructionMaterial" | "constructionInventoryTransaction" | "reportSchedule" | "accountingPeriod" | "documentAttachment" | "tenant" | "rentalContract" | "rentPayment" | "supplier" | "supplierTransaction" | "purchaseOrder" | "purchaseOrderItem" | "materialCustomer" | "materialSale" | "materialSaleItem" | "transportationRecord" | "transportationItem" | "workerType" | "dailyOperationalExpense" | "workerLedgerEntry" | "property" | "deal" | "account" | "journalBatch" | "journalEntry" | "accountMapping" | "workforceContract" | "workforceContractWorker" | "workforceContractPayment" | "workforceContractAdjustment" | "payroll" | "payrollItem"
+    modelProps: "systemConfig" | "user" | "rbacPermission" | "rbacRole" | "rbacRolePermission" | "rbacUserRole" | "rbacUserPermission" | "staff" | "category" | "transaction" | "activityLog" | "operationalAlert" | "operationalAlertRead" | "project" | "projectTask" | "material" | "inventoryTransaction" | "constructionMaterial" | "constructionInventoryTransaction" | "reportSchedule" | "accountingPeriod" | "documentAttachment" | "tenant" | "rentalContract" | "rentPayment" | "supplier" | "supplierTransaction" | "purchaseOrder" | "purchaseOrderItem" | "materialCustomer" | "materialSale" | "materialSaleItem" | "transportationRecord" | "transportationItem" | "workerType" | "dailyOperationalExpense" | "outsideWorker" | "workerLedgerEntry" | "property" | "deal" | "account" | "journalBatch" | "journalEntry" | "accountMapping" | "workforceContract" | "workforceContractWorker" | "workforceContractPayment" | "workforceContractAdjustment" | "payroll" | "payrollItem"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3129,6 +3130,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    OutsideWorker: {
+      payload: Prisma.$OutsideWorkerPayload<ExtArgs>
+      fields: Prisma.OutsideWorkerFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OutsideWorkerFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutsideWorkerPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OutsideWorkerFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutsideWorkerPayload>
+        }
+        findFirst: {
+          args: Prisma.OutsideWorkerFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutsideWorkerPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OutsideWorkerFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutsideWorkerPayload>
+        }
+        findMany: {
+          args: Prisma.OutsideWorkerFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutsideWorkerPayload>[]
+        }
+        create: {
+          args: Prisma.OutsideWorkerCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutsideWorkerPayload>
+        }
+        createMany: {
+          args: Prisma.OutsideWorkerCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OutsideWorkerCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutsideWorkerPayload>[]
+        }
+        delete: {
+          args: Prisma.OutsideWorkerDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutsideWorkerPayload>
+        }
+        update: {
+          args: Prisma.OutsideWorkerUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutsideWorkerPayload>
+        }
+        deleteMany: {
+          args: Prisma.OutsideWorkerDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OutsideWorkerUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OutsideWorkerUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutsideWorkerPayload>[]
+        }
+        upsert: {
+          args: Prisma.OutsideWorkerUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutsideWorkerPayload>
+        }
+        aggregate: {
+          args: Prisma.OutsideWorkerAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOutsideWorker>
+        }
+        groupBy: {
+          args: Prisma.OutsideWorkerGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OutsideWorkerGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OutsideWorkerCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OutsideWorkerCountAggregateOutputType> | number
+        }
+      }
+    }
     WorkerLedgerEntry: {
       payload: Prisma.$WorkerLedgerEntryPayload<ExtArgs>
       fields: Prisma.WorkerLedgerEntryFieldRefs
@@ -4719,6 +4794,7 @@ export const DailyOperationalExpenseScalarFieldEnum = {
   amount: 'amount',
   description: 'description',
   category: 'category',
+  outsideWorkerId: 'outsideWorkerId',
   date: 'date',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -4726,6 +4802,19 @@ export const DailyOperationalExpenseScalarFieldEnum = {
 } as const
 
 export type DailyOperationalExpenseScalarFieldEnum = (typeof DailyOperationalExpenseScalarFieldEnum)[keyof typeof DailyOperationalExpenseScalarFieldEnum]
+
+
+export const OutsideWorkerScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  phone: 'phone',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type OutsideWorkerScalarFieldEnum = (typeof OutsideWorkerScalarFieldEnum)[keyof typeof OutsideWorkerScalarFieldEnum]
 
 
 export const WorkerLedgerEntryScalarFieldEnum = {
@@ -5588,6 +5677,7 @@ export type GlobalOmitConfig = {
   transportationItem?: Prisma.TransportationItemOmit
   workerType?: Prisma.WorkerTypeOmit
   dailyOperationalExpense?: Prisma.DailyOperationalExpenseOmit
+  outsideWorker?: Prisma.OutsideWorkerOmit
   workerLedgerEntry?: Prisma.WorkerLedgerEntryOmit
   property?: Prisma.PropertyOmit
   deal?: Prisma.DealOmit

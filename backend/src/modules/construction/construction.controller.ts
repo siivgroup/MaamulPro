@@ -14,6 +14,7 @@ import {
   ContractStatusDto,
   DailyExpenseDto,
   InventoryMovementDto,
+  OutsideWorkerDto,
   ProjectDto,
   TaskDto,
   WorkerLedgerDto,
@@ -279,6 +280,18 @@ export class ConstructionController {
   @RequirePermissions('construction_expenses.read')
   listDailyExpenses(@GetTenantDb() db: any, @Query('projectId') projectId?: string) {
     return this.constructionService.listDailyExpenses(db, projectId);
+  }
+
+  @Get('outside-workers/options')
+  @RequireAnyPermission('construction_expenses.read', 'construction_expenses.create')
+  getOutsideWorkerOptions(@GetTenantDb() db: any) {
+    return this.constructionService.getOutsideWorkerOptions(db);
+  }
+
+  @Post('outside-workers')
+  @RequirePermissions('construction_expenses.create')
+  createOutsideWorker(@GetTenantDb() db: any, @Body() body: OutsideWorkerDto) {
+    return this.constructionService.createOutsideWorker(db, body);
   }
 
   @Post('expenses')

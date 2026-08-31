@@ -220,6 +220,11 @@ export type WorkerType = Prisma.WorkerTypeModel
  */
 export type DailyOperationalExpense = Prisma.DailyOperationalExpenseModel
 /**
+ * Model OutsideWorker
+ * 
+ */
+export type OutsideWorker = Prisma.OutsideWorkerModel
+/**
  * Model WorkerLedgerEntry
  * 
  */
