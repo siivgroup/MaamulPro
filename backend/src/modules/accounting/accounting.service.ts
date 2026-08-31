@@ -54,6 +54,22 @@ function generateBatchNumber(): string {
   return `JE-${y}${m}${day}-${randomBytesHex()}`;
 }
 
+const utcDayStart = (date: Date) => new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+const utcDayEnd = (date: Date) => new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 23, 59, 59, 999));
+const sameUtcMonth = (left: Date, right: Date) => left.getUTCFullYear() === right.getUTCFullYear() && left.getUTCMonth() === right.getUTCMonth();
+
+function monthlyPeriod(date: Date) {
+  const startDate = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
+  const month = String(startDate.getUTCMonth() + 1).padStart(2, '0');
+  return {
+    id: `system-accounting-period-${startDate.getUTCFullYear()}-${month}`,
+    name: new Intl.DateTimeFormat('en', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(startDate),
+    startDate,
+    endDate: new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth() + 1, 0, 23, 59, 59, 999)),
+    status: 'OPEN',
+  };
+}
+
 @Injectable()
 export class AccountingService {
 
@@ -64,12 +80,14 @@ export class AccountingService {
   }
 
   async createPeriod(tenantDb: any, dto: CreateAccountingPeriodDto) {
-    if (dto.endDate < dto.startDate) throw new BadRequestException('Period end date must be on or after its start date');
+    const startDate = utcDayStart(dto.startDate);
+    const endDate = utcDayEnd(dto.endDate);
+    if (endDate < startDate) throw new BadRequestException('Period end date must be on or after its start date');
     const overlap = await tenantDb.accountingPeriod.findFirst({
-      where: { startDate: { lte: dto.endDate }, endDate: { gte: dto.startDate } },
+      where: { startDate: { lte: endDate }, endDate: { gte: startDate } },
     });
     if (overlap) throw new ConflictException(`Accounting period overlaps '${overlap.name}'`);
-    return tenantDb.accountingPeriod.create({ data: dto });
+    return tenantDb.accountingPeriod.create({ data: { ...dto, startDate, endDate } });
   }
 
   async setPeriodLock(tenantDb: any, id: string, locked: boolean, userId?: string) {
@@ -82,11 +100,19 @@ export class AccountingService {
   }
 
   private async assertPeriodOpen(tx: any, date: Date) {
-    const locked = await tx.accountingPeriod.findFirst({
-      where: { status: 'LOCKED', startDate: { lte: date }, endDate: { gte: date } },
-      select: { name: true },
+    let period = await tx.accountingPeriod.findFirst({
+      where: { startDate: { lte: date }, endDate: { gte: utcDayStart(date) } },
+      select: { name: true, status: true },
     });
-    if (locked) throw new ConflictException(`Accounting period '${locked.name}' is locked`);
+    if (!period && sameUtcMonth(date, new Date())) {
+      const current = monthlyPeriod(date);
+      period = await tx.accountingPeriod.upsert({
+        where: { id: current.id }, update: {}, create: current,
+        select: { name: true, status: true },
+      });
+    }
+    if (!period) throw new ConflictException(`No accounting period covers ${date.toISOString().slice(0, 10)}`);
+    if (period.status !== 'OPEN') throw new ConflictException(`Accounting period '${period.name}' is locked`);
   }
 
   // ────────────────────────────────────────────────────────────

@@ -13,7 +13,7 @@ import { assertEmptyOrOwned } from './onboarding-database';
 import { setupDiagnostic } from './onboarding-errors';
 import { connectionTimeoutMillis, getDatabaseConnectionPair } from "./database-url";
 
-export const CURRENT_TENANT_SCHEMA_VERSION = 29;
+export const CURRENT_TENANT_SCHEMA_VERSION = 30;
 
 export const TENANT_SCHEMA_STATEMENTS: string[] = [
   // ── Enum types ─────────────────────────────────────────────
@@ -996,6 +996,23 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
   )`,
   `CREATE INDEX IF NOT EXISTS "accounting_periods_start_date_end_date_status_idx" ON "accounting_periods"("start_date", "end_date", "status")`,
+  `WITH current_period AS (
+    SELECT date_trunc('month', CURRENT_TIMESTAMP AT TIME ZONE 'UTC') AS start_date
+  )
+  INSERT INTO "accounting_periods" ("id", "name", "start_date", "end_date", "status", "created_at", "updated_at")
+  SELECT
+    'system-accounting-period-' || to_char(cp.start_date, 'YYYY-MM'),
+    to_char(cp.start_date, 'FMMonth YYYY'),
+    cp.start_date,
+    cp.start_date + INTERVAL '1 month' - INTERVAL '1 millisecond',
+    'OPEN', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+  FROM current_period cp
+  WHERE NOT EXISTS (
+    SELECT 1 FROM "accounting_periods" p
+    WHERE p."start_date" <= cp.start_date + INTERVAL '1 month' - INTERVAL '1 millisecond'
+      AND p."end_date" >= cp.start_date
+  )
+  ON CONFLICT ("id") DO NOTHING`,
   `CREATE TABLE IF NOT EXISTS "document_attachments" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "entity_type" TEXT NOT NULL,
