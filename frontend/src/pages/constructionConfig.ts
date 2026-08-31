@@ -29,8 +29,6 @@ const workerQuickFields: CrudField[] = [
 export const workerLookupField: CrudField = {
     name: 'workerId',
     label: 'Worker',
-    required: true,
-    hideWhen: (form) => form.category !== 'UNSKILLED_LABOR',
     lookup: {
         endpoint: '/api/construction/manpower/workers/options',
         labelKeys: ['firstName', 'lastName'],
@@ -64,7 +62,7 @@ export const expenseFields: CrudField[] = [
     { name: 'amount', label: 'Amount', type: 'number', required: true, placeholder: '1500' },
     { name: 'description', label: 'Description', required: true, placeholder: 'Iibsiga sibidhka goobta' },
     { name: 'category', label: 'Category', required: true, lookup: { endpoint: '/api/construction/expenses/categories', valueKey: 'value', labelKeys: ['label'] } },
-    { name: 'date', label: 'Date', type: 'date' },
+    { name: 'date', label: 'Date', type: 'date', defaultToday: true },
     { name: 'projectId', label: 'Project', lookup: { endpoint: '/api/construction/projects/options', labelKeys: ['name'], create: { fields: projectQuickFields, permission: 'projects.create' } } },
-    workerLookupField,
+    { ...workerLookupField, required: true, hideWhen: (form) => form.category !== 'UNSKILLED_LABOR' },
 ];

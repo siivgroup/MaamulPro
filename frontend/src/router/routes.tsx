@@ -99,7 +99,7 @@ const routes = [
     ]} fields={[
         { name: 'name', label: 'Payroll name', required: true }, { name: 'year', label: 'Year', type: 'number', required: true },
         { name: 'month', label: 'Month', type: 'number', required: true }, { name: 'payPeriod', label: 'Pay period' },
-        { name: 'paymentDate', label: 'Payment date', type: 'date' }, { name: 'expenseAccountCode', label: 'Expense account', lookup: { endpoint: '/api/payroll/options/accounts', valueKey: 'code', labelKeys: ['code', 'name'] } },
+        { name: 'paymentDate', label: 'Payment date', type: 'date', defaultToday: true }, { name: 'expenseAccountCode', label: 'Expense account', lookup: { endpoint: '/api/payroll/options/accounts', valueKey: 'code', labelKeys: ['code', 'name'] } },
         { name: 'status', label: 'Initial status', type: 'select', options: ['DRAFT', 'PENDING_APPROVAL'].map((value) => ({ value, label: value.replace(/_/g, ' ') })) },
         { name: 'items', label: 'Employees and payroll amounts', type: 'lineItems', required: true, lineItems: {
             endpoint: '/api/payroll/options/staff', idField: 'staffId', labelKeys: ['firstName', 'lastName'], selectorLabel: 'Employee',
@@ -135,7 +135,7 @@ const routes = [
     { path: '/app/construction/worker-ledger', element: <CrudPage title="Worker Ledger" description="Labor income and expenses synchronized with the unified ledger." endpoint="/api/construction/worker-ledger" createPermission="manpower.create" deletePermission="manpower.delete" canEdit={false} fields={[
         { name: 'type', label: 'Type', type: 'select', required: true, options: ['INCOME', 'EXPENSE'].map((value) => ({ value, label: value })) },
         { name: 'amount', label: 'Amount', type: 'number', required: true }, { name: 'description', label: 'Description', required: true },
-        { name: 'date', label: 'Date', type: 'date' }, { name: 'projectId', label: 'Project', lookup: { endpoint: '/api/construction/projects/options', labelKeys: ['name'] } }, workerLookupField,
+        { name: 'date', label: 'Date', type: 'date', defaultToday: true }, { name: 'projectId', label: 'Project', lookup: { endpoint: '/api/construction/projects/options', labelKeys: ['name'] } }, workerLookupField,
     ]} />, layout: 'blank', permission: 'manpower.read' },
     { path: '/app/construction/inventory', element: <ConstructionInventoryPage />, layout: 'blank', permission: 'construction_inventory.read' },
     { path: '/app/construction/inventory/manage', element: <CrudPage title="Manage construction materials" description="Add, edit or retire the material catalog used for site stock and usage tracking." endpoint="/api/construction/materials" createPermission="construction_inventory.create" updatePermission="construction_inventory.update" deletePermission="construction_inventory.delete" createTo="/app/construction/inventory/manage/new" editTo={(id) => `/app/construction/inventory/manage/${id}/edit`} fields={constructionMaterialFields} />, layout: 'blank', permission: 'construction_inventory.read' },

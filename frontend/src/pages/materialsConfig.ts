@@ -31,7 +31,7 @@ export const supplierFields: CrudField[] = [
 export const purchaseFields: CrudField[] = [
     { name: 'orderNo', label: 'Order number', required: true, placeholder: 'PO-2026-001' },
     { name: 'supplierId', label: 'Supplier', lookup: { endpoint: '/api/materials/suppliers/options', labelKeys: ['name'], create: { fields: supplierQuickFields, permission: 'suppliers.create' } } },
-    { name: 'orderedAt', label: 'Ordered date', type: 'date' },
+    { name: 'orderedAt', label: 'Ordered date', type: 'date', defaultToday: true },
     { name: 'items', label: 'Purchase items', type: 'lineItems', required: true, lineItems: {
         endpoint: '/api/materials/products/options', idField: 'materialId', labelKeys: ['name'], selectorLabel: 'Material',
         populate: { unitCost: 'unitCost' },
@@ -53,7 +53,7 @@ export const saleFields: CrudField[] = [
     { name: 'customerId', label: 'Customer', lookup: { endpoint: '/api/materials/customers/options', labelKeys: ['name'], create: { fields: customerQuickFields, permission: 'material_sales.create' } } },
     { name: 'paidAmount', label: 'Paid amount', type: 'number' },
     { name: 'discountPercent', label: 'Discount %', type: 'number' },
-    { name: 'date', label: 'Invoice date', type: 'date' },
+    { name: 'date', label: 'Invoice date', type: 'date', defaultToday: true },
     { name: 'items', label: 'Invoice items', type: 'lineItems', required: true, lineItems: {
         endpoint: '/api/materials/products/options', idField: 'materialId', labelKeys: ['name'], selectorLabel: 'Material',
         populate: { salePrice: 'unitPrice' },
@@ -68,7 +68,7 @@ export const transportationFields: CrudField[] = [
     { name: 'materialId', label: 'Material', required: true, lookup: { endpoint: '/api/materials/products/options', labelKeys: ['name'], create: { fields: materialQuickFields, permission: 'materials_products.create' } } },
     { name: 'quantity', label: 'Quantity', type: 'number', required: true },
     { name: 'cost', label: 'Cost', type: 'number', required: true },
-    { name: 'deliveryDate', label: 'Delivery date', type: 'date' },
+    { name: 'deliveryDate', label: 'Delivery date', type: 'date', defaultToday: true },
     { name: 'notes', label: 'Notes', type: 'textarea' },
 ];
 

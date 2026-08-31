@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
+import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 
 const require = createRequire(import.meta.url);
@@ -23,6 +24,12 @@ test('worker linkage is exclusive to unskilled labor expenses', () => {
   assert.throws(() => service.expenseData({ category: 'UNSKILLED_LABOR' }), /Worker is required/);
   assert.equal(service.expenseData({ category: 'OTHER', workerId: 'worker-1' }).workerId, null);
   assert.equal(service.expenseData({ category: 'UNSKILLED_LABOR', workerId: 'worker-1' }).workerId, 'worker-1');
+});
+
+test('only the expense worker field is conditional', async () => {
+  const config = await readFile(new URL('../../frontend/src/pages/constructionConfig.ts', import.meta.url), 'utf8');
+  assert.match(config, /\{ \.\.\.workerLookupField, required: true, hideWhen: \(form\) => form\.category !== 'UNSKILLED_LABOR' \}/);
+  assert.doesNotMatch(config.match(/export const workerLookupField[\s\S]*?\n\};/)?.[0] || '', /hideWhen/);
 });
 
 test('project progress is the completed share of active tasks', () => {

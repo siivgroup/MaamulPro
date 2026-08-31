@@ -6,6 +6,7 @@ import { usePermissions } from '../hooks/usePermissions';
 import { api, getRequestActivity, subscribeRequestActivity } from '../lib/api';
 import LineItemsEditor, { LineItemConfig } from '../components/maamulpro/LineItemsEditor';
 import { CurrencyInput, EmptyState, ErrorAlert, FormActions, LoadingState, Modal, PageHeader, PasswordInput, StatGrid, StatusPill, SuccessAlert, fieldHint, formatTableValue, humanize as titleize, isCurrencyName, isSystemIdKey, money, shortDate, somaliExample, visibleTableColumns } from '../components/maamulpro/PageKit';
+import { todayInputValue } from '../lib/date';
 
 export type CrudField = {
     name: string;
@@ -19,6 +20,7 @@ export type CrudField = {
     lookup?: { endpoint: string; valueKey?: string; labelKeys: string[]; populate?: Record<string, string>; create?: { fields: CrudField[]; label?: string; endpoint?: string; permission?: string | string[] } };
     lineItems?: LineItemConfig;
     hideWhen?: (form: Record<string, any>) => boolean;
+    defaultToday?: boolean;
 };
 
 const INLINE_CREATE_SENTINEL = '__inline_create__';
@@ -45,7 +47,7 @@ export type CrudPageProps = {
     editTo?: (id: string) => string;
 };
 
-const emptyForm = (fields: CrudField[]) => Object.fromEntries(fields.map((field) => [field.name, field.type === 'checkbox' ? false : field.type === 'lineItems' ? [] : '']));
+const emptyForm = (fields: CrudField[]) => Object.fromEntries(fields.map((field) => [field.name, field.defaultToday ? todayInputValue() : field.type === 'checkbox' ? false : field.type === 'lineItems' ? [] : '']));
 const humanize = (key: string) => key.replace(/([A-Z])/g, ' $1').replace(/^./, (value) => value.toUpperCase());
 const unwrap = (result: unknown): Record<string, any>[] => {
     if (Array.isArray(result)) return result;

@@ -61,7 +61,7 @@ export const rentPaymentFields: CrudField[] = [
     { name: 'contractId', label: 'Rental contract', lookup: { endpoint: '/api/real-estate/rental-contracts', labelKeys: ['tenant.name', 'property.title', 'startDate'], populate: { tenantId: 'tenantId', monthlyRent: 'amountDue' } } },
     { name: 'tenantId', label: 'Tenant', required: true, lookup: { endpoint: '/api/real-estate/tenants/options', labelKeys: ['name'] } },
     { name: 'dueDate', label: 'Due date', type: 'date', required: true },
-    { name: 'paidDate', label: 'Paid date', type: 'date' },
+    { name: 'paidDate', label: 'Paid date', type: 'date', defaultToday: true, hideWhen: (form) => !Number(form.amountPaid) },
     { name: 'amountDue', label: 'Amount due', type: 'number', required: true },
     { name: 'amountPaid', label: 'Amount paid', type: 'number' },
     { name: 'receiptNo', label: 'Receipt number' },

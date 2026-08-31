@@ -5,9 +5,10 @@ import { CurrencyInput, EmptyState, ErrorAlert, Field, FormActions, LoadingState
 import { api, ApiError } from '../lib/api';
 import { unwrapRows } from '../hooks/useApiData';
 import { usePermissions } from '../hooks/usePermissions';
+import { todayInputValue } from '../lib/date';
 
 type Transaction = { id: string; version: number; referenceId: string; type: 'INCOME' | 'EXPENSE'; status: string; description: string; amount: number; date: string; notes?: string; categoryId?: string; projectId?: string; propertyId?: string; materialId?: string; sourceManaged?: boolean; category?: { name: string }; project?: { name: string }; property?: { title: string }; material?: { name: string } };
-const blank = { type: 'EXPENSE', status: 'CLEARED', description: '', amount: '', date: '', categoryId: '', projectId: '', propertyId: '', materialId: '', notes: '' };
+const blank = () => ({ type: 'EXPENSE', status: 'CLEARED', description: '', amount: '', date: todayInputValue(), categoryId: '', projectId: '', propertyId: '', materialId: '', notes: '' });
 const csvCell = (value: unknown) => `"${String(value ?? '').replace(/"/g, '""')}"`;
 
 const FinancialsPage = () => {
@@ -57,7 +58,7 @@ const FinancialsPage = () => {
     const save = async (event: FormEvent) => {
         event.preventDefault(); setError('');
         try {
-            const payload: any = Object.fromEntries(Object.keys(blank).map((key) => [key, form[key]]));
+            const payload: any = Object.fromEntries(Object.keys(blank()).map((key) => [key, form[key]]));
             Object.assign(payload, { amount: Number(form.amount), date: form.date || undefined, categoryId: form.categoryId || undefined, projectId: form.projectId || undefined, propertyId: form.propertyId || undefined, materialId: form.materialId || undefined });
             if (editing) payload.version = editing.version;
             const submission = editing ? null : reserveBillingSubmission('cashbook', payload);
@@ -68,7 +69,7 @@ const FinancialsPage = () => {
         } catch (reason) { if (!editing && reason instanceof ApiError && (reason.status === 400 || reason.code === 'TRANSACTION_REJECTED')) { completeBillingSubmission('cashbook'); setSubmissionReference(''); } setError(reason instanceof Error ? reason.message : 'Unable to confirm transaction. Your submission is saved; retry to check it safely.'); }
     };
     const [sourceType, setSourceType] = useState<'none' | 'project' | 'property' | 'material'>('none');
-    const edit = (row: Transaction) => { setEditing(row); setForm(Object.fromEntries(Object.keys(blank).map((key) => [key, key === 'date' ? row.date?.slice(0, 10) || '' : key === 'amount' ? Number(row.amount) : row[key as keyof Transaction] ?? blank[key as keyof typeof blank]]))); setSourceType(canUseConstruction && row.projectId ? 'project' : canUseRealEstate && row.propertyId ? 'property' : canUseMaterials && row.materialId ? 'material' : 'none'); setOpen(true); };
+    const edit = (row: Transaction) => { const empty = blank(); setEditing(row); setForm(Object.fromEntries(Object.keys(empty).map((key) => [key, key === 'date' ? row.date?.slice(0, 10) || '' : key === 'amount' ? Number(row.amount) : row[key as keyof Transaction] ?? empty[key as keyof typeof empty]]))); setSourceType(canUseConstruction && row.projectId ? 'project' : canUseRealEstate && row.propertyId ? 'property' : canUseMaterials && row.materialId ? 'material' : 'none'); setOpen(true); };
     const confirmDelete = async () => { if (!deleteTarget) return; setDeleting(true); try { await api(`/api/financials/transactions/${deleteTarget.id}`, { method: 'DELETE' }); setDeleteTarget(null); await load(); } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to delete transaction'); } finally { setDeleting(false); } };
     const exportCsv = () => {
         const headers = ['Date', 'Reference', 'Type', 'Description', 'Category', 'Source', 'Amount', 'Status', 'Notes'];
@@ -76,7 +77,7 @@ const FinancialsPage = () => {
         const url = URL.createObjectURL(new Blob([[headers.join(','), ...body].join('\n')], { type: 'text/csv' })); const anchor = document.createElement('a'); anchor.href = url; anchor.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`; anchor.click(); URL.revokeObjectURL(url);
     };
     return <AppShell>
-        <PageHeader eyebrow="Unified ledger" title="Financials" description="Company income, expenses, categorized sources and synchronized operational ledger entries." actions={<>{hasPermission('transactions.read') && <button className="btn btn-outline-primary" onClick={exportCsv}>Export CSV</button>}{hasPermission('transactions.create') && <button className="btn btn-primary" onClick={() => { setEditing(null); const draft = pendingBillingSubmission('cashbook'); setForm({ ...blank, ...draft?.payload }); setSourceType(draft?.payload.projectId ? 'project' : draft?.payload.propertyId ? 'property' : draft?.payload.materialId ? 'material' : 'none'); setSubmissionReference(draft?.requestId || ''); setError(''); setOpen(true); }}>{submissionReference ? 'Resume transaction' : 'New transaction'}</button>}</>} />
+        <PageHeader eyebrow="Unified ledger" title="Financials" description="Company income, expenses, categorized sources and synchronized operational ledger entries." actions={<>{hasPermission('transactions.read') && <button className="btn btn-outline-primary" onClick={exportCsv}>Export CSV</button>}{hasPermission('transactions.create') && <button className="btn btn-primary" onClick={() => { setEditing(null); const draft = pendingBillingSubmission('cashbook'); setForm({ ...blank(), ...draft?.payload }); setSourceType(draft?.payload.projectId ? 'project' : draft?.payload.propertyId ? 'property' : draft?.payload.materialId ? 'material' : 'none'); setSubmissionReference(draft?.requestId || ''); setError(''); setOpen(true); }}>{submissionReference ? 'Resume transaction' : 'New transaction'}</button>}</>} />
         {message && <div className="mb-5 rounded-md bg-success-light p-4 text-success">{message}</div>}{error && !open && <ErrorAlert message={error} onRetry={load} />}
         <StatGrid items={[{ label: 'Total income', value: money(summary.totalIncome), tone: 'success' }, { label: 'Total expenses', value: money(summary.totalExpense), tone: 'danger' }, { label: 'Net balance', value: money(summary.netBalance), tone: summary.netBalance >= 0 ? 'primary' : 'danger' }, { label: 'Transactions', value: summary.totalCount }]} />
         <div className="panel mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-6"><input className="form-input xl:col-span-2" placeholder="Search reference or description…" value={filters.search} onChange={(e) => setFilters({ ...filters, search: e.target.value })} /><select className="form-select" value={filters.type} onChange={(e) => setFilters({ ...filters, type: e.target.value })}><option value="">All types</option><option>INCOME</option><option>EXPENSE</option></select><select className="form-select" value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })}><option value="">All statuses</option>{['PENDING', 'PROCESSING', 'CLEARED', 'CANCELLED'].map((value) => <option key={value}>{value}</option>)}</select><input className="form-input" type="date" value={filters.startDate} onChange={(e) => setFilters({ ...filters, startDate: e.target.value })} /><input className="form-input" type="date" value={filters.endDate} onChange={(e) => setFilters({ ...filters, endDate: e.target.value })} /></div>

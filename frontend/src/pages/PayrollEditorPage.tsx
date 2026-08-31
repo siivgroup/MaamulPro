@@ -6,7 +6,7 @@ export const payrollFields: CrudField[] = [
     { name: 'year', label: 'Year', type: 'number', required: true, placeholder: '2026' },
     { name: 'month', label: 'Month (1-12)', type: 'number', required: true, placeholder: '8', hint: 'Geli bisha 1 ilaa 12.' },
     { name: 'payPeriod', label: 'Pay period label', placeholder: 'Aug 2026' },
-    { name: 'paymentDate', label: 'Payment date', type: 'date' },
+    { name: 'paymentDate', label: 'Payment date', type: 'date', defaultToday: true },
     { name: 'expenseAccountCode', label: 'Expense account', lookup: { endpoint: '/api/payroll/options/accounts', valueKey: 'code', labelKeys: ['code', 'name'] } },
     { name: 'items', label: 'Employees and payroll amounts', type: 'lineItems', required: true, lineItems: {
         endpoint: '/api/payroll/options/staff', idField: 'staffId', labelKeys: ['firstName', 'lastName'], selectorLabel: 'Employee',

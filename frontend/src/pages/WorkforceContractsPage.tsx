@@ -5,6 +5,7 @@ import { AddManpowerWorkerModal } from '../components/maamulpro/AddManpowerWorke
 import { api } from '../lib/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { DocumentAttachments } from '../components/maamulpro/DocumentAttachments';
+import { todayInputValue } from '../lib/date';
 
 type Project = { id: string; name: string };
 type WorkerOption = { id: string; firstName?: string; lastName?: string };
@@ -32,6 +33,7 @@ type Contract = {
 };
 
 const emptyContract = { projectId: '', title: '', description: '', originalBudget: '', startDate: '', endDate: '', notes: '' };
+const emptyPayment = () => ({ workerId: '', staffId: '', amount: '', date: todayInputValue(), description: '', notes: '' });
 const allowedTransitions: Record<string, string[]> = {
     DRAFT: ['ACTIVE', 'CANCELLED'],
     ACTIVE: ['SUSPENDED', 'COMPLETED', 'CANCELLED'],
@@ -63,7 +65,7 @@ const WorkforceContractsPage = () => {
     const [modal, setModal] = useState(false);
     const [worker, setWorker] = useState({ workerId: '', role: '', notes: '' });
     const [newWorkerOpen, setNewWorkerOpen] = useState(false);
-    const [payment, setPayment] = useState({ workerId: '', staffId: '', amount: '', date: '', description: '', notes: '' });
+    const [payment, setPayment] = useState(emptyPayment);
     const [adjustment, setAdjustment] = useState({ amount: '', reason: '' });
     const [error, setError] = useState('');
     const [deleteTarget, setDeleteTarget] = useState<Contract | null>(null);
@@ -153,7 +155,7 @@ const WorkforceContractsPage = () => {
         if (!selected) return;
         try {
             await api(`/api/construction/contracts/${selected.id}/payments`, { method: 'POST', body: JSON.stringify({ ...payment, amount: Number(payment.amount), date: payment.date || undefined }) });
-            setPayment({ workerId: '', staffId: '', amount: '', date: '', description: '', notes: '' });
+            setPayment(emptyPayment());
             setPaymentOpen(false);
             await load();
         } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to record payment'); }
@@ -181,7 +183,7 @@ const WorkforceContractsPage = () => {
             <div className="grid gap-4 sm:grid-cols-3"><div className="panel"><p className="text-white-dark">Adjusted budget</p><p className="mt-2 text-2xl font-bold">${adjustedBudget.toLocaleString()}</p></div><div className="panel"><p className="text-white-dark">Total paid</p><p className="mt-2 text-2xl font-bold">${Number(selected.totalPaid).toLocaleString()}</p></div><div className="panel"><p className="text-white-dark">Remaining</p><p className="mt-2 text-2xl font-bold text-success">${(adjustedBudget - Number(selected.totalPaid)).toLocaleString()}</p></div></div>
             <div className="flex flex-wrap gap-2">
                 {canAssign && <button className="btn btn-outline-primary" onClick={() => setAssignOpen(true)}>Assign worker</button>}
-                {canPay && <button className="btn btn-outline-success" onClick={() => setPaymentOpen(true)}>Record payment</button>}
+                {canPay && <button className="btn btn-outline-success" onClick={() => { setPayment(emptyPayment()); setPaymentOpen(true); }}>Record payment</button>}
                 {canUpdate && <button className="btn btn-outline-warning" onClick={() => setAdjustOpen(true)}>Adjust budget</button>}
             </div>
             <div className="grid gap-6 xl:grid-cols-2">
