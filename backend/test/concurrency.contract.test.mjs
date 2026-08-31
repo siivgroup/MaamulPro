@@ -94,3 +94,10 @@ test('cashbook failed reversal or repost preserves the original row and journal'
   await f.service.deleteTransaction(f.tx,saved.id);await f.service.deleteTransaction(f.tx,saved.id);
   assert.equal(f.state.batches.filter(row=>!row.reversed).length,0);
 });
+
+test('source-managed cashbook rows can only be changed from their source module',async()=>{
+  const f=cashbookFixture(), id=randomUUID();
+  f.state.rows.push({id,referenceId:`expense:${id}`,version:0,deletedAt:null,journalBatchId:null});
+  await assert.rejects(f.service.updateTransaction(f.tx,id,{amount:99,version:0}),error=>error.getStatus()===400);
+  await assert.rejects(f.service.deleteTransaction(f.tx,id),error=>error.getStatus()===400);
+});

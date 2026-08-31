@@ -47,7 +47,7 @@ export async function seedTenantDefaults(tenantDb: any, company: any, ownerId: s
       },
     });
     const categories = [
-      ['Salary', '#3b82f6'], ['Material', '#f59e0b'], ['Client Payment', '#10b981'],
+      ['Salary', '#3b82f6'], ['Materials', '#f59e0b'], ['Client Payment', '#10b981'],
       ['Consulting', '#8b5cf6'], ['Rent', '#ef4444'], ['Utilities', '#06b6d4'],
       ['Equipment', '#f97316'], ['Other', '#6b7280'],
     ];
@@ -63,4 +63,3 @@ export async function seedTenantDefaults(tenantDb: any, company: any, ownerId: s
       });
     }
   }
-

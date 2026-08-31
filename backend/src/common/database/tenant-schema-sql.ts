@@ -13,7 +13,7 @@ import { assertEmptyOrOwned } from './onboarding-database';
 import { setupDiagnostic } from './onboarding-errors';
 import { connectionTimeoutMillis, getDatabaseConnectionPair } from "./database-url";
 
-export const CURRENT_TENANT_SCHEMA_VERSION = 28;
+export const CURRENT_TENANT_SCHEMA_VERSION = 29;
 
 export const TENANT_SCHEMA_STATEMENTS: string[] = [
   // ── Enum types ─────────────────────────────────────────────
@@ -1623,6 +1623,7 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
      ('TRANSACTION_INCOME_REVENUE',  '4400','Revenue account credited on quick income entries'),
      ('TRANSACTION_EXPENSE_CASH',    '1120','Cash/bank account credited on quick expense entries'),
      ('TRANSACTION_EXPENSE_ACCOUNT', '5900','Expense account debited on quick expense entries'),
+     ('OWNER_SUPPORT_CAPITAL',       '3100','Owner capital credited when the owner personally funds an expense'),
      -- Sales invoices / customer flow
      ('SALES_INVOICE_AR',            '1200','Receivable debited when a sales invoice is issued'),
      ('SALES_INVOICE_REVENUE',       '4100','Revenue credited when a sales invoice is issued'),

@@ -283,6 +283,12 @@ export class ConstructionController {
     return this.constructionService.createDailyExpense(db, userId, body);
   }
 
+  @Get('expenses/categories')
+  @RequireAnyPermission('construction_expenses.read', 'construction_expenses.create', 'construction_expenses.update')
+  listExpenseCategories() {
+    return this.constructionService.listExpenseCategories();
+  }
+
   @Get('expenses/:id')
   @RequirePermissions('construction_expenses.read')
   getDailyExpense(@GetTenantDb() db: any, @Param('id') id: string) {

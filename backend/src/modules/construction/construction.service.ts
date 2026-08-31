@@ -15,6 +15,7 @@ import {
   WorkforceContractDto,
 } from './dto/construction.dto';
 import { SubscriptionEntitlementService } from '../../common/subscriptions/subscription-entitlement.service';
+import { CONSTRUCTION_EXPENSE_CATEGORIES, constructionExpenseCategory } from './construction-expense-categories';
 
 @Injectable()
 export class ConstructionService {
@@ -382,7 +383,7 @@ export class ConstructionService {
         where: { id: contractId },
         data: { totalPaid: { increment: data.amount }, version: { increment: 1 } },
       });
-      const category = await this.findOrCreateCategory(tx, 'Labor Expense');
+      const category = await this.findOrCreateExpenseCategory(tx, 'LABOR');
       await tx.workerLedgerEntry.create({
         data: {
           userId,
@@ -617,13 +618,17 @@ export class ConstructionService {
   }
 
   async getManpowerDashboard(tenantDb: any, projectId?: string) {
-    const expenseWhere: any = { deletedAt: null };
+    const laborCategories = CONSTRUCTION_EXPENSE_CATEGORIES
+      .filter(({ section }) => section === 'manpower')
+      .flatMap(({ value, label, aliases }) => [value, label, ...aliases]);
+    const expenseWhere: any = { deletedAt: null, category: { in: laborCategories } };
     const ledgerWhere: any = {};
     if (projectId) {
       expenseWhere.projectId = projectId;
       ledgerWhere.projectId = projectId;
     }
-    const [workers, workerTypes, expensesRaw, ledgerRaw, expenseTotals] = await Promise.all([
+    const ledgerExpenseWhere = { ...ledgerWhere, type: 'EXPENSE' };
+    const [workers, workerTypes, expensesRaw, ledgerRaw, expenseTotals, ledgerExpenseTotals] = await Promise.all([
       this.listManpowerWorkers(tenantDb),
       this.listWorkerTypes(tenantDb),
       tenantDb.dailyOperationalExpense.findMany({
@@ -639,6 +644,7 @@ export class ConstructionService {
         take: 100,
       }),
       tenantDb.dailyOperationalExpense.aggregate({ where: expenseWhere, _sum: { amount: true }, _count: true }),
+      tenantDb.workerLedgerEntry.aggregate({ where: ledgerExpenseWhere, _sum: { amount: true }, _count: true }),
     ]);
     return {
       workers,
@@ -647,8 +653,8 @@ export class ConstructionService {
       ledger: ledgerRaw.map((row: any) => this.resolveWorker(row)),
       summary: {
         workerCount: workers.length,
-        expenseCount: expenseTotals._count,
-        totalExpenses: Number(expenseTotals._sum.amount || 0),
+        expenseCount: expenseTotals._count + ledgerExpenseTotals._count,
+        totalExpenses: Number(expenseTotals._sum.amount || 0) + Number(ledgerExpenseTotals._sum.amount || 0),
       },
     };
   }
@@ -661,7 +667,11 @@ export class ConstructionService {
       include: { staff: true, worker: { include: { linkedStaff: true } }, project: true, recordedBy: true },
       orderBy: { date: 'desc' },
     });
-    return rows.map((row: any) => this.resolveWorker(row));
+    return rows.map((row: any) => this.resolveWorker({ ...row, category: constructionExpenseCategory(row.category).value }));
+  }
+
+  listExpenseCategories() {
+    return CONSTRUCTION_EXPENSE_CATEGORIES.map(({ value, label }) => ({ value, label }));
   }
 
   async getDailyExpense(tenantDb: any, id: string) {
@@ -670,15 +680,16 @@ export class ConstructionService {
       include: { staff: true, worker: { include: { linkedStaff: true } }, project: true, recordedBy: true },
     });
     if (!expense) throw new NotFoundException('Operational expense not found');
-    return this.resolveWorker(expense);
+    return this.resolveWorker({ ...expense, category: constructionExpenseCategory(expense.category).value });
   }
 
   async createDailyExpense(tenantDb: any, userId: string, data: DailyExpenseDto) {
     return tenantDb.$transaction(async (tx: any) => {
+      const category = constructionExpenseCategory(data.category);
       const expense = await tx.dailyOperationalExpense.create({
         data: {
           ...data,
-          category: data.category || 'OTHER',
+          category: category.value,
           date: data.date || new Date(),
           recordedByUserId: userId,
         },
@@ -692,11 +703,12 @@ export class ConstructionService {
     return tenantDb.$transaction(async (tx: any) => {
       const current = await tx.dailyOperationalExpense.findFirst({ where: { id, deletedAt: null } });
       if (!current) throw new NotFoundException('Operational expense not found');
+      const category = constructionExpenseCategory(data.category);
       const expense = await tx.dailyOperationalExpense.update({
         where: { id },
         data: {
           ...data,
-          category: data.category || 'OTHER',
+          category: category.value,
           date: data.date || current.date,
           recordedByUserId: userId,
         },
@@ -906,7 +918,7 @@ export class ConstructionService {
         include: { material: true, project: true, user: true },
       });
       if (data.type === 'RESTOCK' && totalCost > 0) {
-        const category = await this.findOrCreateCategory(tx, 'Construction Materials');
+        const category = await this.findOrCreateExpenseCategory(tx, 'MATERIALS');
         const referenceId = `construction-procurement:${movement.sourceRef || movement.id}`;
         await tx.transaction.create({
           data: {
@@ -931,7 +943,7 @@ export class ConstructionService {
           sourceRef: movement.sourceRef || movement.id,
           date: eventDate,
           memo: `${material.name} purchase`,
-          drKey: 'TRANSACTION_EXPENSE_ACCOUNT',
+          drKey: 'PURCHASE_INVOICE_EXPENSE',
           crKey: 'TRANSACTION_EXPENSE_CASH',
           amount: totalCost,
         });
@@ -956,8 +968,44 @@ export class ConstructionService {
     return tx.category.create({ data: { name, color: '#e7515a' } });
   }
 
+  private async findOrCreateExpenseCategory(tx: any, value: string) {
+    const definition = constructionExpenseCategory(value);
+    const names = [definition.value, definition.label, ...definition.aliases];
+    const candidates = await tx.category.findMany({
+      where: {
+        OR: [
+          { code: definition.code },
+          ...names.map((name) => ({ name: { equals: name, mode: 'insensitive' } })),
+        ],
+      },
+    });
+    let category = candidates.find((row: any) => row.code === definition.code)
+      || candidates.find((row: any) => !row.deletedAt && row.name.toLowerCase() === definition.label.toLowerCase())
+      || candidates.find((row: any) => !row.deletedAt)
+      || candidates[0];
+    if (!category) {
+      return tx.category.upsert({
+        where: { code: definition.code },
+        update: { name: definition.label, deletedAt: null },
+        create: { name: definition.label, code: definition.code, color: '#e7515a' },
+      });
+    }
+    for (const duplicate of candidates.filter((row: any) => row.id !== category.id)) {
+      await tx.transaction.updateMany({ where: { categoryId: duplicate.id }, data: { categoryId: category.id } });
+      await tx.category.delete({ where: { id: duplicate.id } });
+    }
+    if (category.name !== definition.label || category.code !== definition.code || category.deletedAt) {
+      category = await tx.category.update({
+        where: { id: category.id },
+        data: { name: definition.label, code: definition.code, deletedAt: null },
+      });
+    }
+    return category;
+  }
+
   private async syncDailyExpense(tx: any, expense: any, userId: string) {
-    const category = await this.findOrCreateCategory(tx, expense.category || 'Operational Expense');
+    const definition = constructionExpenseCategory(expense.category);
+    const category = await this.findOrCreateExpenseCategory(tx, definition.value);
     const result = await tx.transaction.upsert({
       where: { referenceId: `expense:${expense.id}` },
       create: {
@@ -992,18 +1040,17 @@ export class ConstructionService {
       sourceRef: `expense ${expense.id}`,
       date: expense.date,
       memo: expense.description,
-      drKey: 'TRANSACTION_EXPENSE_ACCOUNT',
-      crKey: 'TRANSACTION_EXPENSE_CASH',
+      drKey: definition.debitKey,
+      crKey: definition.creditKey,
       amount: Number(expense.amount),
     });
     return result;
   }
 
   private async syncWorkerLedger(tx: any, entry: any, userId: string) {
-    const category = await this.findOrCreateCategory(
-      tx,
-      entry.type === 'EXPENSE' ? 'Labor Expense' : 'Labor Income',
-    );
+    const category = entry.type === 'EXPENSE'
+      ? await this.findOrCreateExpenseCategory(tx, 'LABOR')
+      : await this.findOrCreateCategory(tx, 'Labor Income');
     const result = await tx.transaction.upsert({
       where: { referenceId: `ledger:${entry.id}` },
       create: {

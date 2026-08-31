@@ -62,8 +62,8 @@ export const constructionMaterialFields: CrudField[] = [
 export const expenseFields: CrudField[] = [
     { name: 'amount', label: 'Amount', type: 'number', required: true, placeholder: '1500' },
     { name: 'description', label: 'Description', required: true, placeholder: 'Iibsiga sibidhka goobta' },
-    { name: 'category', label: 'Category', type: 'select', options: options(['UNSKILLED_LABOR', 'LABOR', 'MATERIALS', 'EQUIPMENT', 'TRANSPORT', 'UTILITIES', 'FOOD', 'SUPPORT_COSTS', 'OTHER']) },
+    { name: 'category', label: 'Category', required: true, lookup: { endpoint: '/api/construction/expenses/categories', valueKey: 'value', labelKeys: ['label'] } },
     { name: 'date', label: 'Date', type: 'date' },
     { name: 'projectId', label: 'Project', lookup: { endpoint: '/api/construction/projects/options', labelKeys: ['name'], create: { fields: projectQuickFields, permission: 'projects.create' } } },
-    { ...workerLookupField, hideWhen: (form) => form.category === 'UNSKILLED_LABOR' },
+    workerLookupField,
 ];

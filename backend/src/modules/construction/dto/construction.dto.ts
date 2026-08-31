@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import { IsDate, IsIn, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
+import { CONSTRUCTION_EXPENSE_CATEGORY_VALUES } from '../construction-expense-categories';
 
 export class ProjectDto {
   @IsString() @MaxLength(160) name: string;
@@ -46,7 +47,7 @@ export class ManpowerWorkerDto {
 export class DailyExpenseDto {
   @Type(() => Number) @IsNumber() @Min(0.01) amount: number;
   @IsString() @MaxLength(1000) description: string;
-  @IsOptional() @IsString() @MaxLength(120) category?: string;
+  @IsOptional() @IsIn(CONSTRUCTION_EXPENSE_CATEGORY_VALUES) category?: string;
   @IsOptional() @Type(() => Date) @IsDate() date?: Date;
   @IsOptional() @IsString() workerId?: string;
   @IsOptional() @IsString() projectId?: string;

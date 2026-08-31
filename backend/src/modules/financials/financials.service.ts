@@ -19,6 +19,12 @@ const NORMAL_BALANCE_BY_TYPE: Record<string, 'DEBIT' | 'CREDIT'> = {
   INCOME: 'CREDIT',
 };
 
+const SOURCE_MANAGED_PREFIXES = [
+  'construction-procurement:', 'expense:', 'ledger:', 'wfpayment:', 'wfcontract:', 'subpayment:',
+  'purchase:', 'sale:', 'transport:', 'deal:', 'rentpayment:', 'payroll-', 'invusage:',
+];
+const isSourceManaged = (referenceId: string) => SOURCE_MANAGED_PREFIXES.some((prefix) => referenceId.toLowerCase().startsWith(prefix));
+
 @Injectable()
 export class FinancialsService {
 
@@ -57,7 +63,7 @@ export class FinancialsService {
       }),
       tenantDb.transaction.count({ where }),
     ]);
-    return { data, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } };
+    return { data: data.map((row: any) => ({ ...row, sourceManaged: isSourceManaged(row.referenceId) })), pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   }
 
   async createTransaction(
@@ -121,6 +127,7 @@ export class FinancialsService {
       await tx.$queryRawUnsafe('SELECT id FROM transactions WHERE id = $1 FOR UPDATE', id);
       const existing = await tx.transaction.findFirst({ where: { id, deletedAt: null } });
       if (!existing) throw new NotFoundException('Transaction not found');
+      if (isSourceManaged(existing.referenceId)) throw new BadRequestException('This transaction is synchronized; edit it in its source module');
       if (existing.version !== data.version) throw new ConflictException('Transaction changed or no longer exists; reload and retry');
       if (existing.journalBatchId) await this.accounting.reverseBatchWithinTx(tx, {
         userId: existing.userId || undefined, batchId: existing.journalBatchId,
@@ -142,6 +149,7 @@ export class FinancialsService {
       const existing = await tx.transaction.findUnique({ where: { id } });
       if (!existing) throw new NotFoundException('Transaction not found');
       if (existing.deletedAt) return { deleted: true };
+      if (isSourceManaged(existing.referenceId)) throw new BadRequestException('This transaction is synchronized; delete it in its source module');
       if (existing.journalBatchId) await this.accounting.reverseBatchWithinTx(tx, {
         userId: existing.userId || undefined, batchId: existing.journalBatchId,
         memo: 'Soft-delete of transaction ' + id,
@@ -186,6 +194,11 @@ export class FinancialsService {
   }
 
   async updateCategory(tenantDb: any, id: string, data: CategoryDto) {
+    const existing = await tenantDb.category.findFirst({ where: { id, deletedAt: null } });
+    if (!existing) throw new NotFoundException('Category not found');
+    if (existing.code?.startsWith('CEXP_') && (data.name !== existing.name || (data.code !== undefined && data.code !== existing.code))) {
+      throw new ConflictException('Construction expense category names and codes are managed by the Construction module');
+    }
     const result = await tenantDb.category.updateMany({
       where: { id, deletedAt: null },
       data,
@@ -195,6 +208,9 @@ export class FinancialsService {
   }
 
   async deleteCategory(tenantDb: any, id: string) {
+    const category = await tenantDb.category.findFirst({ where: { id, deletedAt: null } });
+    if (!category) throw new NotFoundException('Category not found');
+    if (category.code?.startsWith('CEXP_')) throw new ConflictException('Construction expense categories are managed by the Construction module');
     const used = await tenantDb.transaction.count({ where: { categoryId: id, deletedAt: null } });
     if (used) throw new ConflictException('Category is used by active transactions');
     const result = await tenantDb.category.updateMany({

@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ReportScheduleDto } from './reports.dto';
+import { constructionExpenseCategory } from '../construction/construction-expense-categories';
 
 const REPORTS = [
   ['core-income', 'Income Report', 'core'],
@@ -407,7 +408,9 @@ export class ReportsService {
     }
     if (row.type === 'INCOME') return 'income';
     if (reference.startsWith('construction-procurement:')) return 'materials';
-    if (reference.startsWith('expense:')) return 'expenses';
+    if (reference.startsWith('expense:')) {
+      return constructionExpenseCategory(row.category?.code || row.category?.name).section;
+    }
     if (['wfpayment:', 'ledger:', 'payroll-', 'subpayment:'].some((prefix) => reference.startsWith(prefix))) {
       return 'manpower';
     }
@@ -434,7 +437,7 @@ export class ReportsService {
 
     const transactions = await db.transaction.findMany({
       where: { deletedAt: null, status: 'CLEARED', type: 'EXPENSE', projectId: { in: projectIds } },
-      select: { projectId: true, referenceId: true, type: true, amount: true },
+      select: { projectId: true, referenceId: true, type: true, amount: true, category: { select: { name: true, code: true } } },
     });
 
     const spentByProject = new Map<string, number>();
@@ -471,7 +474,7 @@ export class ReportsService {
 
     const transactions = await db.transaction.findMany({
       where: { deletedAt: null, status: 'CLEARED', projectId, ...(date ? { date } : {}) },
-      include: { category: { select: { name: true } }, user: { select: { id: true, name: true, email: true } } },
+      include: { category: { select: { name: true, code: true } }, user: { select: { id: true, name: true, email: true } } },
       orderBy: { date: 'asc' },
     });
     const scoped = transactions
@@ -545,7 +548,7 @@ export class ReportsService {
 
     const rows = await db.transaction.findMany({
       where: { deletedAt: null, status: 'CLEARED', type: 'EXPENSE', projectId, ...(date ? { date } : {}) },
-      include: { category: { select: { name: true } }, user: { select: { id: true, name: true, email: true } } },
+      include: { category: { select: { name: true, code: true } }, user: { select: { id: true, name: true, email: true } } },
       orderBy: { date: 'desc' },
     });
     const mapped = rows

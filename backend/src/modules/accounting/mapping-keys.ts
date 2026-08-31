@@ -26,6 +26,7 @@ export const MAPPING_KEYS: MappingKeyDef[] = [
   { key: 'TRANSACTION_INCOME_REVENUE', label: 'Quick income — revenue side', category: 'Transactions',  defaultCode: '4400', suggestedTypes: ['INCOME'],    description: 'Revenue account credited on quick income entries' },
   { key: 'TRANSACTION_EXPENSE_CASH',   label: 'Quick expense — cash side',   category: 'Transactions',  defaultCode: '1120', suggestedTypes: ['ASSET'],     description: 'Cash/bank account credited on quick expense entries' },
   { key: 'TRANSACTION_EXPENSE_ACCOUNT',label: 'Quick expense — expense side',category: 'Transactions',  defaultCode: '5900', suggestedTypes: ['EXPENSE'],   description: 'Expense account debited on quick expense entries' },
+  { key: 'OWNER_SUPPORT_CAPITAL',      label: 'Owner-funded expense — capital side', category: 'Transactions', defaultCode: '3100', suggestedTypes: ['EQUITY'], description: 'Owner capital credited when the owner personally funds an expense' },
 
   // Sales
   { key: 'SALES_INVOICE_AR',           label: 'Sales invoice — AR',          category: 'Sales',         defaultCode: '1200', suggestedTypes: ['ASSET'],     description: 'Receivable debited when a sales invoice is issued' },
