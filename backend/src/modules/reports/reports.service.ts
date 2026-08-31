@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ReportScheduleDto } from './reports.dto';
 import { constructionExpenseCategory } from '../construction/construction-expense-categories';
+import { projectProgress } from '../construction/construction-progress';
 
 const REPORTS = [
   ['core-income', 'Income Report', 'core'],
@@ -298,7 +299,8 @@ export class ReportsService {
         include: { staff: true, project: true, recordedBy: { select: { id: true, name: true, email: true } } },
       });
     } else if (reportId === 'construction-progress') {
-      rows = await db.project.findMany({ where: { deletedAt: null, ...(projectId ? { id: projectId } : {}) }, include: { tasks: { where: { deletedAt: null } } } });
+      rows = (await db.project.findMany({ where: { deletedAt: null, ...(projectId ? { id: projectId } : {}) }, include: { tasks: { where: { deletedAt: null } } } }))
+        .map((project: any) => ({ ...project, progress: projectProgress(project.tasks) }));
     } else if (reportId === 'construction-workforce-budget') {
       rows = await db.workforceContract.findMany({ where: { deletedAt: null, ...(projectId ? { projectId } : {}), ...(date ? { createdAt: date } : {}) }, include: { project: true, payments: true, budgetAdjustments: true } });
     } else if (reportId === 'real-estate-rental-income') {
@@ -391,10 +393,10 @@ export class ReportsService {
   private async getProjectOrThrow(db: any, projectId: string) {
     const project = await db.project.findFirst({
       where: { id: projectId, deletedAt: null },
-      include: { assignedStaff: { where: { deletedAt: null }, take: 5 } },
+      include: { assignedStaff: { where: { deletedAt: null }, take: 5 }, tasks: { where: { deletedAt: null }, select: { status: true } } },
     });
     if (!project) throw new NotFoundException('Project not found');
-    return project;
+    return { ...project, progress: projectProgress(project.tasks) };
   }
 
   private materialLineTotal(row: any) {
@@ -428,6 +430,7 @@ export class ReportsService {
       where: { deletedAt: null },
       include: {
         assignedStaff: { where: { deletedAt: null }, take: 3, orderBy: { firstName: 'asc' } },
+        tasks: { where: { deletedAt: null }, select: { status: true } },
       },
       orderBy: { updatedAt: 'desc' },
     });
@@ -460,7 +463,7 @@ export class ReportsService {
         budget,
         spentToDate,
         budgetUsedPct: budget > 0 ? Math.round((spentToDate / budget) * 100) : 0,
-        progress: project.progress || 0,
+        progress: projectProgress(project.tasks),
         startDate: project.startDate,
         manager,
         assignees: (project.assignedStaff || []).map((s: any) => this.staffName(s)).filter(Boolean),

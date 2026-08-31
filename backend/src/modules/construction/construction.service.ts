@@ -16,6 +16,7 @@ import {
 } from './dto/construction.dto';
 import { SubscriptionEntitlementService } from '../../common/subscriptions/subscription-entitlement.service';
 import { CONSTRUCTION_EXPENSE_CATEGORIES, constructionExpenseCategory } from './construction-expense-categories';
+import { projectProgress } from './construction-progress';
 
 @Injectable()
 export class ConstructionService {
@@ -39,7 +40,7 @@ export class ConstructionService {
       ];
     }
 
-    return tenantDb.project.findMany({
+    const projects = await tenantDb.project.findMany({
       where,
       include: {
         tasks: { where: { deletedAt: null } },
@@ -49,6 +50,7 @@ export class ConstructionService {
       },
       orderBy: { createdAt: 'desc' },
     });
+    return projects.map((project: any) => ({ ...project, progress: projectProgress(project.tasks) }));
   }
 
   getProjectOptions(tenantDb: any) {
@@ -78,7 +80,6 @@ export class ConstructionService {
           startDate: data.startDate ? new Date(data.startDate) : null,
           endDate: data.endDate ? new Date(data.endDate) : null,
           status: (data.status || 'PLANNING') as any,
-          progress: data.progress || 0,
           imageUrl: data.imageUrl,
         },
       }),
@@ -96,7 +97,7 @@ export class ConstructionService {
       },
     });
     if (!project) throw new NotFoundException('Project not found');
-    return project;
+    return { ...project, progress: projectProgress(project.tasks) };
   }
 
   async updateProject(tenantDb: any, id: string, data: ProjectDto) {
@@ -674,6 +675,12 @@ export class ConstructionService {
     return CONSTRUCTION_EXPENSE_CATEGORIES.map(({ value, label }) => ({ value, label }));
   }
 
+  private expenseData(data: DailyExpenseDto) {
+    const category = constructionExpenseCategory(data.category);
+    if (category.value === 'UNSKILLED_LABOR' && !data.workerId) throw new BadRequestException('Worker is required for Unskilled Labor expenses');
+    return { ...data, category: category.value, workerId: category.value === 'UNSKILLED_LABOR' ? data.workerId : null };
+  }
+
   async getDailyExpense(tenantDb: any, id: string) {
     const expense = await tenantDb.dailyOperationalExpense.findFirst({
       where: { id, deletedAt: null },
@@ -685,11 +692,10 @@ export class ConstructionService {
 
   async createDailyExpense(tenantDb: any, userId: string, data: DailyExpenseDto) {
     return tenantDb.$transaction(async (tx: any) => {
-      const category = constructionExpenseCategory(data.category);
+      const expenseData = this.expenseData(data);
       const expense = await tx.dailyOperationalExpense.create({
         data: {
-          ...data,
-          category: category.value,
+          ...expenseData,
           date: data.date || new Date(),
           recordedByUserId: userId,
         },
@@ -703,12 +709,11 @@ export class ConstructionService {
     return tenantDb.$transaction(async (tx: any) => {
       const current = await tx.dailyOperationalExpense.findFirst({ where: { id, deletedAt: null } });
       if (!current) throw new NotFoundException('Operational expense not found');
-      const category = constructionExpenseCategory(data.category);
+      const expenseData = this.expenseData(data);
       const expense = await tx.dailyOperationalExpense.update({
         where: { id },
         data: {
-          ...data,
-          category: category.value,
+          ...expenseData,
           date: data.date || current.date,
           recordedByUserId: userId,
         },

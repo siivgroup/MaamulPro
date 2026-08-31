@@ -6,6 +6,7 @@ const require = createRequire(import.meta.url);
 require('ts-node/register/transpile-only');
 const { CONSTRUCTION_EXPENSE_CATEGORIES, constructionExpenseCategory } = require('../src/modules/construction/construction-expense-categories.ts');
 const { ConstructionService } = require('../src/modules/construction/construction.service.ts');
+const { projectProgress } = require('../src/modules/construction/construction-progress.ts');
 
 test('construction expense categories have stable finance and report behavior', () => {
   assert.equal(new Set(CONSTRUCTION_EXPENSE_CATEGORIES.map((row) => row.code)).size, CONSTRUCTION_EXPENSE_CATEGORIES.length);
@@ -15,6 +16,18 @@ test('construction expense categories have stable finance and report behavior', 
   assert.equal(constructionExpenseCategory('SUPPORT_COSTS').label, 'Owner Support');
   assert.equal(constructionExpenseCategory('SUPPORT_COSTS').creditKey, 'OWNER_SUPPORT_CAPITAL');
   assert.equal(constructionExpenseCategory('OTHER').creditKey, 'TRANSACTION_EXPENSE_CASH');
+});
+
+test('worker linkage is exclusive to unskilled labor expenses', () => {
+  const service = new ConstructionService({}, {});
+  assert.throws(() => service.expenseData({ category: 'UNSKILLED_LABOR' }), /Worker is required/);
+  assert.equal(service.expenseData({ category: 'OTHER', workerId: 'worker-1' }).workerId, null);
+  assert.equal(service.expenseData({ category: 'UNSKILLED_LABOR', workerId: 'worker-1' }).workerId, 'worker-1');
+});
+
+test('project progress is the completed share of active tasks', () => {
+  assert.equal(projectProgress([]), 0);
+  assert.equal(projectProgress([{ status: 'COMPLETED' }, { status: 'IN_PROGRESS' }, { status: 'COMPLETED' }]), 67);
 });
 
 test('legacy financial category duplicates merge into the canonical category', async () => {

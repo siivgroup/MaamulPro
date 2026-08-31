@@ -6,7 +6,6 @@ export const projectFields: CrudField[] = [
     { name: 'name', label: 'Project name', required: true, placeholder: 'Dhismaha Xarunta Hodan' },
     { name: 'location', label: 'Location', placeholder: 'Hodan, Muqdisho' },
     { name: 'budget', label: 'Budget', type: 'number', required: true, placeholder: '250000' },
-    { name: 'progress', label: 'Progress %', type: 'number', placeholder: '35', hint: 'Geli boqolkiiba u dhexeeya 0 iyo 100.' },
     { name: 'status', label: 'Status', type: 'select', options: options(['PLANNING', 'ONGOING', 'ON_HOLD', 'COMPLETED', 'CANCELLED']) },
     { name: 'startDate', label: 'Start date', type: 'date' },
     { name: 'endDate', label: 'End date', type: 'date' },
@@ -30,6 +29,8 @@ const workerQuickFields: CrudField[] = [
 export const workerLookupField: CrudField = {
     name: 'workerId',
     label: 'Worker',
+    required: true,
+    hideWhen: (form) => form.category !== 'UNSKILLED_LABOR',
     lookup: {
         endpoint: '/api/construction/manpower/workers/options',
         labelKeys: ['firstName', 'lastName'],

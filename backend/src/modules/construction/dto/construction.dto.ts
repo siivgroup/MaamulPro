@@ -10,7 +10,6 @@ export class ProjectDto {
   @IsOptional() @Type(() => Date) @IsDate() startDate?: Date;
   @IsOptional() @Type(() => Date) @IsDate() endDate?: Date;
   @IsOptional() @IsIn(['PLANNING', 'ONGOING', 'ON_HOLD', 'COMPLETED', 'CANCELLED']) status?: string;
-  @IsOptional() @Type(() => Number) @IsInt() @Min(0) @Max(100) progress?: number;
   @IsOptional() @IsString() @MaxLength(2048) imageUrl?: string;
 }
 
