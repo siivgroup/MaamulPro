@@ -16,6 +16,8 @@ import IconMenuCharts from '../Icon/Menu/IconMenuCharts';
 import IconMenuComponents from '../Icon/Menu/IconMenuComponents';
 import IconMenuElements from '../Icon/Menu/IconMenuElements';
 import IconMenuForms from '../Icon/Menu/IconMenuForms';
+import { useBranding } from '../../hooks/useBranding';
+import { AuthenticatedImage } from '../maamulpro/AuthenticatedImage';
 
 type Feature = 'construction' | 'realEstate' | 'materials' | 'payroll' | 'advancedReports';
 type Item = { label: string; to: string; icon?: ReactNode; feature?: Feature; permission?: string | string[] };
@@ -101,6 +103,8 @@ const Sidebar = () => {
         return () => window.removeEventListener('maamulpro:session', update);
     }, []);
     const isPlatform = Boolean(session?.user.isSuperAdmin);
+    const branding = useBranding(isPlatform ? '' : session?.user.companyId);
+    const companyName = isPlatform ? 'MaamulPro' : branding?.companyName || session?.user.companyName || 'Company';
     const userPermissions = useMemo(() => new Set(session?.user.permissions || []), [session]);
     const isOwner = isPlatform || Boolean(session?.user.isImpersonating) || ['COMPANY_OWNER', 'SUPER_ADMIN'].includes(session?.user.role || '');
     const hasPerm = (perm?: string | string[]) => !perm || isOwner || (Array.isArray(perm) ? perm.some((p) => userPermissions.has(p)) : userPermissions.has(perm));
@@ -181,8 +185,12 @@ const Sidebar = () => {
                 <div className="h-full bg-white dark:bg-black">
                     <div className="flex items-center justify-between px-4 py-3">
                         <NavLink className="main-logo flex shrink-0 items-center" to={home}>
-                            <img alt={session?.user.companyName || 'MaamulPro'} className="ml-[5px] w-8 flex-none" src="/assets/images/logo.svg" />
-                            {!collapsed && <span className="ml-1.5 text-2xl font-semibold align-middle dark:text-white-light">{session?.user.companyName || 'MaamulPro'}</span>}
+                            {isPlatform
+                                ? <img alt="MaamulPro" className="ml-[5px] h-8 w-8 flex-none" src="/assets/images/logo.svg" />
+                                : branding?.logoUrl
+                                    ? <AuthenticatedImage alt={`${companyName} logo`} className="ml-[5px] h-8 w-8 flex-none rounded-md object-contain" src={branding.logoUrl} />
+                                    : <span aria-hidden="true" className="ml-[5px] grid h-8 w-8 flex-none place-items-center rounded-md bg-primary-light text-primary"><Building2 size={18} /></span>}
+                            {!collapsed && <span className="ml-1.5 truncate text-2xl font-semibold align-middle dark:text-white-light">{companyName}</span>}
                         </NavLink>
                         <button className="collapse-icon flex h-8 w-8 rounded-full transition duration-300 hover:bg-gray-500/10 dark:text-white-light dark:hover:bg-dark-light/10" onClick={() => dispatch(toggleSidebar())} type="button">
                             <IconCaretsDown className="m-auto rotate-90" />

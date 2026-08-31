@@ -7,6 +7,7 @@ import { api, sessionStore } from '../lib/api';
 import { Link, useNavigate } from 'react-router-dom';
 import { ErrorAlert, Field, LoadingState, PageHeader, PasswordInput, SuccessAlert } from '../components/maamulpro/PageKit';
 import AccountMappingsSection from '../components/accounting/AccountMappingsSection';
+import { updateBranding } from '../hooks/useBranding';
 
 type Settings = { companyName: string; logoUrl?: string; companyEmail: string; companyPhone: string; companyAddress: string; companyDescription: string; automaticRentInvoices: boolean; automaticPayrollDrafts: boolean; subdomain?: string; constructionEnabled: boolean; realEstateEnabled: boolean; materialManagementEnabled: boolean; entitlements?: { features: Record<string, boolean>; limits: Record<string, number> }; usage?: Record<string, number> };
 type Profile = { name: string; email: string; avatarUrl?: string; language: string; role: string };
@@ -61,7 +62,7 @@ const SettingsPage = () => {
         if (savingRef.current) return;
         savingRef.current = true; setSaving(true);
         try {
-            if (type === 'company' && settings) { const { companyName, logoUrl, companyEmail, companyPhone, companyAddress, companyDescription, automaticRentInvoices, automaticPayrollDrafts } = settings; await api('/api/settings', { method: 'PATCH', silent: true, body: JSON.stringify({ companyName, logoUrl, companyEmail, companyPhone, companyAddress, companyDescription, automaticRentInvoices, automaticPayrollDrafts }) }); }
+            if (type === 'company' && settings) { const { companyName, logoUrl, companyEmail, companyPhone, companyAddress, companyDescription, automaticRentInvoices, automaticPayrollDrafts } = settings; await api('/api/settings', { method: 'PATCH', silent: true, body: JSON.stringify({ companyName, logoUrl, companyEmail, companyPhone, companyAddress, companyDescription, automaticRentInvoices, automaticPayrollDrafts }) }); updateBranding(session?.user.companyId, { companyName, logoUrl: logoUrl || null, companyEmail, companyPhone, companyAddress }); }
             else if (type === 'profile' && profile) { await api('/api/settings/profile', { method: 'PATCH', silent: true, body: JSON.stringify({ name: profile.name, avatarUrl: profile.avatarUrl }) }); await api('/api/settings/language', { method: 'PATCH', silent: true, body: JSON.stringify({ language: profile.language }) }); }
             else {
                 const result = await api<{ message: string }>('/api/settings/password', { method: 'PATCH', silent: true, body: JSON.stringify(passwords) });

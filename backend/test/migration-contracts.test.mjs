@@ -113,6 +113,8 @@ test('superadmin uses direct subscriptions and modules without a plans workflow'
   assert.match(guard, /features\.advancedReports/);
   assert.match(middleware, /subscriptionEntitlements\.fromCompany/);
   assert.match(sidebar, /group\.feature/);
+  assert.match(sidebar, /branding\?\.logoUrl/);
+  assert.match(sidebar, /AuthenticatedImage/);
   assert.match(appShell, /\/app\/construction/);
   assert.match(appShell, /\/app\/no-access/);
 });
