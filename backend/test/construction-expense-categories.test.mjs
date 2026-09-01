@@ -7,6 +7,7 @@ const require = createRequire(import.meta.url);
 require('ts-node/register/transpile-only');
 const { CONSTRUCTION_EXPENSE_CATEGORIES, constructionExpenseCategory } = require('../src/modules/construction/construction-expense-categories.ts');
 const { ConstructionService } = require('../src/modules/construction/construction.service.ts');
+const { ReportsService } = require('../src/modules/reports/reports.service.ts');
 const { projectProgress } = require('../src/modules/construction/construction-progress.ts');
 
 test('construction expense categories have stable finance and report behavior', () => {
@@ -30,6 +31,23 @@ test('only the expense worker field is conditional', async () => {
   const config = await readFile(new URL('../../frontend/src/pages/constructionConfig.ts', import.meta.url), 'utf8');
   assert.match(config, /\{ \.\.\.workerLookupField, required: true, hideWhen: \(form\) => form\.category !== 'UNSKILLED_LABOR' \}/);
   assert.doesNotMatch(config.match(/export const workerLookupField[\s\S]*?\n\};/)?.[0] || '', /hideWhen/);
+});
+
+test('manpower reports group source expenses under their linked worker', async () => {
+  const worker = { firstName: null, lastName: null, linkedStaff: { firstName: 'Asha', lastName: 'Ali' } };
+  const db = {
+    project: { findFirst: async () => ({ id: 'project-1', name: 'Project', assignedStaff: [], tasks: [] }) },
+    transaction: { findMany: async () => ['expense-1', 'expense-2'].map((id, index) => ({
+      id: `transaction-${index + 1}`, referenceId: `expense:${id}`, type: 'EXPENSE', status: 'CLEARED',
+      amount: 20, date: new Date(), description: index ? 'Digging' : 'Site cleanup', category: { name: 'Unskilled Labor' }, user: null,
+    })) },
+    dailyOperationalExpense: { findMany: async () => ['expense-1', 'expense-2'].map((id) => ({ id, staff: null, worker })) },
+    workerLedgerEntry: { findMany: async () => [] },
+    workforceContractPayment: { findMany: async () => [] },
+  };
+
+  const report = await new ReportsService().getProjectCategoryLedger(db, 'project-1', 'manpower');
+  assert.deepEqual(report.rows.map((row) => row.worker), ['Asha Ali', 'Asha Ali']);
 });
 
 test('project progress is the completed share of active tasks', () => {

@@ -96,35 +96,52 @@ export class ReportsService {
     result: { report: { title: string }; summary: any; rows: any[] },
     branding?: { companyName: string; companyAddress: string; companyPhone: string; companyEmail: string },
   ) {
-    const sep = '-'.repeat(72);
-    const brandLines: string[] = [];
-    if (branding?.companyName) brandLines.push(branding.companyName);
-    if (branding?.companyAddress) brandLines.push(branding.companyAddress);
-    const contact = [branding?.companyPhone, branding?.companyEmail].filter(Boolean).join('  |  ');
-    if (contact) brandLines.push(contact);
-    if (brandLines.length) brandLines.push(sep);
-
+    const clean = (value: string) => value.replace(/[^\x20-\x7E]/g, '?');
+    const wrap = (value: string, width = 150) => {
+      const words = clean(value).split(/\s+/);
+      const lines: string[] = [];
+      let line = '';
+      for (const word of words) {
+        const parts = word.match(new RegExp(`.{1,${width}}`, 'g')) || [''];
+        for (const part of parts) {
+          if (line && line.length + part.length + 1 > width) { lines.push(line); line = ''; }
+          line = line ? `${line} ${part}` : part;
+        }
+      }
+      return lines.concat(line || !lines.length ? [line] : []);
+    };
+    const columns = Object.keys(result.rows[0] || {});
+    const sep = '-'.repeat(100);
     const lines = [
-      ...brandLines,
-      result.report.title,
+      branding?.companyName,
+      branding?.companyAddress,
+      [branding?.companyPhone, branding?.companyEmail].filter(Boolean).join('  |  '),
       `Generated: ${new Date().toLocaleDateString()}`,
       sep,
       'SUMMARY',
-      ...Object.entries(result.summary).map(([key, value]) => `  ${key}: ${this.exportValue(value)}`),
+      ...Object.entries(result.summary).map(([key, value]) => `${key}: ${this.exportValue(value)}`),
       sep,
       'DATA',
-      ...result.rows.slice(0, 30).map((row) => Object.values(row).slice(0, 5).map((value) => this.exportValue(value)).join(' | ')),
+      ...result.rows.map((row, index) => `${index + 1}. ${columns.map((column) => `${column}: ${this.exportValue(row[column])}`).join(' | ')}`),
       sep,
       branding?.companyName ? `${branding.companyName} - Confidential` : 'Confidential',
-    ];
-    const escaped = lines.map((line) => line.replace(/[^\x20-\x7E]/g, '?').replace(/([\\()])/g, '\\$1'));
-    const content = `BT /F1 10 Tf 40 760 Td 14 TL ${escaped.map((line, index) => `${index ? 'T* ' : ''}(${line.slice(0, 110)}) Tj`).join(' ')} ET`;
+    ].filter(Boolean).flatMap((line) => wrap(String(line)));
+    const pages = Array.from({ length: Math.max(1, Math.ceil(lines.length / 45)) }, (_, index) => lines.slice(index * 45, (index + 1) * 45));
+    const pageRefs = pages.map((_, index) => 4 + index * 2);
     const objects = [
       '<< /Type /Catalog /Pages 2 0 R >>',
-      '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
-      '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+      `<< /Type /Pages /Kids [${pageRefs.map((ref) => `${ref} 0 R`).join(' ')}] /Count ${pages.length} >>`,
       '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
-      `<< /Length ${Buffer.byteLength(content)} >>\nstream\n${content}\nendstream`,
+      ...pages.flatMap((page, index) => {
+        const escaped = [`${result.report.title} - Page ${index + 1} of ${pages.length}`, sep, ...page]
+          .map((line) => line.replace(/([\\()])/g, '\\$1'));
+        const content = `BT /F1 7 Tf 30 580 Td 11 TL ${escaped.map((line, lineIndex) => `${lineIndex ? 'T* ' : ''}(${line}) Tj`).join(' ')} ET`;
+        const contentRef = pageRefs[index] + 1;
+        return [
+          `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 792 612] /Resources << /Font << /F1 3 0 R >> >> /Contents ${contentRef} 0 R >>`,
+          `<< /Length ${Buffer.byteLength(content)} >>\nstream\n${content}\nendstream`,
+        ];
+      }),
     ];
     let pdf = '%PDF-1.4\n';
     const offsets = [0];
@@ -385,6 +402,10 @@ export class ReportsService {
     return [staff.firstName, staff.lastName].filter(Boolean).join(' ').trim() || null;
   }
 
+  private sourceWorkerName(source: any) {
+    return this.staffName(source?.worker?.linkedStaff || source?.worker || source?.staff) || source?.payeeName || null;
+  }
+
   private assertCategory(category: string): 'manpower' | 'materials' | 'expenses' {
     if (category === 'manpower' || category === 'materials' || category === 'expenses') return category;
     throw new NotFoundException('Unknown report category');
@@ -554,6 +575,27 @@ export class ReportsService {
       include: { category: { select: { name: true, code: true } }, user: { select: { id: true, name: true, email: true } } },
       orderBy: { date: 'desc' },
     });
+    const sourceIds = (prefix: string) => rows.flatMap((row: any) => {
+      const reference = String(row.referenceId || '');
+      return reference.toLowerCase().startsWith(prefix) ? [reference.slice(prefix.length)] : [];
+    });
+    const sourceSelect = {
+      id: true,
+      staff: { select: { firstName: true, lastName: true } },
+      worker: { select: { firstName: true, lastName: true, linkedStaff: { select: { firstName: true, lastName: true } } } },
+    };
+    const [expenses, ledgerEntries, contractPayments] = cat === 'manpower'
+      ? await Promise.all([
+        db.dailyOperationalExpense.findMany({ where: { id: { in: sourceIds('expense:') } }, select: sourceSelect }),
+        db.workerLedgerEntry.findMany({ where: { id: { in: sourceIds('ledger:') } }, select: sourceSelect }),
+        db.workforceContractPayment.findMany({ where: { id: { in: sourceIds('wfpayment:') } }, select: { ...sourceSelect, payeeName: true } }),
+      ])
+      : [[], [], []];
+    const workerNames = new Map<string, string | null>([
+      ...expenses.map((row: any): [string, string | null] => [`expense:${row.id}`, this.sourceWorkerName(row)]),
+      ...ledgerEntries.map((row: any): [string, string | null] => [`ledger:${row.id}`, this.sourceWorkerName(row)]),
+      ...contractPayments.map((row: any): [string, string | null] => [`wfpayment:${row.id}`, this.sourceWorkerName(row)]),
+    ]);
     const mapped = rows
       .filter((row: any) => this.constructionTransactionCategory(row) === cat)
       .map((row: any) => {
@@ -567,7 +609,7 @@ export class ReportsService {
           description: row.description,
           rollupKey,
           item: cat === 'materials' ? rollupKey : undefined,
-          worker: cat === 'manpower' ? row.description : undefined,
+          worker: cat === 'manpower' ? workerNames.get(String(row.referenceId || '').toLowerCase()) || row.description : undefined,
           expenseCategory: row.category?.name || rollupKey,
           status: row.status,
           type: row.type,

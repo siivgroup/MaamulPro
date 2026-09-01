@@ -20,18 +20,12 @@ const PayslipsPage = () => {
     const rows = useMemo(() => state.rows.filter((row) => JSON.stringify(row).toLowerCase().includes(search.toLowerCase())), [state.rows, search]);
     const total = rows.reduce((sum, row) => sum + Number(row.netSalary || 0), 0);
     return <AppShell>
-        <style>{`
-            @media print {
-                .print\\:hidden { display: none !important; }
-                [class*="layout"], [class*="wrapper"] { margin: 0 !important; padding: 0 !important; width: 100% !important; }
-            }
-        `}</style>
         <PageHeader eyebrow="Payroll documents" title="Payslips" description="Search employee payroll results, review deductions and print individual payslips." actions={<button className="btn btn-outline-primary print:hidden" onClick={printNow}>Print current view</button>} />
         {state.error && <ErrorAlert message={state.error} onRetry={state.reload} />}
         <StatGrid items={[{ label: 'Payslips', value: rows.length }, { label: 'Net payroll', value: money(total), tone: 'success' }, { label: 'Gross payroll', value: money(rows.reduce((sum, row) => sum + Number(row.grossSalary || 0), 0)) }, { label: 'Deductions & tax', value: money(rows.reduce((sum, row) => sum + Number(row.deductions || 0) + Number(row.tax || 0), 0)), tone: 'danger' }]} />
         <div className="panel mb-5 print:hidden"><input className="form-input max-w-xl" placeholder="Search employee, payslip number or period…" value={search} onChange={(event) => setSearch(event.target.value)} /></div>
-        <div className="panel overflow-hidden p-0">{state.loading ? <LoadingState /> : !rows.length ? <EmptyState title="No payslips found" /> : <div className="overflow-x-auto"><table className="table-hover w-full"><thead><tr><th>Payslip</th><th>Employee</th><th>Period</th><th>Status</th><th>Gross</th><th>Deductions</th><th>Net</th><th className="print:hidden" /></tr></thead><tbody>{rows.map((row) => <tr key={row.id}><td className="font-mono text-xs">{row.payslipNumber || row.id.slice(0, 8)}</td><td><strong>{row.employeeName}</strong><small className="block text-white-dark">{row.employeePosition || row.employeeDepartment}</small></td><td>{row.payroll?.payPeriod || `${row.payroll?.year}-${row.payroll?.month}`}</td><td><StatusPill value={row.status} /></td><td>{money(row.grossSalary)}</td><td>{money(Number(row.deductions) + Number(row.tax))}</td><td className="font-bold text-success">{money(row.netSalary)}</td><td className="print:hidden"><button className="btn btn-sm btn-outline-primary" onClick={() => setSelected(row)}>View</button></td></tr>)}</tbody></table></div>}</div>
-        <Modal title="Employee Payslip" open={Boolean(selected)} onClose={() => setSelected(null)}>{selected && <div id="payslip-print" className="space-y-5">
+        <div className="panel print-document overflow-hidden p-0">{state.loading ? <LoadingState /> : !rows.length ? <EmptyState title="No payslips found" /> : <div className="overflow-x-auto"><table className="table-hover w-full"><thead><tr><th>Payslip</th><th>Employee</th><th>Period</th><th>Status</th><th>Gross</th><th>Deductions</th><th>Net</th><th className="print:hidden" /></tr></thead><tbody>{rows.map((row) => <tr key={row.id}><td className="font-mono text-xs">{row.payslipNumber || row.id.slice(0, 8)}</td><td><strong>{row.employeeName}</strong><small className="block text-white-dark">{row.employeePosition || row.employeeDepartment}</small></td><td>{row.payroll?.payPeriod || `${row.payroll?.year}-${row.payroll?.month}`}</td><td><StatusPill value={row.status} /></td><td>{money(row.grossSalary)}</td><td>{money(Number(row.deductions) + Number(row.tax))}</td><td className="font-bold text-success">{money(row.netSalary)}</td><td className="print:hidden"><button className="btn btn-sm btn-outline-primary" onClick={() => setSelected(row)}>View</button></td></tr>)}</tbody></table></div>}</div>
+        <Modal title="Employee Payslip" open={Boolean(selected)} onClose={() => setSelected(null)}>{selected && <div id="payslip-print" className="print-document space-y-5">
             <ReportHeader
                 branding={branding}
                 title="Payslip"

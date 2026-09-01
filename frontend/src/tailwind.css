@@ -698,3 +698,128 @@ pre.hljs {
     animation: maamulpro-screen-dot-spin 1.2s linear infinite;
 }
 @keyframes maamulpro-screen-dot-spin { to { transform: rotate(360deg); } }
+
+@media print {
+    @page { margin: 10mm; }
+
+    html, body, #root, .main-container, .main-content {
+        width: 100% !important;
+        min-width: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+    }
+
+    body {
+        color: #172033 !important;
+        font-size: 9pt;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .main-container header,
+    .main-container .sidebar,
+    .main-container > .fixed,
+    .app-footer,
+    .screen_loader,
+    .print\:hidden {
+        display: none !important;
+    }
+
+    .main-content {
+        min-height: 0 !important;
+    }
+
+    .main-content > .p-6 {
+        padding: 0 !important;
+    }
+
+    .print-document,
+    .print-sheet {
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .print-document .overflow-x-auto,
+    .print-document .overflow-auto,
+    .print-sheet .overflow-x-auto,
+    .print-sheet .overflow-auto {
+        overflow: visible !important;
+    }
+
+    .print-document table,
+    .print-sheet table {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .print-document thead,
+    .print-sheet thead { display: table-header-group; }
+    .print-document tfoot,
+    .print-sheet tfoot { display: table-footer-group; }
+
+    .print-document tr,
+    .print-sheet tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .print-document th,
+    .print-document td,
+    .print-sheet th,
+    .print-sheet td {
+        min-width: 0 !important;
+        padding: 4px 5px !important;
+        white-space: normal !important;
+        overflow: visible !important;
+        overflow-wrap: anywhere;
+        text-overflow: clip !important;
+    }
+
+    .print-report-table {
+        table-layout: fixed !important;
+        font-size: 7.5pt !important;
+    }
+
+    .print-report-table th:nth-child(1) { width: 8%; }
+    .print-report-table th:nth-child(2) { width: 11%; }
+    .print-report-table th:nth-child(3) { width: 17%; }
+    .print-report-table th:nth-child(4) { width: 22%; }
+    .print-report-table th:nth-child(5) { width: 10%; }
+    .print-report-table th:nth-child(6),
+    .print-report-table th:nth-child(7),
+    .print-report-table th:nth-child(8) { width: 10.66%; }
+
+    body:has(#payslip-print) .main-content > .p-6 > :not(.fixed) {
+        display: none !important;
+    }
+
+    body:has(#payslip-print) .main-content > .p-6 > .fixed,
+    body:has(#payslip-print) [role="dialog"] {
+        position: static !important;
+        display: block !important;
+        width: 100% !important;
+        max-width: none !important;
+        max-height: none !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        background: white !important;
+        box-shadow: none !important;
+    }
+
+    body:has(#payslip-print) [role="dialog"] > :first-child {
+        display: none !important;
+    }
+
+    body:has(#payslip-print) [role="dialog"] > :last-child {
+        padding: 0 !important;
+        overflow: visible !important;
+    }
+}

@@ -148,7 +148,7 @@ function TrialBalanceTab() {
 
     return (
         <div>
-            <div className="mb-4 flex flex-wrap items-end gap-3">
+            <div className="print:hidden mb-4 flex flex-wrap items-end gap-3">
                 <DateInput label="As of date" value={asOf} onChange={setAsOf} />
                 <button className="btn btn-primary btn-sm mt-4" onClick={load} disabled={loading}>Run</button>
             </div>
@@ -235,7 +235,7 @@ function IncomeStatementTab() {
 
     return (
         <div>
-            <div className="mb-4 flex flex-wrap items-end gap-3">
+            <div className="print:hidden mb-4 flex flex-wrap items-end gap-3">
                 <DateInput label="From" value={startDate} onChange={setStartDate} />
                 <DateInput label="To" value={endDate} onChange={setEndDate} />
                 <button className="btn btn-primary btn-sm mt-4" onClick={load} disabled={loading}>Run</button>
@@ -360,7 +360,7 @@ function BalanceSheetTab() {
 
     return (
         <div>
-            <div className="mb-4 flex flex-wrap items-end gap-3">
+            <div className="print:hidden mb-4 flex flex-wrap items-end gap-3">
                 <DateInput label="As of date" value={asOf} onChange={setAsOf} />
                 <button className="btn btn-primary btn-sm mt-4" onClick={load} disabled={loading}>Run</button>
             </div>
@@ -457,7 +457,7 @@ function GeneralLedgerTab() {
 
     return (
         <div>
-            <div className="mb-4 flex flex-wrap items-end gap-3">
+            <div className="print:hidden mb-4 flex flex-wrap items-end gap-3">
                 <DateInput label="From" value={startDate} onChange={setStartDate} />
                 <DateInput label="To" value={endDate} onChange={setEndDate} />
                 <div className="flex flex-col gap-0.5 text-xs font-semibold text-white-dark">
@@ -587,12 +587,6 @@ export default function FinancialReportsPage() {
 
     return (
         <AppShell>
-            <style>{`
-                @media print {
-                    .print\\:hidden { display: none !important; }
-                    [class*="layout"], [class*="wrapper"] { margin: 0 !important; padding: 0 !important; width: 100% !important; }
-                }
-            `}</style>
             <div className="p-5 print:p-0">
                 <div className="print:hidden">
                     <PageHeader
@@ -624,7 +618,7 @@ export default function FinancialReportsPage() {
                     </nav>
                 </div>
 
-                <div ref={printRef}>
+                <div className="print-document" ref={printRef}>
                     <ReportHeader branding={branding} title={activeTab?.label ?? 'Financial Report'} />
                     {tab === 'trial-balance' && <TrialBalanceTab />}
                     {tab === 'income-statement' && <IncomeStatementTab />}

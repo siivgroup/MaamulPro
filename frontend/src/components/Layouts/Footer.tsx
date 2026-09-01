@@ -4,7 +4,7 @@ import { IRootState } from '../../store';
 const Footer = () => {
     const isDarkMode = useSelector((state: IRootState) => state.themeConfig.isDarkMode);
     return (
-      <div className="mt-auto flex items-center justify-center gap-1.5 p-6 pt-0 text-center">
+      <div className="app-footer mt-auto flex items-center justify-center gap-1.5 p-6 pt-0 text-center">
     <img
         src={
             isDarkMode

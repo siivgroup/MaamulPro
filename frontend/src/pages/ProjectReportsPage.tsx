@@ -84,7 +84,7 @@ const WORKSPACES: Record<ReportWorkspace, WorkspaceConfig> = {
         primaryCol: (cat) => (cat === 'materials' ? 'Item' : cat === 'manpower' ? 'Worker' : 'Description'),
         secondaryCol: (cat) => (cat === 'materials' ? 'Recorded by' : 'Category'),
         primaryValue: (cat, row) => (cat === 'materials' ? row.item : cat === 'manpower' ? row.worker : row.description) || '—',
-        secondaryValue: (cat, row) => (cat === 'materials' ? row.enteredBy : cat === 'manpower' ? (row.rollupKey || row.description) : row.expenseCategory) || '—',
+        secondaryValue: (cat, row) => (cat === 'materials' ? row.enteredBy : cat === 'manpower' ? row.worker : row.expenseCategory) || '—',
     },
     real_estate: {
         apiRoot: '/api/reports/properties',
@@ -579,7 +579,7 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
                                 <div key={groupName} className="mb-8 last:mb-0">
                                     <h3 className="mb-3 text-[13px] font-bold text-secondary dark:text-white">{meta.label} / {groupName}</h3>
                                     <div className="overflow-x-auto rounded-xl border border-white-light dark:border-[#1b2e4b]">
-                                        <table className="w-full text-[12px]">
+                                        <table className="print-report-table w-full text-[12px]">
                                             <thead>
                                                 <tr className="bg-primary/8 dark:bg-primary/15">
                                                     <th className="py-2.5 pl-3 pr-2 text-left text-[11px] font-bold uppercase tracking-wide text-primary/80 dark:text-primary/60">Type</th>
@@ -712,12 +712,6 @@ const ProjectReportsPage = ({ basePath = '/app/construction/reports', workspace 
 
     return (
         <AppShell>
-            <style>{`
-                @media print {
-                    .print\\:hidden { display: none !important; }
-                    [class*="layout"], [class*="wrapper"] { margin: 0 !important; padding: 0 !important; width: 100% !important; }
-                }
-            `}</style>
             {stepper}
             {dateFilters}
             {error && <ErrorAlert message={error} />}
