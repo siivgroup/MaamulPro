@@ -88,7 +88,7 @@ export class RealEstateService {
       tenantDb.deal.count({ where: { propertyId: id, deletedAt: null } }),
       tenantDb.rentalContract.count({ where: { propertyId: id, deletedAt: null } }),
     ]);
-    if (deals || contracts) throw new ConflictException('Property has active deals or rental contracts');
+    if (deals || contracts) throw new ConflictException('Property has active sales or rental contracts');
     const result = await tenantDb.property.updateMany({
       where: { id, deletedAt: null },
       data: { deletedAt: new Date(), version: { increment: 1 } },
@@ -101,7 +101,7 @@ export class RealEstateService {
     tenantDb: any,
     query?: { propertyId?: string; clientId?: string; paymentStatus?: string },
   ) {
-    const where: any = { deletedAt: null };
+    const where: any = { deletedAt: null, type: 'SALE' };
     if (query?.propertyId) where.propertyId = query.propertyId;
     if (query?.clientId) where.clientId = query.clientId;
     if (query?.paymentStatus) where.paymentStatus = query.paymentStatus;
@@ -125,7 +125,7 @@ export class RealEstateService {
       where: { id, deletedAt: null },
       include: { property: true, client: true, createdBy: true, transactions: { where: { deletedAt: null } } },
     });
-    if (!deal) throw new NotFoundException('Deal not found');
+    if (!deal) throw new NotFoundException('Sale not found');
     return deal;
   }
 
@@ -140,7 +140,7 @@ export class RealEstateService {
       const deal = await tx.deal.create({
         data: {
           ...data,
-          type: data.type as any,
+          type: 'SALE',
           paymentStatus: paymentStatus as any,
           paidAmount,
           createdById: userId,
@@ -156,7 +156,8 @@ export class RealEstateService {
     this.validateDealAmounts(data);
     return tenantDb.$transaction(async (tx: any) => {
       const existing = await tx.deal.findFirst({ where: { id, deletedAt: null } });
-      if (!existing) throw new NotFoundException('Deal not found');
+      if (!existing) throw new NotFoundException('Sale not found');
+      if (existing.type !== 'SALE') throw new ConflictException('Legacy rental record is read-only; manage the lease and payments from Rentals.');
       if (data.propertyId !== existing.propertyId) await this.claimAvailableProperty(tx, data.propertyId);
       const where: any = { id, deletedAt: null };
       if (data.version !== undefined) where.version = data.version;
@@ -167,7 +168,7 @@ export class RealEstateService {
         where,
         data: {
           ...data,
-          type: data.type as any,
+          type: 'SALE',
           paidAmount,
           totalAmount,
           paymentStatus: paymentStatus as any,
@@ -186,7 +187,7 @@ export class RealEstateService {
   async deleteDeal(tenantDb: any, id: string) {
     return tenantDb.$transaction(async (tx: any) => {
       const deal = await tx.deal.findFirst({ where: { id, deletedAt: null } });
-      if (!deal) throw new NotFoundException('Deal not found');
+      if (!deal) throw new NotFoundException('Sale not found');
       await tx.deal.update({ where: { id }, data: { deletedAt: new Date(), version: { increment: 1 } } });
       await tx.transaction.updateMany({
         where: { dealId: id, deletedAt: null },
@@ -222,7 +223,7 @@ export class RealEstateService {
     });
     if (active) throw new ConflictException('Tenant has an active rental contract');
     const deals = await tenantDb.deal.count({ where: { clientId: id, deletedAt: null } });
-    if (deals) throw new ConflictException('Client has active deals');
+    if (deals) throw new ConflictException('Client has active property records');
     const result = await tenantDb.tenant.updateMany({
       where: { id, deletedAt: null },
       data: { deletedAt: new Date() },
@@ -539,7 +540,7 @@ export class RealEstateService {
   private async claimAvailableProperty(tx: any, propertyId: string) {
     const property = await this.lockPropertyRow(tx, propertyId);
     if (property.status !== 'AVAILABLE') {
-      throw new ConflictException('Property is not available for a new deal');
+      throw new ConflictException('Property is not available for a new sale');
     }
   }
 
@@ -622,7 +623,7 @@ export class RealEstateService {
           tx, tenantId: 'system',
           sourceType: 'DEAL',
           sourceId: deal.id,
-          sourceRef: `DEAL-PAID-${shortId}`,
+          sourceRef: `SALE-PAID-${shortId}`,
           memo: `${typeLabel} payment received for ${label}`,
           drKey: isRental ? 'RENTAL_RECEIPT_CASH' : 'DEAL_SALE_CASH',
           crKey: isRental ? 'RENTAL_INVOICE_REVENUE' : 'DEAL_SALE_REVENUE',
@@ -635,7 +636,7 @@ export class RealEstateService {
           referenceId: `deal:${deal.id}:due:${deal.version}`,
           type: 'INCOME',
           status: deal.paymentStatus === 'OVERDUE' ? 'PROCESSING' : 'PENDING',
-          description: `Pending balance for ${typeLabel.toLowerCase()} deal - ${label}`,
+          description: `Pending balance for ${typeLabel.toLowerCase()} - ${label}`,
           amount: total - paid,
           dealId: deal.id,
           propertyId: deal.propertyId,
@@ -645,8 +646,8 @@ export class RealEstateService {
           tx, tenantId: 'system',
           sourceType: 'DEAL',
           sourceId: deal.id,
-          sourceRef: `DEAL-DUE-${shortId}`,
-          memo: `Outstanding balance on ${typeLabel.toLowerCase()} deal - ${label}`,
+          sourceRef: `SALE-DUE-${shortId}`,
+          memo: `Outstanding balance on ${typeLabel.toLowerCase()} - ${label}`,
           drKey: isRental ? 'RENTAL_INVOICE_AR' : 'SALES_INVOICE_AR',
           crKey: isRental ? 'RENTAL_INVOICE_REVENUE' : 'DEAL_SALE_REVENUE',
           amount: total - paid,

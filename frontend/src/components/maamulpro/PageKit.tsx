@@ -56,8 +56,8 @@ export const formatReference = (value: unknown, fallbackId?: string): string => 
     if (str.startsWith('deal:')) {
         const parts = str.split(':');
         const cuid = parts[1] || '';
-        const tag = parts[2] ? parts[2].toUpperCase() : 'DEAL';
-        return `DEAL-${tag}-${cuid.slice(-6).toUpperCase()}`;
+        const tag = parts[2] ? parts[2].toUpperCase() : 'SALE';
+        return `SALE-${tag}-${cuid.slice(-6).toUpperCase()}`;
     }
     if (str.startsWith('wfcontract:') || str.startsWith('wfpayment:')) {
         const parts = str.split(':');

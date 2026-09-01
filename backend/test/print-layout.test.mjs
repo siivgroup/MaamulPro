@@ -17,6 +17,8 @@ test('print layouts remove application width and table overflow', async () => {
     read('../../frontend/src/pages/CrudPage.tsx'),
   ]);
   assert.match(css, /\.main-container, \.main-content/);
+  assert.match(css, /@page \{ margin: 8mm; \}/);
+  assert.match(css, /padding: 8mm !important;/);
   assert.match(css, /\.print-sheet \.overflow-x-auto/);
   assert.match(css, /\.print-report-table/);
   assert.match(projectReports, /print-report-table/);

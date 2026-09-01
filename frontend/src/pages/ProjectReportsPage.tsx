@@ -99,7 +99,7 @@ const WORKSPACES: Record<ReportWorkspace, WorkspaceConfig> = {
         budgetLabel: 'list price',
         categories: {
             rentals: { label: 'Rent Payments', desc: 'Tenant rent collection for this property' },
-            sales: { label: 'Property Sales', desc: 'Sale deals linked to this property' },
+            sales: { label: 'Property Sales', desc: 'Sales linked to this property' },
             contracts: { label: 'Lease Contracts', desc: 'Active and historical leases' },
         },
         primaryCol: () => 'Party',

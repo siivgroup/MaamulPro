@@ -18,8 +18,7 @@ export class PropertyDto {
 export class DealDto {
   @IsString() propertyId: string;
   @IsString() clientId: string;
-  @IsIn(['SALE', 'RENTAL']) type: string;
-  @IsOptional() @IsIn(['PAID', 'PARTIAL', 'PENDING', 'OVERDUE', 'REFUNDED']) paymentStatus?: string;
+  @IsOptional() @IsIn(['SALE']) type?: string;
   @Type(() => Number) @IsNumber() @Min(0.01) totalAmount: number;
   @IsOptional() @Type(() => Number) @IsNumber() @Min(0) paidAmount?: number;
   @IsOptional() @IsString() @MaxLength(2000) notes?: string;

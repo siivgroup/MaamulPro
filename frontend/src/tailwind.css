@@ -699,8 +699,9 @@ pre.hljs {
 }
 @keyframes maamulpro-screen-dot-spin { to { transform: rotate(360deg); } }
 
+@page { margin: 8mm; }
+
 @media print {
-    @page { margin: 10mm; }
 
     html, body, #root, .main-container, .main-content {
         width: 100% !important;
@@ -712,7 +713,7 @@ pre.hljs {
 
     body {
         color: #172033 !important;
-        font-size: 9pt;
+        font-size: 10pt;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
@@ -740,7 +741,8 @@ pre.hljs {
         max-width: none !important;
         min-width: 0 !important;
         margin: 0 !important;
-        padding: 0 !important;
+        box-sizing: border-box !important;
+        padding: 8mm !important;
         overflow: visible !important;
         border: 0 !important;
         border-radius: 0 !important;
@@ -757,6 +759,15 @@ pre.hljs {
     .print-document table,
     .print-sheet table {
         width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .print-sheet > .flex {
+        flex-wrap: wrap !important;
+    }
+
+    .print-sheet .flex-shrink-0 {
+        min-width: 0 !important;
         max-width: 100% !important;
     }
 

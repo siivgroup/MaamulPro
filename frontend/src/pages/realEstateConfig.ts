@@ -31,11 +31,10 @@ export const clientFields: CrudField[] = [
 
 export const dealFields: CrudField[] = [
     { name: 'propertyId', label: 'Property', required: true, lookup: { endpoint: '/api/real-estate/properties/options', labelKeys: ['title'], create: { fields: propertyQuickFields, permission: 'properties.create' } } },
-    { name: 'clientId', label: 'Client', required: true, lookup: { endpoint: '/api/real-estate/tenants/options', labelKeys: ['name'], create: { fields: clientFields, permission: ['clients.create', 'rentals.create'] } } },
-    { name: 'type', label: 'Type', type: 'select', required: true, options: options(['SALE', 'RENTAL']) },
-    { name: 'totalAmount', label: 'Total amount', type: 'number', required: true, placeholder: '85000' },
-    { name: 'paidAmount', label: 'Paid amount', type: 'number', placeholder: '25000' },
-    { name: 'closedAt', label: 'Closed date', type: 'date' },
+    { name: 'clientId', label: 'Buyer', required: true, lookup: { endpoint: '/api/real-estate/tenants/options', labelKeys: ['name'], create: { fields: clientFields, permission: ['clients.create', 'rentals.create'] } } },
+    { name: 'totalAmount', label: 'Sale price', type: 'number', required: true, placeholder: '85000' },
+    { name: 'paidAmount', label: 'Amount received', type: 'number', placeholder: '25000' },
+    { name: 'closedAt', label: 'Sale date', type: 'date' },
     { name: 'notes', label: 'Notes', type: 'textarea' },
 ];
 

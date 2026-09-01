@@ -154,7 +154,7 @@ const JournalEntriesPage = () => {
                     {['MANUAL', 'TRANSACTION', 'INVOICE', 'PAYMENT', 'PAYROLL', 'RENTAL', 'DEAL', 'PURCHASE', 'REVERSAL'].map(
                         (s) => (
                             <option key={s} value={s}>
-                                {s}
+                                {s === 'DEAL' ? 'SALE' : s}
                             </option>
                         ),
                     )}

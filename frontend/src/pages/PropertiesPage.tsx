@@ -37,7 +37,7 @@ const PropertiesPage = () => {
         </article>)}</div>}
         <Modal open={Boolean(deleteTarget)} onClose={() => !deleting && setDeleteTarget(null)} title="Delete property">
             <div className="space-y-4">
-                <p className="text-white-dark">Permanently delete <strong>{deleteTarget?.title}</strong>? Properties with active contracts or deals cannot be deleted.</p>
+                <p className="text-white-dark">Permanently delete <strong>{deleteTarget?.title}</strong>? Properties with active leases or sales cannot be deleted.</p>
                 <div className="flex justify-end gap-2">
                     <button className="btn btn-outline-dark" disabled={deleting} onClick={() => setDeleteTarget(null)}>Cancel</button>
                     <button className="btn btn-danger" disabled={deleting} onClick={confirmDelete}>{deleting ? 'Please wait…' : 'Delete property'}</button>
