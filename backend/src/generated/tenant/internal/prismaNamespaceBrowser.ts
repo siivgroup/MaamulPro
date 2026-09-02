@@ -90,6 +90,9 @@ export const ModelName = {
   DailyOperationalExpense: 'DailyOperationalExpense',
   WorkerLedgerEntry: 'WorkerLedgerEntry',
   Property: 'Property',
+  RentReceipt: 'RentReceipt',
+  RentalUnit: 'RentalUnit',
+  RentalUnitCategory: 'RentalUnitCategory',
   Deal: 'Deal',
   Account: 'Account',
   JournalBatch: 'JournalBatch',
@@ -529,10 +532,13 @@ export const RentalContractScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
   propertyId: 'propertyId',
+  unitId: 'unitId',
   monthlyRent: 'monthlyRent',
+  billingPeriod: 'billingPeriod',
   startDate: 'startDate',
   endDate: 'endDate',
   renewalDate: 'renewalDate',
+  documentUrl: 'documentUrl',
   status: 'status',
   notes: 'notes',
   createdAt: 'createdAt',
@@ -570,6 +576,7 @@ export const SupplierScalarFieldEnum = {
   address: 'address',
   balance: 'balance',
   notes: 'notes',
+  version: 'version',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt'
@@ -581,9 +588,15 @@ export type SupplierScalarFieldEnum = (typeof SupplierScalarFieldEnum)[keyof typ
 export const SupplierTransactionScalarFieldEnum = {
   id: 'id',
   supplierId: 'supplierId',
+  purchaseOrderId: 'purchaseOrderId',
+  type: 'type',
   amount: 'amount',
+  referenceNo: 'referenceNo',
+  paymentMethod: 'paymentMethod',
   description: 'description',
+  notes: 'notes',
   date: 'date',
+  recordedById: 'recordedById',
   createdAt: 'createdAt'
 } as const
 
@@ -599,6 +612,7 @@ export const PurchaseOrderScalarFieldEnum = {
   orderedAt: 'orderedAt',
   receivedAt: 'receivedAt',
   notes: 'notes',
+  version: 'version',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt'
@@ -766,6 +780,7 @@ export const PropertyScalarFieldEnum = {
   area: 'area',
   bedrooms: 'bedrooms',
   bathrooms: 'bathrooms',
+  floors: 'floors',
   imageUrl: 'imageUrl',
   version: 'version',
   createdAt: 'createdAt',
@@ -774,6 +789,57 @@ export const PropertyScalarFieldEnum = {
 } as const
 
 export type PropertyScalarFieldEnum = (typeof PropertyScalarFieldEnum)[keyof typeof PropertyScalarFieldEnum]
+
+
+export const RentReceiptScalarFieldEnum = {
+  id: 'id',
+  rentPaymentId: 'rentPaymentId',
+  amount: 'amount',
+  receivedAt: 'receivedAt',
+  receiptNo: 'receiptNo',
+  notes: 'notes',
+  createdAt: 'createdAt'
+} as const
+
+export type RentReceiptScalarFieldEnum = (typeof RentReceiptScalarFieldEnum)[keyof typeof RentReceiptScalarFieldEnum]
+
+
+export const RentalUnitScalarFieldEnum = {
+  id: 'id',
+  propertyId: 'propertyId',
+  categoryId: 'categoryId',
+  name: 'name',
+  code: 'code',
+  monthlyRent: 'monthlyRent',
+  status: 'status',
+  floor: 'floor',
+  bedrooms: 'bedrooms',
+  bathrooms: 'bathrooms',
+  section: 'section',
+  area: 'area',
+  details: 'details',
+  imageUrl: 'imageUrl',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type RentalUnitScalarFieldEnum = (typeof RentalUnitScalarFieldEnum)[keyof typeof RentalUnitScalarFieldEnum]
+
+
+export const RentalUnitCategoryScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  rooms: 'rooms',
+  bathrooms: 'bathrooms',
+  monthlyRent: 'monthlyRent',
+  section: 'section',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type RentalUnitCategoryScalarFieldEnum = (typeof RentalUnitCategoryScalarFieldEnum)[keyof typeof RentalUnitCategoryScalarFieldEnum]
 
 
 export const DealScalarFieldEnum = {

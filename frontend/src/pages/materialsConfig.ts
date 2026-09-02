@@ -27,13 +27,14 @@ export const supplierFields: CrudField[] = [
     { name: 'balance', label: 'Opening balance', type: 'number' },
     { name: 'notes', label: 'Notes', type: 'textarea' },
 ];
+export const supplierEditFields = supplierFields.filter((field) => field.name !== 'balance');
 
 export const purchaseFields: CrudField[] = [
     { name: 'orderNo', label: 'Order number', required: true, placeholder: 'PO-2026-001' },
-    { name: 'supplierId', label: 'Supplier', lookup: { endpoint: '/api/materials/suppliers/options', labelKeys: ['name'], create: { fields: supplierQuickFields, permission: 'suppliers.create' } } },
+    { name: 'supplierId', label: 'Supplier', required: true, lookup: { endpoint: '/api/materials/suppliers/options', labelKeys: ['name'], create: { fields: supplierQuickFields, permission: 'suppliers.create' } } },
     { name: 'orderedAt', label: 'Ordered date', type: 'date', defaultToday: true },
     { name: 'items', label: 'Purchase items', type: 'lineItems', required: true, lineItems: {
-        endpoint: '/api/materials/products/options', idField: 'materialId', labelKeys: ['name'], selectorLabel: 'Material',
+        endpoint: '/api/materials/products/options', idField: 'materialId', labelKeys: ['name', 'unit', 'status'], selectorLabel: 'Material',
         populate: { unitCost: 'unitCost' },
         fields: [{ name: 'quantity', label: 'Quantity', type: 'number', min: 0.01, required: true }, { name: 'unitCost', label: 'Unit cost', type: 'number', min: 0, required: true }],
     } },

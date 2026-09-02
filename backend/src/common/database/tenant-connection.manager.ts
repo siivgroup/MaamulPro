@@ -35,6 +35,11 @@ export class TenantConnectionManager implements OnModuleDestroy {
       keepAlive: true,
     });
 
+    pool.query(`
+      ALTER TYPE "PropertyType" ADD VALUE IF NOT EXISTS 'RENT';
+      ALTER TYPE "PropertyType" ADD VALUE IF NOT EXISTS 'SALE';
+    `).catch(() => undefined);
+
     const adapter = new PrismaPg(pool);
     const client = new TenantPrismaClient({ adapter });
 

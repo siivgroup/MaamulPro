@@ -1,18 +1,36 @@
 import { Type } from 'class-transformer';
-import { IsDate, IsEmail, IsIn, IsInt, IsNumber, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import { IsArray, IsDate, IsEmail, IsIn, IsInt, IsNumber, IsOptional, IsString, MaxLength, Min, ValidateNested } from 'class-validator';
+
+export class RentalUnitDto {
+  @IsString() @MaxLength(120) name: string;
+  @IsString() categoryId: string;
+  @IsOptional() @IsString() @MaxLength(40) floor?: string;
+  @IsOptional() @IsString() @MaxLength(2048) imageUrl?: string;
+  @IsOptional() @IsIn(['AVAILABLE', 'OCCUPIED', 'MAINTENANCE', 'INACTIVE']) status?: string;
+}
+
+export class RentalUnitCategoryDto {
+  @IsString() @MaxLength(120) name: string;
+  @Type(() => Number) @IsInt() @Min(0) rooms: number;
+  @Type(() => Number) @IsInt() @Min(0) bathrooms: number;
+  @Type(() => Number) @IsNumber() @Min(0.01) monthlyRent: number;
+  @IsString() @MaxLength(120) section: string;
+}
 
 export class PropertyDto {
   @IsString() @MaxLength(200) title: string;
-  @IsIn(['HOUSE', 'APARTMENT', 'LAND', 'COMMERCIAL']) type: string;
+  @IsIn(['RENT', 'SALE', 'HOUSE', 'APARTMENT', 'LAND', 'COMMERCIAL']) type: string;
   @IsOptional() @IsIn(['AVAILABLE', 'SOLD', 'RENTED', 'UNDER_CONTRACT']) status?: string;
   @IsOptional() @IsString() @MaxLength(500) address?: string;
   @IsOptional() @IsString() @MaxLength(3000) description?: string;
-  @Type(() => Number) @IsNumber() @Min(0) price: number;
+  @IsOptional() @Type(() => Number) @IsNumber() @Min(0) price?: number;
   @IsOptional() @Type(() => Number) @IsNumber() @Min(0) area?: number;
   @IsOptional() @Type(() => Number) @IsInt() @Min(0) bedrooms?: number;
   @IsOptional() @Type(() => Number) @IsInt() @Min(0) bathrooms?: number;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(0) floors?: number;
   @IsOptional() @IsString() @MaxLength(2048) imageUrl?: string;
   @IsOptional() @Type(() => Number) @IsInt() @Min(0) version?: number;
+  @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => RentalUnitDto) units?: RentalUnitDto[];
 }
 
 export class DealDto {
@@ -38,10 +56,13 @@ export class TenantDto {
 export class RentalContractDto {
   @IsString() tenantId: string;
   @IsString() propertyId: string;
+  @IsString() unitId: string;
   @Type(() => Number) @IsNumber() @Min(0.01) monthlyRent: number;
+  @IsOptional() @IsIn(['MONTHLY', 'QUARTERLY', 'YEARLY']) billingPeriod?: string;
   @Type(() => Date) @IsDate() startDate: Date;
-  @Type(() => Date) @IsDate() endDate: Date;
+  @IsOptional() @Type(() => Date) @IsDate() endDate?: Date;
   @IsOptional() @Type(() => Date) @IsDate() renewalDate?: Date;
+  @IsOptional() @IsString() @MaxLength(2048) documentUrl?: string;
   @IsOptional() @IsIn(['ACTIVE', 'EXPIRED', 'RENEWAL_DUE', 'TERMINATED']) status?: string;
   @IsOptional() @IsString() @MaxLength(2000) notes?: string;
 }
@@ -52,16 +73,15 @@ export class RentalContractStatusDto {
 
 export class RentPaymentDto {
   @IsString() tenantId: string;
-  @IsOptional() @IsString() contractId?: string;
+  @IsString() contractId: string;
   @Type(() => Date) @IsDate() dueDate: Date;
-  @IsOptional() @Type(() => Date) @IsDate() paidDate?: Date;
-  @Type(() => Number) @IsNumber() @Min(0.01) amountDue: number;
-  @IsOptional() @Type(() => Number) @IsNumber() @Min(0) amountPaid?: number;
-  @IsOptional() @IsIn(['PAID', 'UNPAID', 'LATE', 'PARTIAL']) status?: string;
-  @IsOptional() @IsString() @MaxLength(120) receiptNo?: string;
+  @Type(() => Number) @IsNumber({ maxDecimalPlaces: 2 }) @Min(0.01) amountDue: number;
   @IsOptional() @IsString() @MaxLength(2000) notes?: string;
 }
 
-export class RentPaymentStatusDto {
-  @IsIn(['PAID', 'UNPAID', 'LATE', 'PARTIAL']) status: string;
+export class RentReceiptDto {
+  @Type(() => Number) @IsNumber({ maxDecimalPlaces: 2 }) @Min(0.01) amount: number;
+  @IsOptional() @Type(() => Date) @IsDate() receivedAt?: Date;
+  @IsOptional() @IsString() @MaxLength(120) receiptNo?: string;
+  @IsOptional() @IsString() @MaxLength(2000) notes?: string;
 }

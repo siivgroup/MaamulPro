@@ -10,6 +10,7 @@ import {
   PurchaseOrderDto,
   PurchaseStatusDto,
   SupplierDto,
+  SupplierPaymentDto,
   TransportationDto,
   TransportationStatusDto,
 } from './material-management.dto';
@@ -70,14 +71,25 @@ export class MaterialManagementController {
 
   @Post('suppliers')
   @RequirePermissions('suppliers.create')
-  createSupplier(@GetTenantDb() db: any, @Body() body: SupplierDto) {
-    return this.service.createSupplier(db, body);
+  createSupplier(@GetTenantDb() db: any, @CurrentUser('id') userId: string, @Body() body: SupplierDto) {
+    return this.service.createSupplier(db, userId, body);
   }
 
   @Patch('suppliers/:id')
   @RequirePermissions('suppliers.update')
   updateSupplier(@GetTenantDb() db: any, @Param('id') id: string, @Body() body: SupplierDto) {
     return this.service.updateSupplier(db, id, body);
+  }
+
+  @Post('suppliers/:id/payments')
+  @RequirePermissions('suppliers.update')
+  recordSupplierPayment(
+    @GetTenantDb() db: any,
+    @CurrentUser('id') userId: string,
+    @Param('id') id: string,
+    @Body() body: SupplierPaymentDto,
+  ) {
+    return this.service.recordSupplierPayment(db, id, userId, body);
   }
 
   @Delete('suppliers/:id')

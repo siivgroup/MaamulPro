@@ -6,10 +6,12 @@ import { TenantAccessGuard } from '../../common/guards/tenant-access.guard';
 import {
   DealDto,
   PropertyDto,
+  RentalUnitDto,
+  RentalUnitCategoryDto,
   RentalContractDto,
   RentalContractStatusDto,
+  RentReceiptDto,
   RentPaymentDto,
-  RentPaymentStatusDto,
   TenantDto,
 } from './real-estate.dto';
 import { RealEstateService } from './real-estate.service';
@@ -64,6 +66,60 @@ export class RealEstateController {
     return this.service.deleteProperty(db, id);
   }
 
+  @Get('units')
+  @RequirePermissions('rentals.read')
+  getRentalUnits(@GetTenantDb() db: any, @Query('propertyId') propertyId?: string) {
+    return this.service.getRentalUnits(db, propertyId);
+  }
+
+  @Get('units/options')
+  @RequireAnyPermission('rentals.read', 'rentals.create')
+  getRentalUnitOptions(@GetTenantDb() db: any, @Query('propertyId') propertyId?: string) {
+    return this.service.getRentalUnitOptions(db, propertyId);
+  }
+
+  @Post('properties/:id/units')
+  @RequirePermissions('properties.update')
+  createRentalUnits(@GetTenantDb() db: any, @Param('id') id: string, @Body('units') units: RentalUnitDto[]) {
+    return this.service.createRentalUnits(db, id, units || []);
+  }
+
+  @Patch('units/:id')
+  @RequirePermissions('rentals.update')
+  updateRentalUnit(@GetTenantDb() db: any, @Param('id') id: string, @Body() body: RentalUnitDto) {
+    return this.service.updateRentalUnit(db, id, body);
+  }
+
+  @Delete('units/:id')
+  @RequirePermissions('rentals.delete')
+  deleteRentalUnit(@GetTenantDb() db: any, @Param('id') id: string) {
+    return this.service.deleteRentalUnit(db, id);
+  }
+
+  @Get('unit-categories')
+  @RequirePermissions('rentals.read')
+  getRentalUnitCategories(@GetTenantDb() db: any) {
+    return this.service.getRentalUnitCategories(db);
+  }
+
+  @Post('unit-categories')
+  @RequirePermissions('rentals.create')
+  createRentalUnitCategory(@GetTenantDb() db: any, @Body() body: RentalUnitCategoryDto) {
+    return this.service.createRentalUnitCategory(db, body);
+  }
+
+  @Patch('unit-categories/:id')
+  @RequirePermissions('rentals.update')
+  updateRentalUnitCategory(@GetTenantDb() db: any, @Param('id') id: string, @Body() body: RentalUnitCategoryDto) {
+    return this.service.updateRentalUnitCategory(db, id, body);
+  }
+
+  @Delete('unit-categories/:id')
+  @RequirePermissions('rentals.delete')
+  deleteRentalUnitCategory(@GetTenantDb() db: any, @Param('id') id: string) {
+    return this.service.deleteRentalUnitCategory(db, id);
+  }
+
 
   @Get('deals')
   @RequirePermissions('deals.read')
@@ -108,6 +164,12 @@ export class RealEstateController {
   @RequireAnyPermission('clients.read', 'rentals.read')
   getTenants(@GetTenantDb() db: any) {
     return this.service.getTenants(db);
+  }
+
+  @Get('tenants/:id/rental-profile')
+  @RequireAnyPermission('clients.read', 'rentals.read')
+  getTenantRentalProfile(@GetTenantDb() db: any, @Param('id') id: string) {
+    return this.service.getTenantRentalProfile(db, id);
   }
 
   @Get('tenants/options')
@@ -159,13 +221,14 @@ export class RealEstateController {
   @Get('rentals/workspace')
   @RequirePermissions('rentals.read')
   async getRentalWorkspace(@GetTenantDb() db: any) {
-    const [tenants, properties, contracts, payments] = await Promise.all([
+    const [tenants, properties, units, contracts, payments] = await Promise.all([
       this.service.getTenants(db),
       this.service.getPropertyOptions(db),
+      this.service.getRentalUnits(db),
       this.service.getRentalContracts(db),
       this.service.getRentPayments(db),
     ]);
-    return { tenants, properties, contracts, payments };
+    return { tenants, properties, units, contracts, payments };
   }
 
   @Post('rental-contracts/:id/status')
@@ -202,20 +265,16 @@ export class RealEstateController {
     return this.service.createRentPayment(db, body);
   }
 
+  @Post('rent-payments/:id/receipts')
+  @RequirePermissions('rentals.create')
+  recordRentReceipt(@GetTenantDb() db: any, @Param('id') id: string, @Body() body: RentReceiptDto) {
+    return this.service.recordRentReceipt(db, id, body);
+  }
+
   @Patch('rent-payments/:id')
   @RequirePermissions('rentals.update')
   updateRentPayment(@GetTenantDb() db: any, @Param('id') id: string, @Body() body: RentPaymentDto) {
     return this.service.updateRentPayment(db, id, body);
-  }
-
-  @Post('rent-payments/:id/status')
-  @RequirePermissions('rentals.update')
-  updateRentPaymentStatus(
-    @GetTenantDb() db: any,
-    @Param('id') id: string,
-    @Body() body: RentPaymentStatusDto,
-  ) {
-    return this.service.updateRentPaymentStatus(db, id, body.status);
   }
 
   @Delete('rent-payments/:id')

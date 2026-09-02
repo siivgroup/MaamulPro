@@ -12,7 +12,7 @@ test('workflow controls cover period locks, approval limits, evidence, and idemp
     read('../src/modules/settings/settings.service.ts'), read('../../frontend/src/pages/AccountingPeriodsPage.tsx'),
     read('../../frontend/src/components/maamulpro/DocumentAttachments.tsx'),
   ]);
-  assert.match(sql, /CURRENT_TENANT_SCHEMA_VERSION = 30/);
+  assert.match(sql, /CURRENT_TENANT_SCHEMA_VERSION = 34/);
   assert.match(schema, /model AccountingPeriod/);
   assert.match(schema, /model DocumentAttachment/);
   assert.match(schema, /approvalLimit\s+Decimal\?/);

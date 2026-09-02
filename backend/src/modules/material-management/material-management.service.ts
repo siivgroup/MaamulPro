@@ -6,6 +6,7 @@ import {
   MaterialSaleDto,
   PurchaseOrderDto,
   SupplierDto,
+  SupplierPaymentDto,
   TransportationDto,
 } from './material-management.dto';
 
@@ -26,7 +27,7 @@ export class MaterialManagementService {
   getProductOptions(db: any) {
     return db.material.findMany({
       where: { deletedAt: null },
-      select: { id: true, name: true, unitCost: true, salePrice: true, quantity: true },
+      select: { id: true, name: true, unit: true, status: true, unitCost: true, salePrice: true, quantity: true, warehouse: true },
       orderBy: { name: 'asc' },
     });
   }
@@ -88,20 +89,64 @@ export class MaterialManagementService {
   async getSupplier(db: any, id: string) {
     const supplier = await db.supplier.findFirst({
       where: { id, deletedAt: null },
-      include: { _count: { select: { purchaseOrders: true, transactions: true } } },
+      include: {
+        purchaseOrders: { where: { deletedAt: null }, include: { items: { include: { material: true } } }, orderBy: { createdAt: 'desc' } },
+        transactions: { include: { purchaseOrder: true }, orderBy: [{ date: 'desc' }, { createdAt: 'desc' }] },
+      },
     });
     if (!supplier) throw new NotFoundException('Supplier not found');
-    return supplier;
+    let runningBalance = 0;
+    const statement = [...supplier.transactions].reverse().map((row: any) => ({ ...row, runningBalance: runningBalance += Number(row.amount) })).reverse();
+    return { ...supplier, transactions: statement };
   }
 
-  createSupplier(db: any, data: SupplierDto) {
-    return db.supplier.create({ data: { ...data, balance: data.balance || 0 } });
+  createSupplier(db: any, userId: string, data: SupplierDto) {
+    return db.$transaction(async (tx: any) => {
+      const supplier = await tx.supplier.create({ data: { ...data, balance: data.balance || 0 } });
+      if (Number(supplier.balance) > 0) await tx.supplierTransaction.create({ data: { supplierId: supplier.id, type: 'OPENING', amount: supplier.balance, description: 'Opening supplier balance', recordedById: userId } });
+      return supplier;
+    });
   }
 
   async updateSupplier(db: any, id: string, data: SupplierDto) {
-    const result = await db.supplier.updateMany({ where: { id, deletedAt: null }, data });
+    const { balance: _balance, version, ...profile } = data;
+    const result = await db.supplier.updateMany({ where: { id, deletedAt: null, ...(version === undefined ? {} : { version }) }, data: { ...profile, version: { increment: 1 } } });
     if (!result.count) throw new NotFoundException('Supplier not found');
     return db.supplier.findUnique({ where: { id } });
+  }
+
+  async recordSupplierPayment(db: any, supplierId: string, userId: string, data: SupplierPaymentDto) {
+    return db.$transaction(async (tx: any) => {
+      await tx.$queryRaw`SELECT "id" FROM "suppliers" WHERE "id" = ${supplierId} AND "deleted_at" IS NULL FOR UPDATE`;
+      const supplier = await tx.supplier.findFirst({ where: { id: supplierId, deletedAt: null } });
+      if (!supplier) throw new NotFoundException('Supplier not found');
+      const amount = Number(data.amount);
+      if (data.date && data.date > new Date()) throw new BadRequestException('Payment date cannot be in the future');
+      if (amount > Number(supplier.balance)) throw new BadRequestException('Payment cannot exceed the supplier outstanding balance');
+      if (await tx.supplierTransaction.findFirst({ where: { referenceNo: data.referenceNo } })) throw new ConflictException('Payment reference already exists');
+      const payment = await tx.supplierTransaction.create({
+        data: {
+          supplierId,
+          type: 'PAYMENT',
+          amount: -amount,
+          date: data.date || new Date(),
+          referenceNo: data.referenceNo,
+          paymentMethod: data.paymentMethod,
+          description: `Payment to ${supplier.name}`,
+          notes: data.notes,
+          recordedById: userId,
+        },
+      });
+      await tx.supplier.update({ where: { id: supplierId }, data: { balance: { decrement: amount }, version: { increment: 1 } } });
+      await this.accounting.postFinancialEvent(tx, {
+        tx, tenantId: 'system', userId,
+        sourceType: 'SUPPLIER_PAYMENT', sourceId: payment.id,
+        sourceRef: data.referenceNo,
+        date: data.date || new Date(), memo: `Payment to ${supplier.name}`,
+        drKey: 'SUPPLIER_PAYMENT_AP', crKey: 'SUPPLIER_PAYMENT_CASH', amount,
+      });
+      return payment;
+    });
   }
 
   async deleteSupplier(db: any, id: string) {
@@ -130,7 +175,8 @@ export class MaterialManagementService {
   }
 
   async createPurchaseOrder(db: any, userId: string, data: PurchaseOrderDto) {
-    const totalCost = data.items.reduce((sum, item) => sum + item.quantity * item.unitCost, 0);
+    this.assertUniquePurchaseItems(data);
+    const totalCost = this.purchaseTotal(data);
     return db.$transaction(async (tx: any) => {
       const order = await tx.purchaseOrder.create({
         data: {
@@ -145,7 +191,6 @@ export class MaterialManagementService {
         },
         include: { supplier: true, items: true },
       });
-      if (order.status === 'RECEIVED') await this.applyPurchaseReceipt(tx, order, userId, 1);
       await this.syncPurchaseLedger(tx, order);
       return order;
     });
@@ -153,6 +198,7 @@ export class MaterialManagementService {
 
   async updatePurchaseStatus(db: any, id: string, userId: string, status: string) {
     return db.$transaction(async (tx: any) => {
+      await tx.$queryRaw`SELECT "id" FROM "purchase_orders" WHERE "id" = ${id} AND "deleted_at" IS NULL FOR UPDATE`;
       const order = await tx.purchaseOrder.findFirst({
         where: { id, deletedAt: null },
         include: { supplier: true, items: true },
@@ -168,6 +214,7 @@ export class MaterialManagementService {
       if (!allowed[order.status]?.includes(status)) {
         throw new BadRequestException(`Cannot transition purchase order from ${order.status} to ${status}`);
       }
+      if (['ORDERED', 'RECEIVED'].includes(status) && !order.supplierId) throw new BadRequestException('A supplier is required before an order can be ordered or received');
 
       // Claim the transition before changing stock. The version predicate
       // prevents two requests from receiving the same order twice.
@@ -175,7 +222,9 @@ export class MaterialManagementService {
         where: { id, deletedAt: null, status: order.status },
         data: {
           status: status as any,
+          orderedAt: ['ORDERED', 'RECEIVED'].includes(status) ? order.orderedAt || new Date() : order.orderedAt,
           receivedAt: status === 'RECEIVED' ? new Date() : order.receivedAt,
+          version: { increment: 1 },
         },
       });
       if (!changed.count) throw new ConflictException('Purchase order was changed by another request');
@@ -195,16 +244,17 @@ export class MaterialManagementService {
   }
 
   async updatePurchaseOrder(db: any, id: string, userId: string, data: PurchaseOrderDto) {
-    const totalCost = data.items.reduce((sum, item) => sum + item.quantity * item.unitCost, 0);
+    this.assertUniquePurchaseItems(data);
+    const totalCost = this.purchaseTotal(data);
     return db.$transaction(async (tx: any) => {
+      await tx.$queryRaw`SELECT "id" FROM "purchase_orders" WHERE "id" = ${id} AND "deleted_at" IS NULL FOR UPDATE`;
       const existing = await tx.purchaseOrder.findFirst({
         where: { id, deletedAt: null },
         include: { supplier: true, items: true },
       });
       if (!existing) throw new NotFoundException('Purchase order not found');
-      if (existing.status === 'RECEIVED') {
-        throw new ConflictException('Received purchase orders cannot be edited; change the status first');
-      }
+      if (!['DRAFT', 'ORDERED'].includes(existing.status)) throw new ConflictException('Only draft or ordered purchase orders can be edited');
+      if (data.version !== undefined && data.version !== existing.version) throw new ConflictException('Purchase order was updated by another user');
 
     const status = existing.status;
       const claimed = await tx.purchaseOrder.updateMany({
@@ -217,6 +267,7 @@ export class MaterialManagementService {
           orderedAt: data.orderedAt,
           receivedAt: existing.receivedAt,
           notes: data.notes,
+          version: { increment: 1 },
         },
       });
       if (!claimed.count) throw new ConflictException('Purchase order was changed by another request');
@@ -229,7 +280,6 @@ export class MaterialManagementService {
         include: { supplier: true, items: true },
       });
       if (!updated) throw new NotFoundException('Purchase order not found');
-      if (updated.status === 'RECEIVED') await this.applyPurchaseReceipt(tx, updated, userId, 1);
       await this.syncPurchaseLedger(tx, updated);
       return updated;
     });
@@ -237,17 +287,18 @@ export class MaterialManagementService {
 
   async deletePurchaseOrder(db: any, id: string, userId: string) {
     return db.$transaction(async (tx: any) => {
+      await tx.$queryRaw`SELECT "id" FROM "purchase_orders" WHERE "id" = ${id} AND "deleted_at" IS NULL FOR UPDATE`;
       const order = await tx.purchaseOrder.findFirst({
         where: { id, deletedAt: null },
         include: { supplier: true, items: true },
       });
       if (!order) throw new NotFoundException('Purchase order not found');
+      if (!['DRAFT', 'CANCELLED'].includes(order.status)) throw new ConflictException('Ordered or received purchase orders must be cancelled or reversed, not deleted');
       const deleted = await tx.purchaseOrder.updateMany({
         where: { id, deletedAt: null, status: order.status },
         data: { deletedAt: new Date() },
       });
       if (!deleted.count) throw new ConflictException('Purchase order was changed by another request');
-      if (order.status === 'RECEIVED') await this.applyPurchaseReceipt(tx, order, userId, -1);
       await tx.transaction.updateMany({
         where: { referenceId: `purchase:${id}`, deletedAt: null },
         data: { deletedAt: new Date(), version: { increment: 1 } },
@@ -502,6 +553,9 @@ export class MaterialManagementService {
   }
 
   private async applyPurchaseReceipt(tx: any, order: any, userId: string, direction: 1 | -1) {
+    for (const item of [...order.items].sort((a: any, b: any) => a.materialId.localeCompare(b.materialId))) {
+      await tx.$queryRaw`SELECT "id" FROM "materials" WHERE "id" = ${item.materialId} AND "deleted_at" IS NULL FOR UPDATE`;
+    }
     for (const item of order.items) {
       const material = await tx.material.findFirst({ where: { id: item.materialId, deletedAt: null } });
       if (!material) throw new NotFoundException('Purchase material not found');
@@ -541,6 +595,8 @@ export class MaterialManagementService {
       await tx.supplierTransaction.create({
         data: {
           supplierId: order.supplierId,
+          purchaseOrderId: order.id,
+          type: direction === 1 ? 'PURCHASE' : 'REVERSAL',
           amount: direction * Number(order.totalCost),
           description: `${direction === 1 ? 'Received' : 'Reverted'} purchase order ${order.orderNo}`,
         },
@@ -603,6 +659,14 @@ export class MaterialManagementService {
       || tx.category.create({ data: { name, color } });
   }
 
+  private assertUniquePurchaseItems(data: PurchaseOrderDto) {
+    if (new Set(data.items.map((item) => item.materialId)).size !== data.items.length) throw new BadRequestException('Each material can appear only once on a purchase order');
+  }
+
+  private purchaseTotal(data: PurchaseOrderDto) {
+    return Math.round(data.items.reduce((sum, item) => sum + item.quantity * item.unitCost, 0) * 100) / 100;
+  }
+
   private async syncPurchaseLedger(tx: any, order: any) {
     const referenceId = `purchase:${order.id}`;
     if (order.status !== 'RECEIVED' || Number(order.totalCost) <= 0) {
@@ -610,12 +674,7 @@ export class MaterialManagementService {
       await this.accounting.retractPriorForSource(tx, 'PURCHASE', order.id);
       return;
     }
-    const category = await this.category(tx, 'Procurement', '#ef4444');
-    await tx.transaction.upsert({
-      where: { referenceId },
-      create: { referenceId, type: 'EXPENSE', status: 'CLEARED', description: `Procurement expense for purchase order ${order.orderNo}`, amount: order.totalCost, date: order.receivedAt || new Date(), categoryId: category.id },
-      update: { amount: order.totalCost, date: order.receivedAt || new Date(), deletedAt: null, version: { increment: 1 } },
-    });
+    await tx.transaction.updateMany({ where: { referenceId, deletedAt: null }, data: { deletedAt: new Date(), version: { increment: 1 } } });
     // Post the replacement batch first, then retract the prior batch only.
     // A failed post rolls the whole operation back instead of leaving the
     // source changed with the prior journal already reversed.
@@ -627,7 +686,7 @@ export class MaterialManagementService {
       sourceRef: order.orderNo,
       date: order.receivedAt || new Date(),
       memo: `Procurement for purchase order ${order.orderNo}`,
-      drKey: 'PURCHASE_INVOICE_EXPENSE',
+      drKey: 'PURCHASE_INVOICE_INVENTORY',
       crKey: 'PURCHASE_INVOICE_AP',
       amount: Number(order.totalCost),
     });

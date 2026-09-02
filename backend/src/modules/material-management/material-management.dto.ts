@@ -21,15 +21,15 @@ export class SupplierDto {
   @IsOptional() @IsEmail() email?: string;
   @IsOptional() @IsString() @MaxLength(50) phone?: string;
   @IsOptional() @IsString() @MaxLength(500) address?: string;
-  @IsOptional() @Type(() => Number) @IsNumber() balance?: number;
+  @IsOptional() @Type(() => Number) @IsNumber({ maxDecimalPlaces: 2 }) @Min(0) balance?: number;
   @IsOptional() @IsString() @MaxLength(2000) notes?: string;
   @IsOptional() @Type(() => Number) @IsInt() @Min(0) version?: number;
 }
 
 export class PurchaseItemDto {
   @IsString() materialId: string;
-  @Type(() => Number) @IsNumber() @Min(0.01) quantity: number;
-  @Type(() => Number) @IsNumber() @Min(0) unitCost: number;
+  @Type(() => Number) @IsNumber({ maxDecimalPlaces: 2 }) @Min(0.01) quantity: number;
+  @Type(() => Number) @IsNumber({ maxDecimalPlaces: 2 }) @Min(0) unitCost: number;
 }
 
 export class PurchaseOrderDto {
@@ -45,6 +45,14 @@ export class PurchaseOrderDto {
 
 export class PurchaseStatusDto {
   @IsIn(['DRAFT', 'ORDERED', 'RECEIVED', 'CANCELLED']) status: string;
+}
+
+export class SupplierPaymentDto {
+  @Type(() => Number) @IsNumber({ maxDecimalPlaces: 2 }) @Min(0.01) amount: number;
+  @IsOptional() @Type(() => Date) @IsDate() date?: Date;
+  @IsString() @MaxLength(120) referenceNo: string;
+  @IsOptional() @IsString() @MaxLength(80) paymentMethod?: string;
+  @IsOptional() @IsString() @MaxLength(2000) notes?: string;
 }
 
 export class MaterialCustomerDto {

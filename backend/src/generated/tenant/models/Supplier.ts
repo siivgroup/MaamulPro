@@ -28,10 +28,12 @@ export type AggregateSupplier = {
 
 export type SupplierAvgAggregateOutputType = {
   balance: runtime.Decimal | null
+  version: number | null
 }
 
 export type SupplierSumAggregateOutputType = {
   balance: runtime.Decimal | null
+  version: number | null
 }
 
 export type SupplierMinAggregateOutputType = {
@@ -42,6 +44,7 @@ export type SupplierMinAggregateOutputType = {
   address: string | null
   balance: runtime.Decimal | null
   notes: string | null
+  version: number | null
   createdAt: Date | null
   updatedAt: Date | null
   deletedAt: Date | null
@@ -55,6 +58,7 @@ export type SupplierMaxAggregateOutputType = {
   address: string | null
   balance: runtime.Decimal | null
   notes: string | null
+  version: number | null
   createdAt: Date | null
   updatedAt: Date | null
   deletedAt: Date | null
@@ -68,6 +72,7 @@ export type SupplierCountAggregateOutputType = {
   address: number
   balance: number
   notes: number
+  version: number
   createdAt: number
   updatedAt: number
   deletedAt: number
@@ -77,10 +82,12 @@ export type SupplierCountAggregateOutputType = {
 
 export type SupplierAvgAggregateInputType = {
   balance?: true
+  version?: true
 }
 
 export type SupplierSumAggregateInputType = {
   balance?: true
+  version?: true
 }
 
 export type SupplierMinAggregateInputType = {
@@ -91,6 +98,7 @@ export type SupplierMinAggregateInputType = {
   address?: true
   balance?: true
   notes?: true
+  version?: true
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
@@ -104,6 +112,7 @@ export type SupplierMaxAggregateInputType = {
   address?: true
   balance?: true
   notes?: true
+  version?: true
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
@@ -117,6 +126,7 @@ export type SupplierCountAggregateInputType = {
   address?: true
   balance?: true
   notes?: true
+  version?: true
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
@@ -217,6 +227,7 @@ export type SupplierGroupByOutputType = {
   address: string | null
   balance: runtime.Decimal
   notes: string | null
+  version: number
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null
@@ -253,6 +264,7 @@ export type SupplierWhereInput = {
   address?: Prisma.StringNullableFilter<"Supplier"> | string | null
   balance?: Prisma.DecimalFilter<"Supplier"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.StringNullableFilter<"Supplier"> | string | null
+  version?: Prisma.IntFilter<"Supplier"> | number
   createdAt?: Prisma.DateTimeFilter<"Supplier"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Supplier"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Supplier"> | Date | string | null
@@ -269,6 +281,7 @@ export type SupplierOrderByWithRelationInput = {
   address?: Prisma.SortOrderInput | Prisma.SortOrder
   balance?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
+  version?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -288,6 +301,7 @@ export type SupplierWhereUniqueInput = Prisma.AtLeast<{
   address?: Prisma.StringNullableFilter<"Supplier"> | string | null
   balance?: Prisma.DecimalFilter<"Supplier"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.StringNullableFilter<"Supplier"> | string | null
+  version?: Prisma.IntFilter<"Supplier"> | number
   createdAt?: Prisma.DateTimeFilter<"Supplier"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Supplier"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Supplier"> | Date | string | null
@@ -304,6 +318,7 @@ export type SupplierOrderByWithAggregationInput = {
   address?: Prisma.SortOrderInput | Prisma.SortOrder
   balance?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
+  version?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -325,6 +340,7 @@ export type SupplierScalarWhereWithAggregatesInput = {
   address?: Prisma.StringNullableWithAggregatesFilter<"Supplier"> | string | null
   balance?: Prisma.DecimalWithAggregatesFilter<"Supplier"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.StringNullableWithAggregatesFilter<"Supplier"> | string | null
+  version?: Prisma.IntWithAggregatesFilter<"Supplier"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Supplier"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Supplier"> | Date | string
   deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Supplier"> | Date | string | null
@@ -338,6 +354,7 @@ export type SupplierCreateInput = {
   address?: string | null
   balance?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
+  version?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -354,6 +371,7 @@ export type SupplierUncheckedCreateInput = {
   address?: string | null
   balance?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
+  version?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -370,6 +388,7 @@ export type SupplierUpdateInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -386,6 +405,7 @@ export type SupplierUncheckedUpdateInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -402,6 +422,7 @@ export type SupplierCreateManyInput = {
   address?: string | null
   balance?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
+  version?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -415,6 +436,7 @@ export type SupplierUpdateManyMutationInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -428,6 +450,7 @@ export type SupplierUncheckedUpdateManyInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -446,6 +469,7 @@ export type SupplierCountOrderByAggregateInput = {
   address?: Prisma.SortOrder
   balance?: Prisma.SortOrder
   notes?: Prisma.SortOrder
+  version?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
@@ -453,6 +477,7 @@ export type SupplierCountOrderByAggregateInput = {
 
 export type SupplierAvgOrderByAggregateInput = {
   balance?: Prisma.SortOrder
+  version?: Prisma.SortOrder
 }
 
 export type SupplierMaxOrderByAggregateInput = {
@@ -463,6 +488,7 @@ export type SupplierMaxOrderByAggregateInput = {
   address?: Prisma.SortOrder
   balance?: Prisma.SortOrder
   notes?: Prisma.SortOrder
+  version?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
@@ -476,6 +502,7 @@ export type SupplierMinOrderByAggregateInput = {
   address?: Prisma.SortOrder
   balance?: Prisma.SortOrder
   notes?: Prisma.SortOrder
+  version?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
@@ -483,6 +510,7 @@ export type SupplierMinOrderByAggregateInput = {
 
 export type SupplierSumOrderByAggregateInput = {
   balance?: Prisma.SortOrder
+  version?: Prisma.SortOrder
 }
 
 export type SupplierScalarRelationFilter = {
@@ -544,6 +572,7 @@ export type SupplierCreateWithoutConstructionInventoryTransactionsInput = {
   address?: string | null
   balance?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
+  version?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -559,6 +588,7 @@ export type SupplierUncheckedCreateWithoutConstructionInventoryTransactionsInput
   address?: string | null
   balance?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
+  version?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -590,6 +620,7 @@ export type SupplierUpdateWithoutConstructionInventoryTransactionsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -605,6 +636,7 @@ export type SupplierUncheckedUpdateWithoutConstructionInventoryTransactionsInput
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -620,6 +652,7 @@ export type SupplierCreateWithoutTransactionsInput = {
   address?: string | null
   balance?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
+  version?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -635,6 +668,7 @@ export type SupplierUncheckedCreateWithoutTransactionsInput = {
   address?: string | null
   balance?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
+  version?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -666,6 +700,7 @@ export type SupplierUpdateWithoutTransactionsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -681,6 +716,7 @@ export type SupplierUncheckedUpdateWithoutTransactionsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -696,6 +732,7 @@ export type SupplierCreateWithoutPurchaseOrdersInput = {
   address?: string | null
   balance?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
+  version?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -711,6 +748,7 @@ export type SupplierUncheckedCreateWithoutPurchaseOrdersInput = {
   address?: string | null
   balance?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
+  version?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -742,6 +780,7 @@ export type SupplierUpdateWithoutPurchaseOrdersInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -757,6 +796,7 @@ export type SupplierUncheckedUpdateWithoutPurchaseOrdersInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -821,6 +861,7 @@ export type SupplierSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   address?: boolean
   balance?: boolean
   notes?: boolean
+  version?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -838,6 +879,7 @@ export type SupplierSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   address?: boolean
   balance?: boolean
   notes?: boolean
+  version?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -851,6 +893,7 @@ export type SupplierSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   address?: boolean
   balance?: boolean
   notes?: boolean
+  version?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -864,12 +907,13 @@ export type SupplierSelectScalar = {
   address?: boolean
   balance?: boolean
   notes?: boolean
+  version?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
 }
 
-export type SupplierOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "phone" | "address" | "balance" | "notes" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["supplier"]>
+export type SupplierOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "phone" | "address" | "balance" | "notes" | "version" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["supplier"]>
 export type SupplierInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   purchaseOrders?: boolean | Prisma.Supplier$purchaseOrdersArgs<ExtArgs>
   transactions?: boolean | Prisma.Supplier$transactionsArgs<ExtArgs>
@@ -894,6 +938,7 @@ export type $SupplierPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     address: string | null
     balance: runtime.Decimal
     notes: string | null
+    version: number
     createdAt: Date
     updatedAt: Date
     deletedAt: Date | null
@@ -1330,6 +1375,7 @@ export interface SupplierFieldRefs {
   readonly address: Prisma.FieldRef<"Supplier", 'String'>
   readonly balance: Prisma.FieldRef<"Supplier", 'Decimal'>
   readonly notes: Prisma.FieldRef<"Supplier", 'String'>
+  readonly version: Prisma.FieldRef<"Supplier", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Supplier", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Supplier", 'DateTime'>
   readonly deletedAt: Prisma.FieldRef<"Supplier", 'DateTime'>

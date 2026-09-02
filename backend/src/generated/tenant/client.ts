@@ -235,6 +235,21 @@ export type WorkerLedgerEntry = Prisma.WorkerLedgerEntryModel
  */
 export type Property = Prisma.PropertyModel
 /**
+ * Model RentReceipt
+ * 
+ */
+export type RentReceipt = Prisma.RentReceiptModel
+/**
+ * Model RentalUnit
+ * 
+ */
+export type RentalUnit = Prisma.RentalUnitModel
+/**
+ * Model RentalUnitCategory
+ * 
+ */
+export type RentalUnitCategory = Prisma.RentalUnitCategoryModel
+/**
  * Model Deal
  * 
  */

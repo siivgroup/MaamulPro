@@ -38,10 +38,13 @@ export type RentalContractMinAggregateOutputType = {
   id: string | null
   tenantId: string | null
   propertyId: string | null
+  unitId: string | null
   monthlyRent: runtime.Decimal | null
+  billingPeriod: string | null
   startDate: Date | null
   endDate: Date | null
   renewalDate: Date | null
+  documentUrl: string | null
   status: $Enums.ContractStatus | null
   notes: string | null
   createdAt: Date | null
@@ -53,10 +56,13 @@ export type RentalContractMaxAggregateOutputType = {
   id: string | null
   tenantId: string | null
   propertyId: string | null
+  unitId: string | null
   monthlyRent: runtime.Decimal | null
+  billingPeriod: string | null
   startDate: Date | null
   endDate: Date | null
   renewalDate: Date | null
+  documentUrl: string | null
   status: $Enums.ContractStatus | null
   notes: string | null
   createdAt: Date | null
@@ -68,10 +74,13 @@ export type RentalContractCountAggregateOutputType = {
   id: number
   tenantId: number
   propertyId: number
+  unitId: number
   monthlyRent: number
+  billingPeriod: number
   startDate: number
   endDate: number
   renewalDate: number
+  documentUrl: number
   status: number
   notes: number
   createdAt: number
@@ -93,10 +102,13 @@ export type RentalContractMinAggregateInputType = {
   id?: true
   tenantId?: true
   propertyId?: true
+  unitId?: true
   monthlyRent?: true
+  billingPeriod?: true
   startDate?: true
   endDate?: true
   renewalDate?: true
+  documentUrl?: true
   status?: true
   notes?: true
   createdAt?: true
@@ -108,10 +120,13 @@ export type RentalContractMaxAggregateInputType = {
   id?: true
   tenantId?: true
   propertyId?: true
+  unitId?: true
   monthlyRent?: true
+  billingPeriod?: true
   startDate?: true
   endDate?: true
   renewalDate?: true
+  documentUrl?: true
   status?: true
   notes?: true
   createdAt?: true
@@ -123,10 +138,13 @@ export type RentalContractCountAggregateInputType = {
   id?: true
   tenantId?: true
   propertyId?: true
+  unitId?: true
   monthlyRent?: true
+  billingPeriod?: true
   startDate?: true
   endDate?: true
   renewalDate?: true
+  documentUrl?: true
   status?: true
   notes?: true
   createdAt?: true
@@ -225,10 +243,13 @@ export type RentalContractGroupByOutputType = {
   id: string
   tenantId: string
   propertyId: string
+  unitId: string | null
   monthlyRent: runtime.Decimal
+  billingPeriod: string
   startDate: Date
-  endDate: Date
+  endDate: Date | null
   renewalDate: Date | null
+  documentUrl: string | null
   status: $Enums.ContractStatus
   notes: string | null
   createdAt: Date
@@ -263,10 +284,13 @@ export type RentalContractWhereInput = {
   id?: Prisma.StringFilter<"RentalContract"> | string
   tenantId?: Prisma.StringFilter<"RentalContract"> | string
   propertyId?: Prisma.StringFilter<"RentalContract"> | string
+  unitId?: Prisma.StringNullableFilter<"RentalContract"> | string | null
   monthlyRent?: Prisma.DecimalFilter<"RentalContract"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: Prisma.StringFilter<"RentalContract"> | string
   startDate?: Prisma.DateTimeFilter<"RentalContract"> | Date | string
-  endDate?: Prisma.DateTimeFilter<"RentalContract"> | Date | string
+  endDate?: Prisma.DateTimeNullableFilter<"RentalContract"> | Date | string | null
   renewalDate?: Prisma.DateTimeNullableFilter<"RentalContract"> | Date | string | null
+  documentUrl?: Prisma.StringNullableFilter<"RentalContract"> | string | null
   status?: Prisma.EnumContractStatusFilter<"RentalContract"> | $Enums.ContractStatus
   notes?: Prisma.StringNullableFilter<"RentalContract"> | string | null
   createdAt?: Prisma.DateTimeFilter<"RentalContract"> | Date | string
@@ -274,6 +298,7 @@ export type RentalContractWhereInput = {
   deletedAt?: Prisma.DateTimeNullableFilter<"RentalContract"> | Date | string | null
   tenant?: Prisma.XOR<Prisma.TenantScalarRelationFilter, Prisma.TenantWhereInput>
   property?: Prisma.XOR<Prisma.PropertyScalarRelationFilter, Prisma.PropertyWhereInput>
+  unit?: Prisma.XOR<Prisma.RentalUnitNullableScalarRelationFilter, Prisma.RentalUnitWhereInput> | null
   payments?: Prisma.RentPaymentListRelationFilter
 }
 
@@ -281,10 +306,13 @@ export type RentalContractOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
   propertyId?: Prisma.SortOrder
+  unitId?: Prisma.SortOrderInput | Prisma.SortOrder
   monthlyRent?: Prisma.SortOrder
+  billingPeriod?: Prisma.SortOrder
   startDate?: Prisma.SortOrder
-  endDate?: Prisma.SortOrder
+  endDate?: Prisma.SortOrderInput | Prisma.SortOrder
   renewalDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  documentUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -292,6 +320,7 @@ export type RentalContractOrderByWithRelationInput = {
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   tenant?: Prisma.TenantOrderByWithRelationInput
   property?: Prisma.PropertyOrderByWithRelationInput
+  unit?: Prisma.RentalUnitOrderByWithRelationInput
   payments?: Prisma.RentPaymentOrderByRelationAggregateInput
 }
 
@@ -302,10 +331,13 @@ export type RentalContractWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.RentalContractWhereInput | Prisma.RentalContractWhereInput[]
   tenantId?: Prisma.StringFilter<"RentalContract"> | string
   propertyId?: Prisma.StringFilter<"RentalContract"> | string
+  unitId?: Prisma.StringNullableFilter<"RentalContract"> | string | null
   monthlyRent?: Prisma.DecimalFilter<"RentalContract"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: Prisma.StringFilter<"RentalContract"> | string
   startDate?: Prisma.DateTimeFilter<"RentalContract"> | Date | string
-  endDate?: Prisma.DateTimeFilter<"RentalContract"> | Date | string
+  endDate?: Prisma.DateTimeNullableFilter<"RentalContract"> | Date | string | null
   renewalDate?: Prisma.DateTimeNullableFilter<"RentalContract"> | Date | string | null
+  documentUrl?: Prisma.StringNullableFilter<"RentalContract"> | string | null
   status?: Prisma.EnumContractStatusFilter<"RentalContract"> | $Enums.ContractStatus
   notes?: Prisma.StringNullableFilter<"RentalContract"> | string | null
   createdAt?: Prisma.DateTimeFilter<"RentalContract"> | Date | string
@@ -313,6 +345,7 @@ export type RentalContractWhereUniqueInput = Prisma.AtLeast<{
   deletedAt?: Prisma.DateTimeNullableFilter<"RentalContract"> | Date | string | null
   tenant?: Prisma.XOR<Prisma.TenantScalarRelationFilter, Prisma.TenantWhereInput>
   property?: Prisma.XOR<Prisma.PropertyScalarRelationFilter, Prisma.PropertyWhereInput>
+  unit?: Prisma.XOR<Prisma.RentalUnitNullableScalarRelationFilter, Prisma.RentalUnitWhereInput> | null
   payments?: Prisma.RentPaymentListRelationFilter
 }, "id">
 
@@ -320,10 +353,13 @@ export type RentalContractOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
   propertyId?: Prisma.SortOrder
+  unitId?: Prisma.SortOrderInput | Prisma.SortOrder
   monthlyRent?: Prisma.SortOrder
+  billingPeriod?: Prisma.SortOrder
   startDate?: Prisma.SortOrder
-  endDate?: Prisma.SortOrder
+  endDate?: Prisma.SortOrderInput | Prisma.SortOrder
   renewalDate?: Prisma.SortOrderInput | Prisma.SortOrder
+  documentUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -343,10 +379,13 @@ export type RentalContractScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"RentalContract"> | string
   tenantId?: Prisma.StringWithAggregatesFilter<"RentalContract"> | string
   propertyId?: Prisma.StringWithAggregatesFilter<"RentalContract"> | string
+  unitId?: Prisma.StringNullableWithAggregatesFilter<"RentalContract"> | string | null
   monthlyRent?: Prisma.DecimalWithAggregatesFilter<"RentalContract"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: Prisma.StringWithAggregatesFilter<"RentalContract"> | string
   startDate?: Prisma.DateTimeWithAggregatesFilter<"RentalContract"> | Date | string
-  endDate?: Prisma.DateTimeWithAggregatesFilter<"RentalContract"> | Date | string
+  endDate?: Prisma.DateTimeNullableWithAggregatesFilter<"RentalContract"> | Date | string | null
   renewalDate?: Prisma.DateTimeNullableWithAggregatesFilter<"RentalContract"> | Date | string | null
+  documentUrl?: Prisma.StringNullableWithAggregatesFilter<"RentalContract"> | string | null
   status?: Prisma.EnumContractStatusWithAggregatesFilter<"RentalContract"> | $Enums.ContractStatus
   notes?: Prisma.StringNullableWithAggregatesFilter<"RentalContract"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"RentalContract"> | Date | string
@@ -357,9 +396,11 @@ export type RentalContractScalarWhereWithAggregatesInput = {
 export type RentalContractCreateInput = {
   id?: string
   monthlyRent: runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: string
   startDate: Date | string
-  endDate: Date | string
+  endDate?: Date | string | null
   renewalDate?: Date | string | null
+  documentUrl?: string | null
   status?: $Enums.ContractStatus
   notes?: string | null
   createdAt?: Date | string
@@ -367,6 +408,7 @@ export type RentalContractCreateInput = {
   deletedAt?: Date | string | null
   tenant: Prisma.TenantCreateNestedOneWithoutContractsInput
   property: Prisma.PropertyCreateNestedOneWithoutRentalContractsInput
+  unit?: Prisma.RentalUnitCreateNestedOneWithoutContractsInput
   payments?: Prisma.RentPaymentCreateNestedManyWithoutContractInput
 }
 
@@ -374,10 +416,13 @@ export type RentalContractUncheckedCreateInput = {
   id?: string
   tenantId: string
   propertyId: string
+  unitId?: string | null
   monthlyRent: runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: string
   startDate: Date | string
-  endDate: Date | string
+  endDate?: Date | string | null
   renewalDate?: Date | string | null
+  documentUrl?: string | null
   status?: $Enums.ContractStatus
   notes?: string | null
   createdAt?: Date | string
@@ -389,9 +434,11 @@ export type RentalContractUncheckedCreateInput = {
 export type RentalContractUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   monthlyRent?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   renewalDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  documentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumContractStatusFieldUpdateOperationsInput | $Enums.ContractStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -399,6 +446,7 @@ export type RentalContractUpdateInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tenant?: Prisma.TenantUpdateOneRequiredWithoutContractsNestedInput
   property?: Prisma.PropertyUpdateOneRequiredWithoutRentalContractsNestedInput
+  unit?: Prisma.RentalUnitUpdateOneWithoutContractsNestedInput
   payments?: Prisma.RentPaymentUpdateManyWithoutContractNestedInput
 }
 
@@ -406,10 +454,13 @@ export type RentalContractUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   propertyId?: Prisma.StringFieldUpdateOperationsInput | string
+  unitId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   monthlyRent?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   renewalDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  documentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumContractStatusFieldUpdateOperationsInput | $Enums.ContractStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -422,10 +473,13 @@ export type RentalContractCreateManyInput = {
   id?: string
   tenantId: string
   propertyId: string
+  unitId?: string | null
   monthlyRent: runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: string
   startDate: Date | string
-  endDate: Date | string
+  endDate?: Date | string | null
   renewalDate?: Date | string | null
+  documentUrl?: string | null
   status?: $Enums.ContractStatus
   notes?: string | null
   createdAt?: Date | string
@@ -436,9 +490,11 @@ export type RentalContractCreateManyInput = {
 export type RentalContractUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   monthlyRent?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   renewalDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  documentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumContractStatusFieldUpdateOperationsInput | $Enums.ContractStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -450,10 +506,13 @@ export type RentalContractUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   propertyId?: Prisma.StringFieldUpdateOperationsInput | string
+  unitId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   monthlyRent?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   renewalDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  documentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumContractStatusFieldUpdateOperationsInput | $Enums.ContractStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -475,10 +534,13 @@ export type RentalContractCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
   propertyId?: Prisma.SortOrder
+  unitId?: Prisma.SortOrder
   monthlyRent?: Prisma.SortOrder
+  billingPeriod?: Prisma.SortOrder
   startDate?: Prisma.SortOrder
   endDate?: Prisma.SortOrder
   renewalDate?: Prisma.SortOrder
+  documentUrl?: Prisma.SortOrder
   status?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -494,10 +556,13 @@ export type RentalContractMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
   propertyId?: Prisma.SortOrder
+  unitId?: Prisma.SortOrder
   monthlyRent?: Prisma.SortOrder
+  billingPeriod?: Prisma.SortOrder
   startDate?: Prisma.SortOrder
   endDate?: Prisma.SortOrder
   renewalDate?: Prisma.SortOrder
+  documentUrl?: Prisma.SortOrder
   status?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -509,10 +574,13 @@ export type RentalContractMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
   propertyId?: Prisma.SortOrder
+  unitId?: Prisma.SortOrder
   monthlyRent?: Prisma.SortOrder
+  billingPeriod?: Prisma.SortOrder
   startDate?: Prisma.SortOrder
   endDate?: Prisma.SortOrder
   renewalDate?: Prisma.SortOrder
+  documentUrl?: Prisma.SortOrder
   status?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -633,28 +701,76 @@ export type RentalContractUncheckedUpdateManyWithoutPropertyNestedInput = {
   deleteMany?: Prisma.RentalContractScalarWhereInput | Prisma.RentalContractScalarWhereInput[]
 }
 
+export type RentalContractCreateNestedManyWithoutUnitInput = {
+  create?: Prisma.XOR<Prisma.RentalContractCreateWithoutUnitInput, Prisma.RentalContractUncheckedCreateWithoutUnitInput> | Prisma.RentalContractCreateWithoutUnitInput[] | Prisma.RentalContractUncheckedCreateWithoutUnitInput[]
+  connectOrCreate?: Prisma.RentalContractCreateOrConnectWithoutUnitInput | Prisma.RentalContractCreateOrConnectWithoutUnitInput[]
+  createMany?: Prisma.RentalContractCreateManyUnitInputEnvelope
+  connect?: Prisma.RentalContractWhereUniqueInput | Prisma.RentalContractWhereUniqueInput[]
+}
+
+export type RentalContractUncheckedCreateNestedManyWithoutUnitInput = {
+  create?: Prisma.XOR<Prisma.RentalContractCreateWithoutUnitInput, Prisma.RentalContractUncheckedCreateWithoutUnitInput> | Prisma.RentalContractCreateWithoutUnitInput[] | Prisma.RentalContractUncheckedCreateWithoutUnitInput[]
+  connectOrCreate?: Prisma.RentalContractCreateOrConnectWithoutUnitInput | Prisma.RentalContractCreateOrConnectWithoutUnitInput[]
+  createMany?: Prisma.RentalContractCreateManyUnitInputEnvelope
+  connect?: Prisma.RentalContractWhereUniqueInput | Prisma.RentalContractWhereUniqueInput[]
+}
+
+export type RentalContractUpdateManyWithoutUnitNestedInput = {
+  create?: Prisma.XOR<Prisma.RentalContractCreateWithoutUnitInput, Prisma.RentalContractUncheckedCreateWithoutUnitInput> | Prisma.RentalContractCreateWithoutUnitInput[] | Prisma.RentalContractUncheckedCreateWithoutUnitInput[]
+  connectOrCreate?: Prisma.RentalContractCreateOrConnectWithoutUnitInput | Prisma.RentalContractCreateOrConnectWithoutUnitInput[]
+  upsert?: Prisma.RentalContractUpsertWithWhereUniqueWithoutUnitInput | Prisma.RentalContractUpsertWithWhereUniqueWithoutUnitInput[]
+  createMany?: Prisma.RentalContractCreateManyUnitInputEnvelope
+  set?: Prisma.RentalContractWhereUniqueInput | Prisma.RentalContractWhereUniqueInput[]
+  disconnect?: Prisma.RentalContractWhereUniqueInput | Prisma.RentalContractWhereUniqueInput[]
+  delete?: Prisma.RentalContractWhereUniqueInput | Prisma.RentalContractWhereUniqueInput[]
+  connect?: Prisma.RentalContractWhereUniqueInput | Prisma.RentalContractWhereUniqueInput[]
+  update?: Prisma.RentalContractUpdateWithWhereUniqueWithoutUnitInput | Prisma.RentalContractUpdateWithWhereUniqueWithoutUnitInput[]
+  updateMany?: Prisma.RentalContractUpdateManyWithWhereWithoutUnitInput | Prisma.RentalContractUpdateManyWithWhereWithoutUnitInput[]
+  deleteMany?: Prisma.RentalContractScalarWhereInput | Prisma.RentalContractScalarWhereInput[]
+}
+
+export type RentalContractUncheckedUpdateManyWithoutUnitNestedInput = {
+  create?: Prisma.XOR<Prisma.RentalContractCreateWithoutUnitInput, Prisma.RentalContractUncheckedCreateWithoutUnitInput> | Prisma.RentalContractCreateWithoutUnitInput[] | Prisma.RentalContractUncheckedCreateWithoutUnitInput[]
+  connectOrCreate?: Prisma.RentalContractCreateOrConnectWithoutUnitInput | Prisma.RentalContractCreateOrConnectWithoutUnitInput[]
+  upsert?: Prisma.RentalContractUpsertWithWhereUniqueWithoutUnitInput | Prisma.RentalContractUpsertWithWhereUniqueWithoutUnitInput[]
+  createMany?: Prisma.RentalContractCreateManyUnitInputEnvelope
+  set?: Prisma.RentalContractWhereUniqueInput | Prisma.RentalContractWhereUniqueInput[]
+  disconnect?: Prisma.RentalContractWhereUniqueInput | Prisma.RentalContractWhereUniqueInput[]
+  delete?: Prisma.RentalContractWhereUniqueInput | Prisma.RentalContractWhereUniqueInput[]
+  connect?: Prisma.RentalContractWhereUniqueInput | Prisma.RentalContractWhereUniqueInput[]
+  update?: Prisma.RentalContractUpdateWithWhereUniqueWithoutUnitInput | Prisma.RentalContractUpdateWithWhereUniqueWithoutUnitInput[]
+  updateMany?: Prisma.RentalContractUpdateManyWithWhereWithoutUnitInput | Prisma.RentalContractUpdateManyWithWhereWithoutUnitInput[]
+  deleteMany?: Prisma.RentalContractScalarWhereInput | Prisma.RentalContractScalarWhereInput[]
+}
+
 export type RentalContractCreateWithoutTenantInput = {
   id?: string
   monthlyRent: runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: string
   startDate: Date | string
-  endDate: Date | string
+  endDate?: Date | string | null
   renewalDate?: Date | string | null
+  documentUrl?: string | null
   status?: $Enums.ContractStatus
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   property: Prisma.PropertyCreateNestedOneWithoutRentalContractsInput
+  unit?: Prisma.RentalUnitCreateNestedOneWithoutContractsInput
   payments?: Prisma.RentPaymentCreateNestedManyWithoutContractInput
 }
 
 export type RentalContractUncheckedCreateWithoutTenantInput = {
   id?: string
   propertyId: string
+  unitId?: string | null
   monthlyRent: runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: string
   startDate: Date | string
-  endDate: Date | string
+  endDate?: Date | string | null
   renewalDate?: Date | string | null
+  documentUrl?: string | null
   status?: $Enums.ContractStatus
   notes?: string | null
   createdAt?: Date | string
@@ -696,10 +812,13 @@ export type RentalContractScalarWhereInput = {
   id?: Prisma.StringFilter<"RentalContract"> | string
   tenantId?: Prisma.StringFilter<"RentalContract"> | string
   propertyId?: Prisma.StringFilter<"RentalContract"> | string
+  unitId?: Prisma.StringNullableFilter<"RentalContract"> | string | null
   monthlyRent?: Prisma.DecimalFilter<"RentalContract"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: Prisma.StringFilter<"RentalContract"> | string
   startDate?: Prisma.DateTimeFilter<"RentalContract"> | Date | string
-  endDate?: Prisma.DateTimeFilter<"RentalContract"> | Date | string
+  endDate?: Prisma.DateTimeNullableFilter<"RentalContract"> | Date | string | null
   renewalDate?: Prisma.DateTimeNullableFilter<"RentalContract"> | Date | string | null
+  documentUrl?: Prisma.StringNullableFilter<"RentalContract"> | string | null
   status?: Prisma.EnumContractStatusFilter<"RentalContract"> | $Enums.ContractStatus
   notes?: Prisma.StringNullableFilter<"RentalContract"> | string | null
   createdAt?: Prisma.DateTimeFilter<"RentalContract"> | Date | string
@@ -710,9 +829,11 @@ export type RentalContractScalarWhereInput = {
 export type RentalContractCreateWithoutPaymentsInput = {
   id?: string
   monthlyRent: runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: string
   startDate: Date | string
-  endDate: Date | string
+  endDate?: Date | string | null
   renewalDate?: Date | string | null
+  documentUrl?: string | null
   status?: $Enums.ContractStatus
   notes?: string | null
   createdAt?: Date | string
@@ -720,16 +841,20 @@ export type RentalContractCreateWithoutPaymentsInput = {
   deletedAt?: Date | string | null
   tenant: Prisma.TenantCreateNestedOneWithoutContractsInput
   property: Prisma.PropertyCreateNestedOneWithoutRentalContractsInput
+  unit?: Prisma.RentalUnitCreateNestedOneWithoutContractsInput
 }
 
 export type RentalContractUncheckedCreateWithoutPaymentsInput = {
   id?: string
   tenantId: string
   propertyId: string
+  unitId?: string | null
   monthlyRent: runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: string
   startDate: Date | string
-  endDate: Date | string
+  endDate?: Date | string | null
   renewalDate?: Date | string | null
+  documentUrl?: string | null
   status?: $Enums.ContractStatus
   notes?: string | null
   createdAt?: Date | string
@@ -756,9 +881,11 @@ export type RentalContractUpdateToOneWithWhereWithoutPaymentsInput = {
 export type RentalContractUpdateWithoutPaymentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   monthlyRent?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   renewalDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  documentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumContractStatusFieldUpdateOperationsInput | $Enums.ContractStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -766,16 +893,20 @@ export type RentalContractUpdateWithoutPaymentsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tenant?: Prisma.TenantUpdateOneRequiredWithoutContractsNestedInput
   property?: Prisma.PropertyUpdateOneRequiredWithoutRentalContractsNestedInput
+  unit?: Prisma.RentalUnitUpdateOneWithoutContractsNestedInput
 }
 
 export type RentalContractUncheckedUpdateWithoutPaymentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   propertyId?: Prisma.StringFieldUpdateOperationsInput | string
+  unitId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   monthlyRent?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   renewalDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  documentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumContractStatusFieldUpdateOperationsInput | $Enums.ContractStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -786,25 +917,31 @@ export type RentalContractUncheckedUpdateWithoutPaymentsInput = {
 export type RentalContractCreateWithoutPropertyInput = {
   id?: string
   monthlyRent: runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: string
   startDate: Date | string
-  endDate: Date | string
+  endDate?: Date | string | null
   renewalDate?: Date | string | null
+  documentUrl?: string | null
   status?: $Enums.ContractStatus
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   tenant: Prisma.TenantCreateNestedOneWithoutContractsInput
+  unit?: Prisma.RentalUnitCreateNestedOneWithoutContractsInput
   payments?: Prisma.RentPaymentCreateNestedManyWithoutContractInput
 }
 
 export type RentalContractUncheckedCreateWithoutPropertyInput = {
   id?: string
   tenantId: string
+  unitId?: string | null
   monthlyRent: runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: string
   startDate: Date | string
-  endDate: Date | string
+  endDate?: Date | string | null
   renewalDate?: Date | string | null
+  documentUrl?: string | null
   status?: $Enums.ContractStatus
   notes?: string | null
   createdAt?: Date | string
@@ -839,13 +976,78 @@ export type RentalContractUpdateManyWithWhereWithoutPropertyInput = {
   data: Prisma.XOR<Prisma.RentalContractUpdateManyMutationInput, Prisma.RentalContractUncheckedUpdateManyWithoutPropertyInput>
 }
 
+export type RentalContractCreateWithoutUnitInput = {
+  id?: string
+  monthlyRent: runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: string
+  startDate: Date | string
+  endDate?: Date | string | null
+  renewalDate?: Date | string | null
+  documentUrl?: string | null
+  status?: $Enums.ContractStatus
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  tenant: Prisma.TenantCreateNestedOneWithoutContractsInput
+  property: Prisma.PropertyCreateNestedOneWithoutRentalContractsInput
+  payments?: Prisma.RentPaymentCreateNestedManyWithoutContractInput
+}
+
+export type RentalContractUncheckedCreateWithoutUnitInput = {
+  id?: string
+  tenantId: string
+  propertyId: string
+  monthlyRent: runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: string
+  startDate: Date | string
+  endDate?: Date | string | null
+  renewalDate?: Date | string | null
+  documentUrl?: string | null
+  status?: $Enums.ContractStatus
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  payments?: Prisma.RentPaymentUncheckedCreateNestedManyWithoutContractInput
+}
+
+export type RentalContractCreateOrConnectWithoutUnitInput = {
+  where: Prisma.RentalContractWhereUniqueInput
+  create: Prisma.XOR<Prisma.RentalContractCreateWithoutUnitInput, Prisma.RentalContractUncheckedCreateWithoutUnitInput>
+}
+
+export type RentalContractCreateManyUnitInputEnvelope = {
+  data: Prisma.RentalContractCreateManyUnitInput | Prisma.RentalContractCreateManyUnitInput[]
+  skipDuplicates?: boolean
+}
+
+export type RentalContractUpsertWithWhereUniqueWithoutUnitInput = {
+  where: Prisma.RentalContractWhereUniqueInput
+  update: Prisma.XOR<Prisma.RentalContractUpdateWithoutUnitInput, Prisma.RentalContractUncheckedUpdateWithoutUnitInput>
+  create: Prisma.XOR<Prisma.RentalContractCreateWithoutUnitInput, Prisma.RentalContractUncheckedCreateWithoutUnitInput>
+}
+
+export type RentalContractUpdateWithWhereUniqueWithoutUnitInput = {
+  where: Prisma.RentalContractWhereUniqueInput
+  data: Prisma.XOR<Prisma.RentalContractUpdateWithoutUnitInput, Prisma.RentalContractUncheckedUpdateWithoutUnitInput>
+}
+
+export type RentalContractUpdateManyWithWhereWithoutUnitInput = {
+  where: Prisma.RentalContractScalarWhereInput
+  data: Prisma.XOR<Prisma.RentalContractUpdateManyMutationInput, Prisma.RentalContractUncheckedUpdateManyWithoutUnitInput>
+}
+
 export type RentalContractCreateManyTenantInput = {
   id?: string
   propertyId: string
+  unitId?: string | null
   monthlyRent: runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: string
   startDate: Date | string
-  endDate: Date | string
+  endDate?: Date | string | null
   renewalDate?: Date | string | null
+  documentUrl?: string | null
   status?: $Enums.ContractStatus
   notes?: string | null
   createdAt?: Date | string
@@ -856,25 +1058,31 @@ export type RentalContractCreateManyTenantInput = {
 export type RentalContractUpdateWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   monthlyRent?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   renewalDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  documentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumContractStatusFieldUpdateOperationsInput | $Enums.ContractStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   property?: Prisma.PropertyUpdateOneRequiredWithoutRentalContractsNestedInput
+  unit?: Prisma.RentalUnitUpdateOneWithoutContractsNestedInput
   payments?: Prisma.RentPaymentUpdateManyWithoutContractNestedInput
 }
 
 export type RentalContractUncheckedUpdateWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   propertyId?: Prisma.StringFieldUpdateOperationsInput | string
+  unitId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   monthlyRent?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   renewalDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  documentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumContractStatusFieldUpdateOperationsInput | $Enums.ContractStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -886,10 +1094,13 @@ export type RentalContractUncheckedUpdateWithoutTenantInput = {
 export type RentalContractUncheckedUpdateManyWithoutTenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   propertyId?: Prisma.StringFieldUpdateOperationsInput | string
+  unitId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   monthlyRent?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   renewalDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  documentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumContractStatusFieldUpdateOperationsInput | $Enums.ContractStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -900,10 +1111,13 @@ export type RentalContractUncheckedUpdateManyWithoutTenantInput = {
 export type RentalContractCreateManyPropertyInput = {
   id?: string
   tenantId: string
+  unitId?: string | null
   monthlyRent: runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: string
   startDate: Date | string
-  endDate: Date | string
+  endDate?: Date | string | null
   renewalDate?: Date | string | null
+  documentUrl?: string | null
   status?: $Enums.ContractStatus
   notes?: string | null
   createdAt?: Date | string
@@ -914,25 +1128,31 @@ export type RentalContractCreateManyPropertyInput = {
 export type RentalContractUpdateWithoutPropertyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   monthlyRent?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   renewalDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  documentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumContractStatusFieldUpdateOperationsInput | $Enums.ContractStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   tenant?: Prisma.TenantUpdateOneRequiredWithoutContractsNestedInput
+  unit?: Prisma.RentalUnitUpdateOneWithoutContractsNestedInput
   payments?: Prisma.RentPaymentUpdateManyWithoutContractNestedInput
 }
 
 export type RentalContractUncheckedUpdateWithoutPropertyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  unitId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   monthlyRent?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   renewalDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  documentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumContractStatusFieldUpdateOperationsInput | $Enums.ContractStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -944,10 +1164,83 @@ export type RentalContractUncheckedUpdateWithoutPropertyInput = {
 export type RentalContractUncheckedUpdateManyWithoutPropertyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  unitId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   monthlyRent?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: Prisma.StringFieldUpdateOperationsInput | string
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   renewalDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  documentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumContractStatusFieldUpdateOperationsInput | $Enums.ContractStatus
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type RentalContractCreateManyUnitInput = {
+  id?: string
+  tenantId: string
+  propertyId: string
+  monthlyRent: runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: string
+  startDate: Date | string
+  endDate?: Date | string | null
+  renewalDate?: Date | string | null
+  documentUrl?: string | null
+  status?: $Enums.ContractStatus
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+}
+
+export type RentalContractUpdateWithoutUnitInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  monthlyRent?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: Prisma.StringFieldUpdateOperationsInput | string
+  startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  renewalDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  documentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumContractStatusFieldUpdateOperationsInput | $Enums.ContractStatus
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tenant?: Prisma.TenantUpdateOneRequiredWithoutContractsNestedInput
+  property?: Prisma.PropertyUpdateOneRequiredWithoutRentalContractsNestedInput
+  payments?: Prisma.RentPaymentUpdateManyWithoutContractNestedInput
+}
+
+export type RentalContractUncheckedUpdateWithoutUnitInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  propertyId?: Prisma.StringFieldUpdateOperationsInput | string
+  monthlyRent?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: Prisma.StringFieldUpdateOperationsInput | string
+  startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  renewalDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  documentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumContractStatusFieldUpdateOperationsInput | $Enums.ContractStatus
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  payments?: Prisma.RentPaymentUncheckedUpdateManyWithoutContractNestedInput
+}
+
+export type RentalContractUncheckedUpdateManyWithoutUnitInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  propertyId?: Prisma.StringFieldUpdateOperationsInput | string
+  monthlyRent?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  billingPeriod?: Prisma.StringFieldUpdateOperationsInput | string
+  startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  renewalDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  documentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumContractStatusFieldUpdateOperationsInput | $Enums.ContractStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -990,10 +1283,13 @@ export type RentalContractSelect<ExtArgs extends runtime.Types.Extensions.Intern
   id?: boolean
   tenantId?: boolean
   propertyId?: boolean
+  unitId?: boolean
   monthlyRent?: boolean
+  billingPeriod?: boolean
   startDate?: boolean
   endDate?: boolean
   renewalDate?: boolean
+  documentUrl?: boolean
   status?: boolean
   notes?: boolean
   createdAt?: boolean
@@ -1001,6 +1297,7 @@ export type RentalContractSelect<ExtArgs extends runtime.Types.Extensions.Intern
   deletedAt?: boolean
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   property?: boolean | Prisma.PropertyDefaultArgs<ExtArgs>
+  unit?: boolean | Prisma.RentalContract$unitArgs<ExtArgs>
   payments?: boolean | Prisma.RentalContract$paymentsArgs<ExtArgs>
   _count?: boolean | Prisma.RentalContractCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["rentalContract"]>
@@ -1009,10 +1306,13 @@ export type RentalContractSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   id?: boolean
   tenantId?: boolean
   propertyId?: boolean
+  unitId?: boolean
   monthlyRent?: boolean
+  billingPeriod?: boolean
   startDate?: boolean
   endDate?: boolean
   renewalDate?: boolean
+  documentUrl?: boolean
   status?: boolean
   notes?: boolean
   createdAt?: boolean
@@ -1020,16 +1320,20 @@ export type RentalContractSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   deletedAt?: boolean
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   property?: boolean | Prisma.PropertyDefaultArgs<ExtArgs>
+  unit?: boolean | Prisma.RentalContract$unitArgs<ExtArgs>
 }, ExtArgs["result"]["rentalContract"]>
 
 export type RentalContractSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   tenantId?: boolean
   propertyId?: boolean
+  unitId?: boolean
   monthlyRent?: boolean
+  billingPeriod?: boolean
   startDate?: boolean
   endDate?: boolean
   renewalDate?: boolean
+  documentUrl?: boolean
   status?: boolean
   notes?: boolean
   createdAt?: boolean
@@ -1037,16 +1341,20 @@ export type RentalContractSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   deletedAt?: boolean
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   property?: boolean | Prisma.PropertyDefaultArgs<ExtArgs>
+  unit?: boolean | Prisma.RentalContract$unitArgs<ExtArgs>
 }, ExtArgs["result"]["rentalContract"]>
 
 export type RentalContractSelectScalar = {
   id?: boolean
   tenantId?: boolean
   propertyId?: boolean
+  unitId?: boolean
   monthlyRent?: boolean
+  billingPeriod?: boolean
   startDate?: boolean
   endDate?: boolean
   renewalDate?: boolean
+  documentUrl?: boolean
   status?: boolean
   notes?: boolean
   createdAt?: boolean
@@ -1054,20 +1362,23 @@ export type RentalContractSelectScalar = {
   deletedAt?: boolean
 }
 
-export type RentalContractOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenantId" | "propertyId" | "monthlyRent" | "startDate" | "endDate" | "renewalDate" | "status" | "notes" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["rentalContract"]>
+export type RentalContractOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenantId" | "propertyId" | "unitId" | "monthlyRent" | "billingPeriod" | "startDate" | "endDate" | "renewalDate" | "documentUrl" | "status" | "notes" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["rentalContract"]>
 export type RentalContractInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   property?: boolean | Prisma.PropertyDefaultArgs<ExtArgs>
+  unit?: boolean | Prisma.RentalContract$unitArgs<ExtArgs>
   payments?: boolean | Prisma.RentalContract$paymentsArgs<ExtArgs>
   _count?: boolean | Prisma.RentalContractCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type RentalContractIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   property?: boolean | Prisma.PropertyDefaultArgs<ExtArgs>
+  unit?: boolean | Prisma.RentalContract$unitArgs<ExtArgs>
 }
 export type RentalContractIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tenant?: boolean | Prisma.TenantDefaultArgs<ExtArgs>
   property?: boolean | Prisma.PropertyDefaultArgs<ExtArgs>
+  unit?: boolean | Prisma.RentalContract$unitArgs<ExtArgs>
 }
 
 export type $RentalContractPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1075,16 +1386,20 @@ export type $RentalContractPayload<ExtArgs extends runtime.Types.Extensions.Inte
   objects: {
     tenant: Prisma.$TenantPayload<ExtArgs>
     property: Prisma.$PropertyPayload<ExtArgs>
+    unit: Prisma.$RentalUnitPayload<ExtArgs> | null
     payments: Prisma.$RentPaymentPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     tenantId: string
     propertyId: string
+    unitId: string | null
     monthlyRent: runtime.Decimal
+    billingPeriod: string
     startDate: Date
-    endDate: Date
+    endDate: Date | null
     renewalDate: Date | null
+    documentUrl: string | null
     status: $Enums.ContractStatus
     notes: string | null
     createdAt: Date
@@ -1486,6 +1801,7 @@ export interface Prisma__RentalContractClient<T, Null = never, ExtArgs extends r
   readonly [Symbol.toStringTag]: "PrismaPromise"
   tenant<T extends Prisma.TenantDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TenantDefaultArgs<ExtArgs>>): Prisma.Prisma__TenantClient<runtime.Types.Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   property<T extends Prisma.PropertyDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PropertyDefaultArgs<ExtArgs>>): Prisma.Prisma__PropertyClient<runtime.Types.Result.GetResult<Prisma.$PropertyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  unit<T extends Prisma.RentalContract$unitArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RentalContract$unitArgs<ExtArgs>>): Prisma.Prisma__RentalUnitClient<runtime.Types.Result.GetResult<Prisma.$RentalUnitPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   payments<T extends Prisma.RentalContract$paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RentalContract$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RentPaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1519,10 +1835,13 @@ export interface RentalContractFieldRefs {
   readonly id: Prisma.FieldRef<"RentalContract", 'String'>
   readonly tenantId: Prisma.FieldRef<"RentalContract", 'String'>
   readonly propertyId: Prisma.FieldRef<"RentalContract", 'String'>
+  readonly unitId: Prisma.FieldRef<"RentalContract", 'String'>
   readonly monthlyRent: Prisma.FieldRef<"RentalContract", 'Decimal'>
+  readonly billingPeriod: Prisma.FieldRef<"RentalContract", 'String'>
   readonly startDate: Prisma.FieldRef<"RentalContract", 'DateTime'>
   readonly endDate: Prisma.FieldRef<"RentalContract", 'DateTime'>
   readonly renewalDate: Prisma.FieldRef<"RentalContract", 'DateTime'>
+  readonly documentUrl: Prisma.FieldRef<"RentalContract", 'String'>
   readonly status: Prisma.FieldRef<"RentalContract", 'ContractStatus'>
   readonly notes: Prisma.FieldRef<"RentalContract", 'String'>
   readonly createdAt: Prisma.FieldRef<"RentalContract", 'DateTime'>
@@ -1926,6 +2245,25 @@ export type RentalContractDeleteManyArgs<ExtArgs extends runtime.Types.Extension
    * Limit how many RentalContracts to delete.
    */
   limit?: number
+}
+
+/**
+ * RentalContract.unit
+ */
+export type RentalContract$unitArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RentalUnit
+   */
+  select?: Prisma.RentalUnitSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RentalUnit
+   */
+  omit?: Prisma.RentalUnitOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RentalUnitInclude<ExtArgs> | null
+  where?: Prisma.RentalUnitWhereInput
 }
 
 /**

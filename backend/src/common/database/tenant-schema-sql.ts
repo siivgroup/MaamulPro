@@ -13,7 +13,7 @@ import { assertEmptyOrOwned } from './onboarding-database';
 import { setupDiagnostic } from './onboarding-errors';
 import { connectionTimeoutMillis, getDatabaseConnectionPair } from "./database-url";
 
-export const CURRENT_TENANT_SCHEMA_VERSION = 30;
+export const CURRENT_TENANT_SCHEMA_VERSION = 34;
 
 export const TENANT_SCHEMA_STATEMENTS: string[] = [
   // ── Enum types ─────────────────────────────────────────────
@@ -50,7 +50,7 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   EXCEPTION WHEN duplicate_object THEN null; END $$`,
 
   `DO $$ BEGIN
-    CREATE TYPE "PropertyType" AS ENUM ('HOUSE','APARTMENT','LAND','COMMERCIAL');
+    CREATE TYPE "PropertyType" AS ENUM ('RENT','SALE','HOUSE','APARTMENT','LAND','COMMERCIAL');
   EXCEPTION WHEN duplicate_object THEN null; END $$`,
 
   `DO $$ BEGIN
@@ -98,6 +98,8 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   `ALTER TYPE "UnitType" ADD VALUE IF NOT EXISTS 'BUCKET'`,
   `ALTER TYPE "InventoryTransactionType" ADD VALUE IF NOT EXISTS 'ADJUSTMENT'`,
   `ALTER TYPE "InventoryTransactionType" ADD VALUE IF NOT EXISTS 'TRANSFER'`,
+  `ALTER TYPE "PropertyType" ADD VALUE IF NOT EXISTS 'RENT'`,
+  `ALTER TYPE "PropertyType" ADD VALUE IF NOT EXISTS 'SALE'`,
 
   `DO $$ BEGIN
     CREATE TYPE "RentalPaymentStatus" AS ENUM ('PAID','UNPAID','LATE','PARTIAL');
@@ -233,6 +235,7 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
     "area"        DECIMAL(10,2),
     "bedrooms"    INTEGER,
     "bathrooms"   INTEGER,
+    "floors"      INTEGER,
     "image_url"   TEXT,
     "created_at"  TIMESTAMP(3)      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at"  TIMESTAMP(3)      NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -269,6 +272,47 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
     "updated_at"   TIMESTAMP(3)        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at"   TIMESTAMP(3)
   )`,
+
+  `CREATE TABLE IF NOT EXISTS "rental_unit_categories" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL UNIQUE,
+    "rooms" INTEGER NOT NULL DEFAULT 0,
+    "bathrooms" INTEGER NOT NULL DEFAULT 0,
+    "monthly_rent" DECIMAL(12,2) NOT NULL,
+    "section" TEXT NOT NULL DEFAULT '',
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" TIMESTAMP(3)
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS "rental_units" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "property_id" TEXT NOT NULL,
+    "category_id" TEXT,
+    "name" TEXT NOT NULL,
+    "code" TEXT,
+    "monthly_rent" DECIMAL(12,2) NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'AVAILABLE',
+    "floor" TEXT,
+    "bedrooms" INTEGER,
+    "bathrooms" INTEGER,
+    "section" TEXT,
+    "area" DECIMAL(10,2),
+    "details" TEXT,
+    "image_url" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" TIMESTAMP(3),
+    UNIQUE ("property_id", "name")
+  )`,
+  `ALTER TABLE "properties" ADD COLUMN IF NOT EXISTS "floors" INTEGER`,
+  `ALTER TABLE "rental_unit_categories" ADD COLUMN IF NOT EXISTS "rooms" INTEGER NOT NULL DEFAULT 0`,
+  `ALTER TABLE "rental_unit_categories" ADD COLUMN IF NOT EXISTS "bathrooms" INTEGER NOT NULL DEFAULT 0`,
+  `ALTER TABLE "rental_unit_categories" ADD COLUMN IF NOT EXISTS "section" TEXT NOT NULL DEFAULT ''`,
+  `ALTER TABLE "rental_units" ADD COLUMN IF NOT EXISTS "category_id" TEXT`,
+  `ALTER TABLE "rental_units" ADD COLUMN IF NOT EXISTS "floor" TEXT`,
+  `ALTER TABLE "rental_units" ADD COLUMN IF NOT EXISTS "section" TEXT`,
+  `ALTER TABLE "rental_units" ADD COLUMN IF NOT EXISTS "image_url" TEXT`,
   `ALTER TABLE "transactions" ADD COLUMN IF NOT EXISTS "request_hash" TEXT`,
 
   `CREATE TABLE IF NOT EXISTS "activity_logs" (
@@ -392,10 +436,13 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
     "id" TEXT NOT NULL PRIMARY KEY,
     "tenant_id" TEXT NOT NULL,
     "property_id" TEXT NOT NULL,
+    "unit_id" TEXT,
     "monthly_rent" DECIMAL(12,2) NOT NULL,
+    "billing_period" TEXT NOT NULL DEFAULT 'MONTHLY',
     "start_date" TIMESTAMP(3) NOT NULL,
-    "end_date" TIMESTAMP(3) NOT NULL,
+    "end_date" TIMESTAMP(3),
     "renewal_date" TIMESTAMP(3),
+    "document_url" TEXT,
     "status" "ContractStatus" NOT NULL DEFAULT 'ACTIVE',
     "notes" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -419,6 +466,22 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
     "deleted_at" TIMESTAMP(3)
   )`,
 
+  `CREATE TABLE IF NOT EXISTS "rent_receipts" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "rent_payment_id" TEXT NOT NULL,
+    "amount" DECIMAL(12,2) NOT NULL,
+    "received_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "receipt_no" TEXT UNIQUE,
+    "notes" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  // Existing tenant databases predate units and recurrence.
+  `ALTER TABLE "rental_contracts" ADD COLUMN IF NOT EXISTS "unit_id" TEXT`,
+  `ALTER TABLE "rental_contracts" ADD COLUMN IF NOT EXISTS "billing_period" TEXT NOT NULL DEFAULT 'MONTHLY'`,
+  `ALTER TABLE "rental_contracts" ADD COLUMN IF NOT EXISTS "document_url" TEXT`,
+  `ALTER TABLE "rental_contracts" ALTER COLUMN "end_date" DROP NOT NULL`,
+
   `CREATE TABLE IF NOT EXISTS "suppliers" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL,
@@ -427,6 +490,7 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
     "address" TEXT,
     "balance" DECIMAL(12,2) NOT NULL DEFAULT 0,
     "notes" TEXT,
+    "version" INTEGER NOT NULL DEFAULT 0,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at" TIMESTAMP(3)
@@ -435,9 +499,15 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   `CREATE TABLE IF NOT EXISTS "supplier_transactions" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "supplier_id" TEXT NOT NULL,
+    "purchase_order_id" TEXT,
+    "type" TEXT NOT NULL DEFAULT 'PURCHASE',
     "amount" DECIMAL(12,2) NOT NULL,
+    "reference_no" TEXT,
+    "payment_method" TEXT,
     "description" TEXT NOT NULL,
+    "notes" TEXT,
     "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "recorded_by_id" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
   )`,
 
@@ -450,10 +520,20 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
     "ordered_at" TIMESTAMP(3),
     "received_at" TIMESTAMP(3),
     "notes" TEXT,
+    "version" INTEGER NOT NULL DEFAULT 0,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at" TIMESTAMP(3)
   )`,
+
+  `ALTER TABLE "suppliers" ADD COLUMN IF NOT EXISTS "version" INTEGER NOT NULL DEFAULT 0`,
+  `ALTER TABLE "purchase_orders" ADD COLUMN IF NOT EXISTS "version" INTEGER NOT NULL DEFAULT 0`,
+  `ALTER TABLE "supplier_transactions" ADD COLUMN IF NOT EXISTS "purchase_order_id" TEXT`,
+  `ALTER TABLE "supplier_transactions" ADD COLUMN IF NOT EXISTS "type" TEXT NOT NULL DEFAULT 'PURCHASE'`,
+  `ALTER TABLE "supplier_transactions" ADD COLUMN IF NOT EXISTS "reference_no" TEXT`,
+  `ALTER TABLE "supplier_transactions" ADD COLUMN IF NOT EXISTS "payment_method" TEXT`,
+  `ALTER TABLE "supplier_transactions" ADD COLUMN IF NOT EXISTS "notes" TEXT`,
+  `ALTER TABLE "supplier_transactions" ADD COLUMN IF NOT EXISTS "recorded_by_id" TEXT`,
 
   `CREATE TABLE IF NOT EXISTS "purchase_order_items" (
     "id" TEXT NOT NULL PRIMARY KEY,
@@ -804,6 +884,16 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   EXCEPTION WHEN duplicate_object THEN null; END $$`,
 
   `DO $$ BEGIN
+    ALTER TABLE "rental_contracts" ADD CONSTRAINT "rental_contracts_unit_id_fkey"
+      FOREIGN KEY ("unit_id") REFERENCES "rental_units"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "rental_units" ADD CONSTRAINT "rental_units_category_id_fkey"
+      FOREIGN KEY ("category_id") REFERENCES "rental_unit_categories"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
     ALTER TABLE "rent_payments" ADD CONSTRAINT "rent_payments_tenant_id_fkey"
       FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE;
   EXCEPTION WHEN duplicate_object THEN null; END $$`,
@@ -814,6 +904,11 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   EXCEPTION WHEN duplicate_object THEN null; END $$`,
 
   `DO $$ BEGIN
+    ALTER TABLE "rent_receipts" ADD CONSTRAINT "rent_receipts_rent_payment_id_fkey"
+      FOREIGN KEY ("rent_payment_id") REFERENCES "rent_payments"("id") ON DELETE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
     ALTER TABLE "supplier_transactions" ADD CONSTRAINT "supplier_transactions_supplier_id_fkey"
       FOREIGN KEY ("supplier_id") REFERENCES "suppliers"("id") ON DELETE CASCADE;
   EXCEPTION WHEN duplicate_object THEN null; END $$`,
@@ -821,6 +916,11 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   `DO $$ BEGIN
     ALTER TABLE "purchase_orders" ADD CONSTRAINT "purchase_orders_supplier_id_fkey"
       FOREIGN KEY ("supplier_id") REFERENCES "suppliers"("id") ON DELETE SET NULL;
+  EXCEPTION WHEN duplicate_object THEN null; END $$`,
+
+  `DO $$ BEGIN
+    ALTER TABLE "supplier_transactions" ADD CONSTRAINT "supplier_transactions_purchase_order_id_fkey"
+      FOREIGN KEY ("purchase_order_id") REFERENCES "purchase_orders"("id") ON DELETE SET NULL;
   EXCEPTION WHEN duplicate_object THEN null; END $$`,
 
   `DO $$ BEGIN
@@ -1037,6 +1137,8 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   `CREATE INDEX IF NOT EXISTS "project_tasks_status_idx"     ON "project_tasks"("status")`,
   `CREATE INDEX IF NOT EXISTS "properties_type_idx"          ON "properties"("type")`,
   `CREATE INDEX IF NOT EXISTS "properties_status_idx"        ON "properties"("status")`,
+  `CREATE INDEX IF NOT EXISTS "rental_units_property_id_status_idx" ON "rental_units"("property_id", "status")`,
+  `CREATE INDEX IF NOT EXISTS "rental_units_category_id_idx" ON "rental_units"("category_id")`,
   `CREATE INDEX IF NOT EXISTS "deals_property_id_idx"        ON "deals"("property_id")`,
   `CREATE INDEX IF NOT EXISTS "deals_client_id_idx"          ON "deals"("client_id")`,
   `CREATE INDEX IF NOT EXISTS "deals_payment_status_idx"     ON "deals"("payment_status")`,
@@ -1046,11 +1148,15 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   `CREATE INDEX IF NOT EXISTS "tenants_property_id_idx" ON "tenants"("property_id")`,
   `CREATE INDEX IF NOT EXISTS "rental_contracts_tenant_id_idx" ON "rental_contracts"("tenant_id")`,
   `CREATE INDEX IF NOT EXISTS "rental_contracts_property_id_idx" ON "rental_contracts"("property_id")`,
+  `CREATE INDEX IF NOT EXISTS "rental_contracts_unit_id_idx" ON "rental_contracts"("unit_id")`,
   `CREATE INDEX IF NOT EXISTS "rental_contracts_status_idx" ON "rental_contracts"("status")`,
   `CREATE INDEX IF NOT EXISTS "rent_payments_tenant_id_idx" ON "rent_payments"("tenant_id")`,
   `CREATE INDEX IF NOT EXISTS "rent_payments_due_date_idx" ON "rent_payments"("due_date")`,
   `CREATE INDEX IF NOT EXISTS "rent_payments_status_idx" ON "rent_payments"("status")`,
+  `CREATE INDEX IF NOT EXISTS "rent_receipts_rent_payment_id_received_at_idx" ON "rent_receipts"("rent_payment_id", "received_at")`,
   `CREATE INDEX IF NOT EXISTS "supplier_transactions_supplier_id_idx" ON "supplier_transactions"("supplier_id")`,
+  `CREATE INDEX IF NOT EXISTS "supplier_transactions_purchase_order_id_idx" ON "supplier_transactions"("purchase_order_id")`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "supplier_transactions_reference_no_key" ON "supplier_transactions"("reference_no")`,
   `CREATE INDEX IF NOT EXISTS "supplier_transactions_date_idx" ON "supplier_transactions"("date")`,
   `CREATE INDEX IF NOT EXISTS "purchase_orders_supplier_id_idx" ON "purchase_orders"("supplier_id")`,
   `CREATE INDEX IF NOT EXISTS "purchase_orders_status_idx" ON "purchase_orders"("status")`,
@@ -1078,6 +1184,14 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   `CREATE INDEX IF NOT EXISTS "projects_deleted_at_status_idx" ON "projects"("deleted_at", "status")`,
   `CREATE INDEX IF NOT EXISTS "inventory_transactions_type_project_id_date_idx" ON "inventory_transactions"("type", "project_id", "date")`,
   `CREATE INDEX IF NOT EXISTS "rent_payments_deleted_at_due_date_idx" ON "rent_payments"("deleted_at", "due_date")`,
+  `DO $$ BEGIN
+    IF NOT EXISTS (
+      SELECT 1 FROM "rent_payments" WHERE "deleted_at" IS NULL AND "contract_id" IS NOT NULL
+      GROUP BY "contract_id", "due_date" HAVING count(*) > 1
+    ) THEN
+      CREATE UNIQUE INDEX IF NOT EXISTS "rent_payments_active_contract_due_key" ON "rent_payments"("contract_id", "due_date") WHERE "deleted_at" IS NULL AND "contract_id" IS NOT NULL;
+    END IF;
+  END $$`,
   `CREATE INDEX IF NOT EXISTS "material_sales_deleted_at_date_idx" ON "material_sales"("deleted_at", "date")`,
   `CREATE INDEX IF NOT EXISTS "daily_operational_expenses_deleted_at_project_id_date_idx" ON "daily_operational_expenses"("deleted_at", "project_id", "date")`,
   `CREATE INDEX IF NOT EXISTS "deals_deleted_at_payment_status_idx" ON "deals"("deleted_at", "payment_status")`,
@@ -1153,6 +1267,7 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
   `CREATE INDEX IF NOT EXISTS "materials_name_idx" ON "materials"("name")`,
   `CREATE INDEX IF NOT EXISTS "materials_created_at_idx" ON "materials"("created_at")`,
   `CREATE INDEX IF NOT EXISTS "rent_payments_contract_id_idx" ON "rent_payments"("contract_id")`,
+
 
   // ── Workforce Contracts Module additions (v10) ─────────────────
   `DO $$ BEGIN
@@ -1649,6 +1764,7 @@ export const TENANT_SCHEMA_STATEMENTS: string[] = [
      ('CUSTOMER_DEPOSIT_LIABILITY',  '2300','Deposit liability credited when a deposit is held'),
      -- Purchases / supplier flow
      ('PURCHASE_INVOICE_AP',         '2100','Payable credited when a purchase invoice is entered'),
+     ('PURCHASE_INVOICE_INVENTORY',  '1300','Inventory asset debited when purchased goods are received'),
      ('PURCHASE_INVOICE_EXPENSE',    '5100','Cost/expense debited when a purchase invoice is entered'),
      ('SUPPLIER_PAYMENT_CASH',       '1120','Cash/bank credited when paying suppliers'),
      ('SUPPLIER_PAYMENT_AP',         '2100','Payable debited when paying suppliers'),

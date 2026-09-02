@@ -8,7 +8,7 @@ import { del, get, put } from '@vercel/blob';
 import { randomUUID } from 'crypto';
 
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
-const ALLOWED_FOLDERS = new Set(['avatars', 'staff', 'projects', 'properties', 'materials', 'branding']);
+const ALLOWED_FOLDERS = new Set(['avatars', 'staff', 'projects', 'properties', 'materials', 'branding', 'contracts', 'documents']);
 const ALLOWED_DOCUMENT_TYPES = new Set(['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']);
 const DOCUMENT_ENTITIES = new Set(['workforce_contract', 'rental_contract', 'payroll', 'journal_batch']);
 
@@ -76,6 +76,36 @@ export class UploadsService {
       contentType: file.mimetype,
     });
     return { url: blob.url, pathname: blob.pathname, contentType: blob.contentType };
+  }
+
+  async uploadFile(file: any, folder: string | undefined, companyId?: string) {
+    const token = process.env.BLOB_READ_WRITE_TOKEN;
+    if (!token) throw new ServiceUnavailableException('Persistent blob storage is not configured');
+    if (!file) throw new BadRequestException('File is required');
+    const allowed = new Set([
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+    ]);
+    if (!allowed.has(file.mimetype)) {
+      throw new BadRequestException('Allowed file types: PDF, Word (DOC/DOCX), Excel (XLSX), or Images (PNG/JPG)');
+    }
+    if (file.size > 15 * 1024 * 1024) throw new BadRequestException('File must be 15 MB or smaller');
+    const safeFolder = folder && ALLOWED_FOLDERS.has(folder) ? folder : 'documents';
+    const ext = file.originalname?.split('.').pop() || (file.mimetype === 'application/pdf' ? 'pdf' : 'bin');
+    const owner = companyId || 'platform';
+    const pathname = `${owner}/${safeFolder}/${Date.now()}-${randomUUID()}.${ext}`;
+    const blob = await put(pathname, file.buffer, {
+      access: 'public',
+      addRandomSuffix: false,
+      token,
+      contentType: file.mimetype,
+    });
+    return { url: blob.url, pathname: blob.pathname, contentType: blob.contentType, filename: file.originalname };
   }
 
   async readPrivateImage(url: string, companyId?: string, isSuperAdmin = false) {

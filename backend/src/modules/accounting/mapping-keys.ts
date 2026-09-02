@@ -37,6 +37,7 @@ export const MAPPING_KEYS: MappingKeyDef[] = [
 
   // Purchases
   { key: 'PURCHASE_INVOICE_AP',        label: 'Purchase invoice — AP',       category: 'Purchases',     defaultCode: '2100', suggestedTypes: ['LIABILITY'], description: 'Payable credited when a purchase invoice is entered' },
+  { key: 'PURCHASE_INVOICE_INVENTORY', label: 'Purchase invoice — inventory', category: 'Purchases',    defaultCode: '1300', suggestedTypes: ['ASSET'],     description: 'Inventory asset debited when purchased goods are received' },
   { key: 'PURCHASE_INVOICE_EXPENSE',   label: 'Purchase invoice — expense',  category: 'Purchases',     defaultCode: '5100', suggestedTypes: ['EXPENSE'],   description: 'Cost/expense debited when a purchase invoice is entered' },
   { key: 'SUPPLIER_PAYMENT_CASH',      label: 'Supplier payment — cash',     category: 'Purchases',     defaultCode: '1120', suggestedTypes: ['ASSET'],     description: 'Cash/bank credited when paying suppliers' },
   { key: 'SUPPLIER_PAYMENT_AP',        label: 'Supplier payment — AP',       category: 'Purchases',     defaultCode: '2100', suggestedTypes: ['LIABILITY'], description: 'Payable debited when paying suppliers' },

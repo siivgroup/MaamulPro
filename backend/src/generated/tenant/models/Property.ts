@@ -31,6 +31,7 @@ export type PropertyAvgAggregateOutputType = {
   area: runtime.Decimal | null
   bedrooms: number | null
   bathrooms: number | null
+  floors: number | null
   version: number | null
 }
 
@@ -39,6 +40,7 @@ export type PropertySumAggregateOutputType = {
   area: runtime.Decimal | null
   bedrooms: number | null
   bathrooms: number | null
+  floors: number | null
   version: number | null
 }
 
@@ -53,6 +55,7 @@ export type PropertyMinAggregateOutputType = {
   area: runtime.Decimal | null
   bedrooms: number | null
   bathrooms: number | null
+  floors: number | null
   imageUrl: string | null
   version: number | null
   createdAt: Date | null
@@ -71,6 +74,7 @@ export type PropertyMaxAggregateOutputType = {
   area: runtime.Decimal | null
   bedrooms: number | null
   bathrooms: number | null
+  floors: number | null
   imageUrl: string | null
   version: number | null
   createdAt: Date | null
@@ -89,6 +93,7 @@ export type PropertyCountAggregateOutputType = {
   area: number
   bedrooms: number
   bathrooms: number
+  floors: number
   imageUrl: number
   version: number
   createdAt: number
@@ -103,6 +108,7 @@ export type PropertyAvgAggregateInputType = {
   area?: true
   bedrooms?: true
   bathrooms?: true
+  floors?: true
   version?: true
 }
 
@@ -111,6 +117,7 @@ export type PropertySumAggregateInputType = {
   area?: true
   bedrooms?: true
   bathrooms?: true
+  floors?: true
   version?: true
 }
 
@@ -125,6 +132,7 @@ export type PropertyMinAggregateInputType = {
   area?: true
   bedrooms?: true
   bathrooms?: true
+  floors?: true
   imageUrl?: true
   version?: true
   createdAt?: true
@@ -143,6 +151,7 @@ export type PropertyMaxAggregateInputType = {
   area?: true
   bedrooms?: true
   bathrooms?: true
+  floors?: true
   imageUrl?: true
   version?: true
   createdAt?: true
@@ -161,6 +170,7 @@ export type PropertyCountAggregateInputType = {
   area?: true
   bedrooms?: true
   bathrooms?: true
+  floors?: true
   imageUrl?: true
   version?: true
   createdAt?: true
@@ -266,6 +276,7 @@ export type PropertyGroupByOutputType = {
   area: runtime.Decimal | null
   bedrooms: number | null
   bathrooms: number | null
+  floors: number | null
   imageUrl: string | null
   version: number
   createdAt: Date
@@ -307,6 +318,7 @@ export type PropertyWhereInput = {
   area?: Prisma.DecimalNullableFilter<"Property"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: Prisma.IntNullableFilter<"Property"> | number | null
   bathrooms?: Prisma.IntNullableFilter<"Property"> | number | null
+  floors?: Prisma.IntNullableFilter<"Property"> | number | null
   imageUrl?: Prisma.StringNullableFilter<"Property"> | string | null
   version?: Prisma.IntFilter<"Property"> | number
   createdAt?: Prisma.DateTimeFilter<"Property"> | Date | string
@@ -316,6 +328,7 @@ export type PropertyWhereInput = {
   transactions?: Prisma.TransactionListRelationFilter
   tenants?: Prisma.TenantListRelationFilter
   rentalContracts?: Prisma.RentalContractListRelationFilter
+  units?: Prisma.RentalUnitListRelationFilter
 }
 
 export type PropertyOrderByWithRelationInput = {
@@ -329,6 +342,7 @@ export type PropertyOrderByWithRelationInput = {
   area?: Prisma.SortOrderInput | Prisma.SortOrder
   bedrooms?: Prisma.SortOrderInput | Prisma.SortOrder
   bathrooms?: Prisma.SortOrderInput | Prisma.SortOrder
+  floors?: Prisma.SortOrderInput | Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   version?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -338,6 +352,7 @@ export type PropertyOrderByWithRelationInput = {
   transactions?: Prisma.TransactionOrderByRelationAggregateInput
   tenants?: Prisma.TenantOrderByRelationAggregateInput
   rentalContracts?: Prisma.RentalContractOrderByRelationAggregateInput
+  units?: Prisma.RentalUnitOrderByRelationAggregateInput
 }
 
 export type PropertyWhereUniqueInput = Prisma.AtLeast<{
@@ -354,6 +369,7 @@ export type PropertyWhereUniqueInput = Prisma.AtLeast<{
   area?: Prisma.DecimalNullableFilter<"Property"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: Prisma.IntNullableFilter<"Property"> | number | null
   bathrooms?: Prisma.IntNullableFilter<"Property"> | number | null
+  floors?: Prisma.IntNullableFilter<"Property"> | number | null
   imageUrl?: Prisma.StringNullableFilter<"Property"> | string | null
   version?: Prisma.IntFilter<"Property"> | number
   createdAt?: Prisma.DateTimeFilter<"Property"> | Date | string
@@ -363,6 +379,7 @@ export type PropertyWhereUniqueInput = Prisma.AtLeast<{
   transactions?: Prisma.TransactionListRelationFilter
   tenants?: Prisma.TenantListRelationFilter
   rentalContracts?: Prisma.RentalContractListRelationFilter
+  units?: Prisma.RentalUnitListRelationFilter
 }, "id">
 
 export type PropertyOrderByWithAggregationInput = {
@@ -376,6 +393,7 @@ export type PropertyOrderByWithAggregationInput = {
   area?: Prisma.SortOrderInput | Prisma.SortOrder
   bedrooms?: Prisma.SortOrderInput | Prisma.SortOrder
   bathrooms?: Prisma.SortOrderInput | Prisma.SortOrder
+  floors?: Prisma.SortOrderInput | Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   version?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -402,6 +420,7 @@ export type PropertyScalarWhereWithAggregatesInput = {
   area?: Prisma.DecimalNullableWithAggregatesFilter<"Property"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: Prisma.IntNullableWithAggregatesFilter<"Property"> | number | null
   bathrooms?: Prisma.IntNullableWithAggregatesFilter<"Property"> | number | null
+  floors?: Prisma.IntNullableWithAggregatesFilter<"Property"> | number | null
   imageUrl?: Prisma.StringNullableWithAggregatesFilter<"Property"> | string | null
   version?: Prisma.IntWithAggregatesFilter<"Property"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Property"> | Date | string
@@ -420,6 +439,7 @@ export type PropertyCreateInput = {
   area?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: number | null
   bathrooms?: number | null
+  floors?: number | null
   imageUrl?: string | null
   version?: number
   createdAt?: Date | string
@@ -429,6 +449,7 @@ export type PropertyCreateInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutPropertyInput
   tenants?: Prisma.TenantCreateNestedManyWithoutPropertyInput
   rentalContracts?: Prisma.RentalContractCreateNestedManyWithoutPropertyInput
+  units?: Prisma.RentalUnitCreateNestedManyWithoutPropertyInput
 }
 
 export type PropertyUncheckedCreateInput = {
@@ -442,6 +463,7 @@ export type PropertyUncheckedCreateInput = {
   area?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: number | null
   bathrooms?: number | null
+  floors?: number | null
   imageUrl?: string | null
   version?: number
   createdAt?: Date | string
@@ -451,6 +473,7 @@ export type PropertyUncheckedCreateInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutPropertyInput
   tenants?: Prisma.TenantUncheckedCreateNestedManyWithoutPropertyInput
   rentalContracts?: Prisma.RentalContractUncheckedCreateNestedManyWithoutPropertyInput
+  units?: Prisma.RentalUnitUncheckedCreateNestedManyWithoutPropertyInput
 }
 
 export type PropertyUpdateInput = {
@@ -464,6 +487,7 @@ export type PropertyUpdateInput = {
   area?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   bathrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  floors?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -473,6 +497,7 @@ export type PropertyUpdateInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutPropertyNestedInput
   tenants?: Prisma.TenantUpdateManyWithoutPropertyNestedInput
   rentalContracts?: Prisma.RentalContractUpdateManyWithoutPropertyNestedInput
+  units?: Prisma.RentalUnitUpdateManyWithoutPropertyNestedInput
 }
 
 export type PropertyUncheckedUpdateInput = {
@@ -486,6 +511,7 @@ export type PropertyUncheckedUpdateInput = {
   area?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   bathrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  floors?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -495,6 +521,7 @@ export type PropertyUncheckedUpdateInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutPropertyNestedInput
   tenants?: Prisma.TenantUncheckedUpdateManyWithoutPropertyNestedInput
   rentalContracts?: Prisma.RentalContractUncheckedUpdateManyWithoutPropertyNestedInput
+  units?: Prisma.RentalUnitUncheckedUpdateManyWithoutPropertyNestedInput
 }
 
 export type PropertyCreateManyInput = {
@@ -508,6 +535,7 @@ export type PropertyCreateManyInput = {
   area?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: number | null
   bathrooms?: number | null
+  floors?: number | null
   imageUrl?: string | null
   version?: number
   createdAt?: Date | string
@@ -526,6 +554,7 @@ export type PropertyUpdateManyMutationInput = {
   area?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   bathrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  floors?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -544,6 +573,7 @@ export type PropertyUncheckedUpdateManyInput = {
   area?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   bathrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  floors?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -572,6 +602,7 @@ export type PropertyCountOrderByAggregateInput = {
   area?: Prisma.SortOrder
   bedrooms?: Prisma.SortOrder
   bathrooms?: Prisma.SortOrder
+  floors?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   version?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -584,6 +615,7 @@ export type PropertyAvgOrderByAggregateInput = {
   area?: Prisma.SortOrder
   bedrooms?: Prisma.SortOrder
   bathrooms?: Prisma.SortOrder
+  floors?: Prisma.SortOrder
   version?: Prisma.SortOrder
 }
 
@@ -598,6 +630,7 @@ export type PropertyMaxOrderByAggregateInput = {
   area?: Prisma.SortOrder
   bedrooms?: Prisma.SortOrder
   bathrooms?: Prisma.SortOrder
+  floors?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   version?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -616,6 +649,7 @@ export type PropertyMinOrderByAggregateInput = {
   area?: Prisma.SortOrder
   bedrooms?: Prisma.SortOrder
   bathrooms?: Prisma.SortOrder
+  floors?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   version?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -628,6 +662,7 @@ export type PropertySumOrderByAggregateInput = {
   area?: Prisma.SortOrder
   bedrooms?: Prisma.SortOrder
   bathrooms?: Prisma.SortOrder
+  floors?: Prisma.SortOrder
   version?: Prisma.SortOrder
 }
 
@@ -693,6 +728,20 @@ export type NullableIntFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type PropertyCreateNestedOneWithoutUnitsInput = {
+  create?: Prisma.XOR<Prisma.PropertyCreateWithoutUnitsInput, Prisma.PropertyUncheckedCreateWithoutUnitsInput>
+  connectOrCreate?: Prisma.PropertyCreateOrConnectWithoutUnitsInput
+  connect?: Prisma.PropertyWhereUniqueInput
+}
+
+export type PropertyUpdateOneRequiredWithoutUnitsNestedInput = {
+  create?: Prisma.XOR<Prisma.PropertyCreateWithoutUnitsInput, Prisma.PropertyUncheckedCreateWithoutUnitsInput>
+  connectOrCreate?: Prisma.PropertyCreateOrConnectWithoutUnitsInput
+  upsert?: Prisma.PropertyUpsertWithoutUnitsInput
+  connect?: Prisma.PropertyWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PropertyUpdateToOneWithWhereWithoutUnitsInput, Prisma.PropertyUpdateWithoutUnitsInput>, Prisma.PropertyUncheckedUpdateWithoutUnitsInput>
+}
+
 export type PropertyCreateNestedOneWithoutDealsInput = {
   create?: Prisma.XOR<Prisma.PropertyCreateWithoutDealsInput, Prisma.PropertyUncheckedCreateWithoutDealsInput>
   connectOrCreate?: Prisma.PropertyCreateOrConnectWithoutDealsInput
@@ -718,6 +767,7 @@ export type PropertyCreateWithoutTransactionsInput = {
   area?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: number | null
   bathrooms?: number | null
+  floors?: number | null
   imageUrl?: string | null
   version?: number
   createdAt?: Date | string
@@ -726,6 +776,7 @@ export type PropertyCreateWithoutTransactionsInput = {
   deals?: Prisma.DealCreateNestedManyWithoutPropertyInput
   tenants?: Prisma.TenantCreateNestedManyWithoutPropertyInput
   rentalContracts?: Prisma.RentalContractCreateNestedManyWithoutPropertyInput
+  units?: Prisma.RentalUnitCreateNestedManyWithoutPropertyInput
 }
 
 export type PropertyUncheckedCreateWithoutTransactionsInput = {
@@ -739,6 +790,7 @@ export type PropertyUncheckedCreateWithoutTransactionsInput = {
   area?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: number | null
   bathrooms?: number | null
+  floors?: number | null
   imageUrl?: string | null
   version?: number
   createdAt?: Date | string
@@ -747,6 +799,7 @@ export type PropertyUncheckedCreateWithoutTransactionsInput = {
   deals?: Prisma.DealUncheckedCreateNestedManyWithoutPropertyInput
   tenants?: Prisma.TenantUncheckedCreateNestedManyWithoutPropertyInput
   rentalContracts?: Prisma.RentalContractUncheckedCreateNestedManyWithoutPropertyInput
+  units?: Prisma.RentalUnitUncheckedCreateNestedManyWithoutPropertyInput
 }
 
 export type PropertyCreateOrConnectWithoutTransactionsInput = {
@@ -776,6 +829,7 @@ export type PropertyUpdateWithoutTransactionsInput = {
   area?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   bathrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  floors?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -784,6 +838,7 @@ export type PropertyUpdateWithoutTransactionsInput = {
   deals?: Prisma.DealUpdateManyWithoutPropertyNestedInput
   tenants?: Prisma.TenantUpdateManyWithoutPropertyNestedInput
   rentalContracts?: Prisma.RentalContractUpdateManyWithoutPropertyNestedInput
+  units?: Prisma.RentalUnitUpdateManyWithoutPropertyNestedInput
 }
 
 export type PropertyUncheckedUpdateWithoutTransactionsInput = {
@@ -797,6 +852,7 @@ export type PropertyUncheckedUpdateWithoutTransactionsInput = {
   area?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   bathrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  floors?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -805,6 +861,7 @@ export type PropertyUncheckedUpdateWithoutTransactionsInput = {
   deals?: Prisma.DealUncheckedUpdateManyWithoutPropertyNestedInput
   tenants?: Prisma.TenantUncheckedUpdateManyWithoutPropertyNestedInput
   rentalContracts?: Prisma.RentalContractUncheckedUpdateManyWithoutPropertyNestedInput
+  units?: Prisma.RentalUnitUncheckedUpdateManyWithoutPropertyNestedInput
 }
 
 export type PropertyCreateWithoutTenantsInput = {
@@ -818,6 +875,7 @@ export type PropertyCreateWithoutTenantsInput = {
   area?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: number | null
   bathrooms?: number | null
+  floors?: number | null
   imageUrl?: string | null
   version?: number
   createdAt?: Date | string
@@ -826,6 +884,7 @@ export type PropertyCreateWithoutTenantsInput = {
   deals?: Prisma.DealCreateNestedManyWithoutPropertyInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutPropertyInput
   rentalContracts?: Prisma.RentalContractCreateNestedManyWithoutPropertyInput
+  units?: Prisma.RentalUnitCreateNestedManyWithoutPropertyInput
 }
 
 export type PropertyUncheckedCreateWithoutTenantsInput = {
@@ -839,6 +898,7 @@ export type PropertyUncheckedCreateWithoutTenantsInput = {
   area?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: number | null
   bathrooms?: number | null
+  floors?: number | null
   imageUrl?: string | null
   version?: number
   createdAt?: Date | string
@@ -847,6 +907,7 @@ export type PropertyUncheckedCreateWithoutTenantsInput = {
   deals?: Prisma.DealUncheckedCreateNestedManyWithoutPropertyInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutPropertyInput
   rentalContracts?: Prisma.RentalContractUncheckedCreateNestedManyWithoutPropertyInput
+  units?: Prisma.RentalUnitUncheckedCreateNestedManyWithoutPropertyInput
 }
 
 export type PropertyCreateOrConnectWithoutTenantsInput = {
@@ -876,6 +937,7 @@ export type PropertyUpdateWithoutTenantsInput = {
   area?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   bathrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  floors?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -884,6 +946,7 @@ export type PropertyUpdateWithoutTenantsInput = {
   deals?: Prisma.DealUpdateManyWithoutPropertyNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutPropertyNestedInput
   rentalContracts?: Prisma.RentalContractUpdateManyWithoutPropertyNestedInput
+  units?: Prisma.RentalUnitUpdateManyWithoutPropertyNestedInput
 }
 
 export type PropertyUncheckedUpdateWithoutTenantsInput = {
@@ -897,6 +960,7 @@ export type PropertyUncheckedUpdateWithoutTenantsInput = {
   area?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   bathrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  floors?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -905,6 +969,7 @@ export type PropertyUncheckedUpdateWithoutTenantsInput = {
   deals?: Prisma.DealUncheckedUpdateManyWithoutPropertyNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutPropertyNestedInput
   rentalContracts?: Prisma.RentalContractUncheckedUpdateManyWithoutPropertyNestedInput
+  units?: Prisma.RentalUnitUncheckedUpdateManyWithoutPropertyNestedInput
 }
 
 export type PropertyCreateWithoutRentalContractsInput = {
@@ -918,6 +983,7 @@ export type PropertyCreateWithoutRentalContractsInput = {
   area?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: number | null
   bathrooms?: number | null
+  floors?: number | null
   imageUrl?: string | null
   version?: number
   createdAt?: Date | string
@@ -926,6 +992,7 @@ export type PropertyCreateWithoutRentalContractsInput = {
   deals?: Prisma.DealCreateNestedManyWithoutPropertyInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutPropertyInput
   tenants?: Prisma.TenantCreateNestedManyWithoutPropertyInput
+  units?: Prisma.RentalUnitCreateNestedManyWithoutPropertyInput
 }
 
 export type PropertyUncheckedCreateWithoutRentalContractsInput = {
@@ -939,6 +1006,7 @@ export type PropertyUncheckedCreateWithoutRentalContractsInput = {
   area?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: number | null
   bathrooms?: number | null
+  floors?: number | null
   imageUrl?: string | null
   version?: number
   createdAt?: Date | string
@@ -947,6 +1015,7 @@ export type PropertyUncheckedCreateWithoutRentalContractsInput = {
   deals?: Prisma.DealUncheckedCreateNestedManyWithoutPropertyInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutPropertyInput
   tenants?: Prisma.TenantUncheckedCreateNestedManyWithoutPropertyInput
+  units?: Prisma.RentalUnitUncheckedCreateNestedManyWithoutPropertyInput
 }
 
 export type PropertyCreateOrConnectWithoutRentalContractsInput = {
@@ -976,6 +1045,7 @@ export type PropertyUpdateWithoutRentalContractsInput = {
   area?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   bathrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  floors?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -984,6 +1054,7 @@ export type PropertyUpdateWithoutRentalContractsInput = {
   deals?: Prisma.DealUpdateManyWithoutPropertyNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutPropertyNestedInput
   tenants?: Prisma.TenantUpdateManyWithoutPropertyNestedInput
+  units?: Prisma.RentalUnitUpdateManyWithoutPropertyNestedInput
 }
 
 export type PropertyUncheckedUpdateWithoutRentalContractsInput = {
@@ -997,6 +1068,7 @@ export type PropertyUncheckedUpdateWithoutRentalContractsInput = {
   area?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   bathrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  floors?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1005,6 +1077,115 @@ export type PropertyUncheckedUpdateWithoutRentalContractsInput = {
   deals?: Prisma.DealUncheckedUpdateManyWithoutPropertyNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutPropertyNestedInput
   tenants?: Prisma.TenantUncheckedUpdateManyWithoutPropertyNestedInput
+  units?: Prisma.RentalUnitUncheckedUpdateManyWithoutPropertyNestedInput
+}
+
+export type PropertyCreateWithoutUnitsInput = {
+  id?: string
+  title: string
+  type: $Enums.PropertyType
+  status?: $Enums.PropertyStatus
+  address?: string | null
+  description?: string | null
+  price?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  area?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  bedrooms?: number | null
+  bathrooms?: number | null
+  floors?: number | null
+  imageUrl?: string | null
+  version?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  deals?: Prisma.DealCreateNestedManyWithoutPropertyInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutPropertyInput
+  tenants?: Prisma.TenantCreateNestedManyWithoutPropertyInput
+  rentalContracts?: Prisma.RentalContractCreateNestedManyWithoutPropertyInput
+}
+
+export type PropertyUncheckedCreateWithoutUnitsInput = {
+  id?: string
+  title: string
+  type: $Enums.PropertyType
+  status?: $Enums.PropertyStatus
+  address?: string | null
+  description?: string | null
+  price?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  area?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  bedrooms?: number | null
+  bathrooms?: number | null
+  floors?: number | null
+  imageUrl?: string | null
+  version?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  deals?: Prisma.DealUncheckedCreateNestedManyWithoutPropertyInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutPropertyInput
+  tenants?: Prisma.TenantUncheckedCreateNestedManyWithoutPropertyInput
+  rentalContracts?: Prisma.RentalContractUncheckedCreateNestedManyWithoutPropertyInput
+}
+
+export type PropertyCreateOrConnectWithoutUnitsInput = {
+  where: Prisma.PropertyWhereUniqueInput
+  create: Prisma.XOR<Prisma.PropertyCreateWithoutUnitsInput, Prisma.PropertyUncheckedCreateWithoutUnitsInput>
+}
+
+export type PropertyUpsertWithoutUnitsInput = {
+  update: Prisma.XOR<Prisma.PropertyUpdateWithoutUnitsInput, Prisma.PropertyUncheckedUpdateWithoutUnitsInput>
+  create: Prisma.XOR<Prisma.PropertyCreateWithoutUnitsInput, Prisma.PropertyUncheckedCreateWithoutUnitsInput>
+  where?: Prisma.PropertyWhereInput
+}
+
+export type PropertyUpdateToOneWithWhereWithoutUnitsInput = {
+  where?: Prisma.PropertyWhereInput
+  data: Prisma.XOR<Prisma.PropertyUpdateWithoutUnitsInput, Prisma.PropertyUncheckedUpdateWithoutUnitsInput>
+}
+
+export type PropertyUpdateWithoutUnitsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumPropertyTypeFieldUpdateOperationsInput | $Enums.PropertyType
+  status?: Prisma.EnumPropertyStatusFieldUpdateOperationsInput | $Enums.PropertyStatus
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  area?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  bedrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bathrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  floors?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deals?: Prisma.DealUpdateManyWithoutPropertyNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutPropertyNestedInput
+  tenants?: Prisma.TenantUpdateManyWithoutPropertyNestedInput
+  rentalContracts?: Prisma.RentalContractUpdateManyWithoutPropertyNestedInput
+}
+
+export type PropertyUncheckedUpdateWithoutUnitsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumPropertyTypeFieldUpdateOperationsInput | $Enums.PropertyType
+  status?: Prisma.EnumPropertyStatusFieldUpdateOperationsInput | $Enums.PropertyStatus
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  area?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  bedrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  bathrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  floors?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deals?: Prisma.DealUncheckedUpdateManyWithoutPropertyNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutPropertyNestedInput
+  tenants?: Prisma.TenantUncheckedUpdateManyWithoutPropertyNestedInput
+  rentalContracts?: Prisma.RentalContractUncheckedUpdateManyWithoutPropertyNestedInput
 }
 
 export type PropertyCreateWithoutDealsInput = {
@@ -1018,6 +1199,7 @@ export type PropertyCreateWithoutDealsInput = {
   area?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: number | null
   bathrooms?: number | null
+  floors?: number | null
   imageUrl?: string | null
   version?: number
   createdAt?: Date | string
@@ -1026,6 +1208,7 @@ export type PropertyCreateWithoutDealsInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutPropertyInput
   tenants?: Prisma.TenantCreateNestedManyWithoutPropertyInput
   rentalContracts?: Prisma.RentalContractCreateNestedManyWithoutPropertyInput
+  units?: Prisma.RentalUnitCreateNestedManyWithoutPropertyInput
 }
 
 export type PropertyUncheckedCreateWithoutDealsInput = {
@@ -1039,6 +1222,7 @@ export type PropertyUncheckedCreateWithoutDealsInput = {
   area?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: number | null
   bathrooms?: number | null
+  floors?: number | null
   imageUrl?: string | null
   version?: number
   createdAt?: Date | string
@@ -1047,6 +1231,7 @@ export type PropertyUncheckedCreateWithoutDealsInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutPropertyInput
   tenants?: Prisma.TenantUncheckedCreateNestedManyWithoutPropertyInput
   rentalContracts?: Prisma.RentalContractUncheckedCreateNestedManyWithoutPropertyInput
+  units?: Prisma.RentalUnitUncheckedCreateNestedManyWithoutPropertyInput
 }
 
 export type PropertyCreateOrConnectWithoutDealsInput = {
@@ -1076,6 +1261,7 @@ export type PropertyUpdateWithoutDealsInput = {
   area?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   bathrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  floors?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1084,6 +1270,7 @@ export type PropertyUpdateWithoutDealsInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutPropertyNestedInput
   tenants?: Prisma.TenantUpdateManyWithoutPropertyNestedInput
   rentalContracts?: Prisma.RentalContractUpdateManyWithoutPropertyNestedInput
+  units?: Prisma.RentalUnitUpdateManyWithoutPropertyNestedInput
 }
 
 export type PropertyUncheckedUpdateWithoutDealsInput = {
@@ -1097,6 +1284,7 @@ export type PropertyUncheckedUpdateWithoutDealsInput = {
   area?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   bedrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   bathrooms?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  floors?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   version?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1105,6 +1293,7 @@ export type PropertyUncheckedUpdateWithoutDealsInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutPropertyNestedInput
   tenants?: Prisma.TenantUncheckedUpdateManyWithoutPropertyNestedInput
   rentalContracts?: Prisma.RentalContractUncheckedUpdateManyWithoutPropertyNestedInput
+  units?: Prisma.RentalUnitUncheckedUpdateManyWithoutPropertyNestedInput
 }
 
 
@@ -1117,6 +1306,7 @@ export type PropertyCountOutputType = {
   transactions: number
   tenants: number
   rentalContracts: number
+  units: number
 }
 
 export type PropertyCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1124,6 +1314,7 @@ export type PropertyCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensio
   transactions?: boolean | PropertyCountOutputTypeCountTransactionsArgs
   tenants?: boolean | PropertyCountOutputTypeCountTenantsArgs
   rentalContracts?: boolean | PropertyCountOutputTypeCountRentalContractsArgs
+  units?: boolean | PropertyCountOutputTypeCountUnitsArgs
 }
 
 /**
@@ -1164,6 +1355,13 @@ export type PropertyCountOutputTypeCountRentalContractsArgs<ExtArgs extends runt
   where?: Prisma.RentalContractWhereInput
 }
 
+/**
+ * PropertyCountOutputType without action
+ */
+export type PropertyCountOutputTypeCountUnitsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RentalUnitWhereInput
+}
+
 
 export type PropertySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1176,6 +1374,7 @@ export type PropertySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   area?: boolean
   bedrooms?: boolean
   bathrooms?: boolean
+  floors?: boolean
   imageUrl?: boolean
   version?: boolean
   createdAt?: boolean
@@ -1185,6 +1384,7 @@ export type PropertySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   transactions?: boolean | Prisma.Property$transactionsArgs<ExtArgs>
   tenants?: boolean | Prisma.Property$tenantsArgs<ExtArgs>
   rentalContracts?: boolean | Prisma.Property$rentalContractsArgs<ExtArgs>
+  units?: boolean | Prisma.Property$unitsArgs<ExtArgs>
   _count?: boolean | Prisma.PropertyCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["property"]>
 
@@ -1199,6 +1399,7 @@ export type PropertySelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   area?: boolean
   bedrooms?: boolean
   bathrooms?: boolean
+  floors?: boolean
   imageUrl?: boolean
   version?: boolean
   createdAt?: boolean
@@ -1217,6 +1418,7 @@ export type PropertySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   area?: boolean
   bedrooms?: boolean
   bathrooms?: boolean
+  floors?: boolean
   imageUrl?: boolean
   version?: boolean
   createdAt?: boolean
@@ -1235,6 +1437,7 @@ export type PropertySelectScalar = {
   area?: boolean
   bedrooms?: boolean
   bathrooms?: boolean
+  floors?: boolean
   imageUrl?: boolean
   version?: boolean
   createdAt?: boolean
@@ -1242,12 +1445,13 @@ export type PropertySelectScalar = {
   deletedAt?: boolean
 }
 
-export type PropertyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "type" | "status" | "address" | "description" | "price" | "area" | "bedrooms" | "bathrooms" | "imageUrl" | "version" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["property"]>
+export type PropertyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "type" | "status" | "address" | "description" | "price" | "area" | "bedrooms" | "bathrooms" | "floors" | "imageUrl" | "version" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["property"]>
 export type PropertyInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   deals?: boolean | Prisma.Property$dealsArgs<ExtArgs>
   transactions?: boolean | Prisma.Property$transactionsArgs<ExtArgs>
   tenants?: boolean | Prisma.Property$tenantsArgs<ExtArgs>
   rentalContracts?: boolean | Prisma.Property$rentalContractsArgs<ExtArgs>
+  units?: boolean | Prisma.Property$unitsArgs<ExtArgs>
   _count?: boolean | Prisma.PropertyCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type PropertyIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1260,6 +1464,7 @@ export type $PropertyPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     transactions: Prisma.$TransactionPayload<ExtArgs>[]
     tenants: Prisma.$TenantPayload<ExtArgs>[]
     rentalContracts: Prisma.$RentalContractPayload<ExtArgs>[]
+    units: Prisma.$RentalUnitPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1272,6 +1477,7 @@ export type $PropertyPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     area: runtime.Decimal | null
     bedrooms: number | null
     bathrooms: number | null
+    floors: number | null
     imageUrl: string | null
     version: number
     createdAt: Date
@@ -1675,6 +1881,7 @@ export interface Prisma__PropertyClient<T, Null = never, ExtArgs extends runtime
   transactions<T extends Prisma.Property$transactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Property$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   tenants<T extends Prisma.Property$tenantsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Property$tenantsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   rentalContracts<T extends Prisma.Property$rentalContractsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Property$rentalContractsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RentalContractPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  units<T extends Prisma.Property$unitsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Property$unitsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RentalUnitPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1714,6 +1921,7 @@ export interface PropertyFieldRefs {
   readonly area: Prisma.FieldRef<"Property", 'Decimal'>
   readonly bedrooms: Prisma.FieldRef<"Property", 'Int'>
   readonly bathrooms: Prisma.FieldRef<"Property", 'Int'>
+  readonly floors: Prisma.FieldRef<"Property", 'Int'>
   readonly imageUrl: Prisma.FieldRef<"Property", 'String'>
   readonly version: Prisma.FieldRef<"Property", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Property", 'DateTime'>
@@ -2205,6 +2413,30 @@ export type Property$rentalContractsArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.RentalContractScalarFieldEnum | Prisma.RentalContractScalarFieldEnum[]
+}
+
+/**
+ * Property.units
+ */
+export type Property$unitsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RentalUnit
+   */
+  select?: Prisma.RentalUnitSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RentalUnit
+   */
+  omit?: Prisma.RentalUnitOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RentalUnitInclude<ExtArgs> | null
+  where?: Prisma.RentalUnitWhereInput
+  orderBy?: Prisma.RentalUnitOrderByWithRelationInput | Prisma.RentalUnitOrderByWithRelationInput[]
+  cursor?: Prisma.RentalUnitWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RentalUnitScalarFieldEnum | Prisma.RentalUnitScalarFieldEnum[]
 }
 
 /**

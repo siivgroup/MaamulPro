@@ -96,6 +96,8 @@ export type TaskPriority = (typeof TaskPriority)[keyof typeof TaskPriority]
 
 
 export const PropertyType = {
+  RENT: 'RENT',
+  SALE: 'SALE',
   HOUSE: 'HOUSE',
   APARTMENT: 'APARTMENT',
   LAND: 'LAND',

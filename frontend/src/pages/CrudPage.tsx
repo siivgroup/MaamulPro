@@ -11,13 +11,21 @@ import { todayInputValue } from '../lib/date';
 export type CrudField = {
     name: string;
     label: string;
-    type?: 'text' | 'email' | 'number' | 'date' | 'select' | 'textarea' | 'json' | 'lineItems' | 'image' | 'checkbox' | 'password' | 'color';
+    type?: 'text' | 'email' | 'number' | 'date' | 'select' | 'textarea' | 'json' | 'lineItems' | 'image' | 'file' | 'checkbox' | 'password' | 'color';
     required?: boolean;
     placeholder?: string;
     hint?: string;
     options?: { value: string; label: string }[];
-    uploadFolder?: 'avatars' | 'staff' | 'projects' | 'properties' | 'materials' | 'branding';
-    lookup?: { endpoint: string; valueKey?: string; labelKeys: string[]; populate?: Record<string, string>; create?: { fields: CrudField[]; label?: string; endpoint?: string; permission?: string | string[] } };
+    uploadFolder?: 'avatars' | 'staff' | 'projects' | 'properties' | 'materials' | 'branding' | 'contracts' | 'documents';
+    lookup?: {
+        endpoint: string;
+        valueKey?: string;
+        labelKeys: string[];
+        populate?: Record<string, string>;
+        create?: { fields: CrudField[]; label?: string; endpoint?: string; permission?: string | string[] };
+        filterBy?: { field: string; foreignKey?: string };
+        filter?: (row: Record<string, any>, form: Record<string, any>) => boolean;
+    };
     lineItems?: LineItemConfig;
     hideWhen?: (form: Record<string, any>) => boolean;
     defaultToday?: boolean;
@@ -45,6 +53,7 @@ export type CrudPageProps = {
     standalone?: boolean;
     createTo?: string;
     editTo?: (id: string) => string;
+    viewTo?: (id: string) => string;
 };
 
 const emptyForm = (fields: CrudField[]) => Object.fromEntries(fields.map((field) => [field.name, field.defaultToday ? todayInputValue() : field.type === 'checkbox' ? false : field.type === 'lineItems' ? [] : '']));
@@ -70,7 +79,7 @@ const printableValue = (value: any): string => {
     return String(value);
 };
 
-const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canEdit = true, canDelete = true, createPermission, updatePermission, deletePermission, transitions = [], initialMode, recordId, returnTo, printable = false, initialValues, standalone = false, createTo, editTo }: CrudPageProps) => {
+const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canEdit = true, canDelete = true, createPermission, updatePermission, deletePermission, transitions = [], initialMode, recordId, returnTo, printable = false, initialValues, standalone = false, createTo, editTo, viewTo }: CrudPageProps) => {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const { hasPermission, hasAnyPermission } = usePermissions();
@@ -157,7 +166,14 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
             }
             return !hiddenKeys.has(key);
         });
-        return visibleTableColumns(rows[0], preferred, 7);
+        const cols = visibleTableColumns(rows[0], preferred, 8);
+        if (rows[0] && ('status' in rows[0] || 'paymentStatus' in rows[0])) {
+            const statusKey = 'status' in rows[0] ? 'status' : 'paymentStatus';
+            if (!cols.includes(statusKey)) {
+                cols.push(statusKey);
+            }
+        }
+        return cols;
     }, [rows, fields, lookups]);
     const amountKey = useMemo(() => fields.find((field) => field.type === 'number' && isCurrencyName(field.name))?.name, [fields]);
     const amountTotal = amountKey ? filtered.reduce((sum, row) => sum + Number(row[amountKey] || 0), 0) : 0;
@@ -169,6 +185,18 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
             if (match) return match.label;
         }
         if (key === 'status' || key === 'paymentStatus') return <StatusPill value={String(value)} />;
+        if (typeof value === 'string' && (/^https?:\/\//i.test(value) || value.startsWith('/')) && (/\.(pdf|docx?|xlsx?)$/i.test(value) || key.toLowerCase().includes('document') || key.toLowerCase().includes('contract') || key.toLowerCase().includes('file'))) {
+            return (
+                <a
+                    href={value}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="badge badge-outline-primary hover:bg-primary hover:text-white"
+                >
+                    📄 View document
+                </a>
+            );
+        }
         return formatTableValue(key, value);
     };
 
@@ -222,7 +250,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
                 if (field.type === 'number') return [field.name, value === '' ? undefined : Number(value)];
                 if (field.type === 'json') return [field.name, value === '' ? undefined : JSON.parse(value)];
                 if (field.type === 'lineItems') return [field.name, value];
-                if (field.type === 'image') return [field.name, value === '' ? null : value];
+                if (field.type === 'image' || field.type === 'file') return [field.name, value === '' ? null : value];
                 return [field.name, value === '' ? undefined : value];
             }));
             if (editing?.version !== undefined) payload.version = editing.version;
@@ -232,7 +260,7 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
                 silent: true,
             });
             if (editing) {
-                await Promise.all(fields.filter((field) => field.type === 'image' && editing[field.name] && editing[field.name] !== payload[field.name])
+                await Promise.all(fields.filter((field) => (field.type === 'image' || field.type === 'file') && editing[field.name] && editing[field.name] !== payload[field.name])
                     .map((field) => api('/api/uploads/images', { method: 'DELETE', body: JSON.stringify({ url: editing[field.name] }) }).catch(() => undefined)));
             }
             setOpen(false); await load();
@@ -285,6 +313,21 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
             setUploading('');
         }
     };
+    const uploadFile = async (field: CrudField, file?: File) => {
+        if (!file) return;
+        setUploading(field.name);
+        setError('');
+        try {
+            const data = new FormData();
+            data.append('file', file);
+            const result = await api<{ url: string }>(`/api/uploads/files?folder=${field.uploadFolder || 'contracts'}`, { method: 'POST', body: data });
+            setForm((current) => ({ ...current, [field.name]: result.url }));
+        } catch (reason) {
+            setError(reason instanceof Error ? reason.message : 'Unable to upload file');
+        } finally {
+            setUploading('');
+        }
+    };
     const printRecord = (row: Record<string, any>) => {
         const printWindow = window.open('', '_blank', 'width=900,height=700');
         if (!printWindow) { setError('Allow pop-ups to print this record.'); return; }
@@ -301,28 +344,62 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
             {error && <ErrorAlert message={error} />}
             <div className="grid gap-4 sm:grid-cols-2">{fields.filter((field) => !field.hideWhen?.(form)).map((field) => <div className={field.type === 'textarea' || field.type === 'json' || field.type === 'lineItems' || field.type === 'image' ? 'sm:col-span-2' : ''} key={field.name}>
                 <label className="font-semibold" htmlFor={field.name}>{field.label}{field.required && <span className="text-danger"> *</span>}</label>
-                {field.type === 'select' || field.lookup ? <select id={field.name} className="form-select mt-1" required={field.required} value={form[field.name]} onChange={(e) => {
-                    const val = e.target.value;
-                    if (val === INLINE_CREATE_SENTINEL && field.lookup?.create && allowed(field.lookup.create.permission)) {
-                        setInlineCreate({ field, form: emptyForm(field.lookup.create.fields), errors: {}, saving: false, error: '' });
-                        return;
-                    }
-                    const updates: Record<string, any> = { [field.name]: val };
-                    if (field.lookup?.populate && val) {
-                        const rawRow = rawLookups[field.name]?.find((r) => String(r[field.lookup?.valueKey || 'id']) === val);
-                        if (rawRow) {
-                            Object.entries(field.lookup.populate).forEach(([srcPath, targetField]) => {
-                                const srcVal = nestedValue(rawRow, srcPath);
-                                if (srcVal !== undefined && srcVal !== null) updates[targetField] = srcVal;
-                            });
+                {field.type === 'select' || field.lookup ? (() => {
+                    let optionsList = field.options || lookups[field.name] || [];
+                    if (field.lookup && rawLookups[field.name]?.length) {
+                        let rawList = rawLookups[field.name];
+                        if (field.lookup.filterBy) {
+                            const parentVal = form[field.lookup.filterBy.field];
+                            const foreignKey = field.lookup.filterBy.foreignKey || field.lookup.filterBy.field;
+                            if (parentVal) {
+                                rawList = rawList.filter((row) => String(nestedValue(row, foreignKey)) === String(parentVal));
+                            } else {
+                                rawList = [];
+                            }
                         }
+                        if (field.lookup.filter) rawList = rawList.filter((row) => field.lookup!.filter!(row, form));
+                        optionsList = rawList.map((row) => ({
+                            value: String(row[field.lookup!.valueKey || 'id']),
+                            label: lookupLabel(row, field.lookup!.labelKeys),
+                        }));
                     }
-                    setForm((current) => ({ ...current, ...updates }));
-                    setFieldErrors((current) => ({ ...current, [field.name]: '' }));
-                }}><option value="">Select…</option>{(field.options || lookups[field.name] || []).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}{field.lookup?.create && allowed(field.lookup.create.permission) && <option value={INLINE_CREATE_SENTINEL}>{field.lookup.create.label || `+ Add new ${field.label.toLowerCase()}`}</option>}</select>
+                    const isWaitingForParent = Boolean(field.lookup?.filterBy && !form[field.lookup.filterBy.field]);
+                    return <select id={field.name} className="form-select mt-1" required={field.required} value={form[field.name]} disabled={isWaitingForParent} onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === INLINE_CREATE_SENTINEL && field.lookup?.create && allowed(field.lookup.create.permission)) {
+                            setInlineCreate({ field, form: emptyForm(field.lookup.create.fields), errors: {}, saving: false, error: '' });
+                            return;
+                        }
+                        const updates: Record<string, any> = { [field.name]: val };
+                        if (field.lookup?.populate && val) {
+                            const rawRow = rawLookups[field.name]?.find((r) => String(r[field.lookup?.valueKey || 'id']) === val);
+                            if (rawRow) {
+                                Object.entries(field.lookup.populate).forEach(([srcPath, targetField]) => {
+                                    const srcVal = nestedValue(rawRow, srcPath);
+                                    if (srcVal !== undefined && srcVal !== null) updates[targetField] = srcVal;
+                                });
+                            }
+                        }
+                        fields.forEach((otherField) => {
+                            if (otherField.lookup?.filterBy?.field === field.name) {
+                                const otherVal = form[otherField.name];
+                                if (otherVal) {
+                                    const foreignKey = otherField.lookup.filterBy.foreignKey || field.name;
+                                    const otherRaw = rawLookups[otherField.name]?.find((r) => String(r[otherField.lookup?.valueKey || 'id']) === String(otherVal));
+                                    if (otherRaw && String(nestedValue(otherRaw, foreignKey)) !== String(val)) {
+                                        updates[otherField.name] = '';
+                                    }
+                                }
+                            }
+                        });
+                        setForm((current) => ({ ...current, ...updates }));
+                        setFieldErrors((current) => ({ ...current, [field.name]: '' }));
+                    }}><option value="">{isWaitingForParent ? `Select ${humanize(field.lookup?.filterBy?.field || '').toLowerCase()} first…` : 'Select…'}</option>{optionsList.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}{field.lookup?.create && allowed(field.lookup.create.permission) && !isWaitingForParent && <option value={INLINE_CREATE_SENTINEL}>{field.lookup.create.label || `+ Add new ${field.label.toLowerCase()}`}</option>}</select>;
+                })()
                     : field.type === 'textarea' || field.type === 'json' ? <textarea id={field.name} className={`form-textarea mt-1 ${field.type === 'json' ? 'min-h-40 font-mono text-xs' : ''} ${fieldErrors[field.name] ? 'border-danger' : ''}`} aria-invalid={Boolean(fieldErrors[field.name])} placeholder={field.placeholder || somaliExample(field.name, field.type, field.label)} value={form[field.name]} onChange={(e) => { setForm({ ...form, [field.name]: e.target.value }); setFieldErrors((current) => ({ ...current, [field.name]: '' })); }} />
                     : field.type === 'lineItems' && field.lineItems ? <div className="mt-1"><LineItemsEditor value={form[field.name]} onChange={(items) => setForm({ ...form, [field.name]: items })} config={field.lineItems} /></div>
                     : field.type === 'image' ? <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">{form[field.name] && <img className="h-20 w-20 rounded-lg border border-white-light object-cover dark:border-[#191e3a]" src={form[field.name]} alt="" />}<div className="flex-1"><input id={field.name} className="form-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={uploading === field.name} onChange={(e) => uploadImage(field, e.target.files?.[0])} />{uploading === field.name && <p className="mt-1 text-xs text-primary">Uploading…</p>}{form[field.name] && <button type="button" className="mt-2 text-xs text-danger hover:underline" onClick={() => setForm({ ...form, [field.name]: '' })}>Remove from record</button>}</div></div>
+                    : field.type === 'file' ? <div className="mt-1 space-y-2"><input id={field.name} className="form-input" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" disabled={uploading === field.name} onChange={(e) => uploadFile(field, e.target.files?.[0])} />{uploading === field.name && <p className="mt-1 text-xs text-primary">Uploading document…</p>}{form[field.name] && <div className="flex items-center justify-between rounded-lg border border-primary/20 bg-primary-light/40 p-2.5 text-xs"><div className="flex items-center gap-2 truncate"><span className="font-semibold text-primary">📄 Attached:</span><a href={form[field.name]} target="_blank" rel="noopener noreferrer" className="truncate text-primary underline hover:text-primary-dark">{String(form[field.name]).split('/').pop() || 'View file'}</a></div><button type="button" className="btn btn-sm btn-outline-danger shrink-0 py-0.5 px-2 text-xs" onClick={() => setForm({ ...form, [field.name]: '' })}>Remove</button></div>}</div>
                     : field.type === 'checkbox' ? <input id={field.name} className="form-checkbox mt-2 block" type="checkbox" checked={Boolean(form[field.name])} onChange={(e) => setForm({ ...form, [field.name]: e.target.checked })} />
                     : field.type === 'password' ? <PasswordInput id={field.name} className={`form-input mt-1 ${fieldErrors[field.name] ? 'border-danger' : ''}`} aria-invalid={Boolean(fieldErrors[field.name])} placeholder={field.placeholder || somaliExample(field.name, field.type, field.label)} value={form[field.name]} onChange={(e) => { setForm({ ...form, [field.name]: e.target.value }); setFieldErrors((current) => ({ ...current, [field.name]: '' })); }} />
                     : field.type === 'number' && isCurrencyName(field.name) ? <CurrencyInput id={field.name} className={`form-input mt-1 ${fieldErrors[field.name] ? 'border-danger' : ''}`} aria-invalid={Boolean(fieldErrors[field.name])} placeholder={field.placeholder || somaliExample(field.name, field.type, field.label)} value={form[field.name]} onChange={(e) => { setForm({ ...form, [field.name]: e.target.value }); setFieldErrors((current) => ({ ...current, [field.name]: '' })); }} />
@@ -351,8 +428,8 @@ const CrudPage = ({ title, description, endpoint, fields, canCreate = true, canE
                 description={rows.length ? 'Clear or change the current search and filter to see records.' : `Create the first ${noun.toLowerCase()} to get started.`}
                 action={rows.length ? <button className="btn btn-outline-primary" onClick={() => { setSearch(''); setFilterValue(''); }}>Clear filters</button> : canCreate && allowed(createPermission) ? createTo ? <Link className="btn btn-primary" to={createTo}>Add new</Link> : <button className="btn btn-primary" onClick={showCreate}>Add new</button> : undefined}
             /> :
-                <table className="table-hover w-full"><thead><tr>{columns.map((column) => <th key={column}>{humanize(column)}</th>)}<th>Actions</th></tr></thead>
-                    <tbody>{filtered.map((row) => <tr key={row.id}>{columns.map((column) => <td key={column}>{displayCell(column, row[column])}</td>)}<td><div className="flex flex-wrap gap-2"><button className="btn btn-sm btn-outline-info" onClick={() => setViewing(row)}>View</button>{printable && <button className="btn btn-sm btn-outline-dark" onClick={() => printRecord(row)}>Print</button>}{(typeof canEdit === 'function' ? canEdit(row) : canEdit) && allowed(updatePermission) && (editTo ? <Link className="btn btn-sm btn-outline-primary" to={editTo(String(row.id))}>Edit</Link> : <button className="btn btn-sm btn-outline-primary" onClick={() => showEdit(row)}>Edit</button>)}{allowed(updatePermission) && transitions.filter((item) => (!item.when || item.when.includes(row.status)) && allowed(item.permission)).map((item) => <button key={item.action} className={`btn btn-sm btn-outline-${item.tone || 'primary'}`} onClick={() => transition(row, item)}>{item.label}</button>)}{(typeof canDelete === 'function' ? canDelete(row) : canDelete) && allowed(deletePermission) && <button className="btn btn-sm btn-outline-danger" onClick={() => remove(row)}>Delete</button>}</div></td></tr>)}</tbody>
+                <table className="table-hover w-full"><thead><tr>{columns.map((column) => <th key={column} className={column === 'notes' || column === 'description' || column === 'address' ? 'max-w-[240px]' : column.toLowerCase().includes('date') ? 'whitespace-nowrap' : ''}>{humanize(column)}</th>)}<th className="text-right whitespace-nowrap min-w-[200px]">Actions</th></tr></thead>
+                    <tbody>{filtered.map((row) => <tr key={row.id}>{columns.map((column) => <td key={column} className={column === 'notes' || column === 'description' || column === 'address' ? 'max-w-[240px] truncate' : column.toLowerCase().includes('date') ? 'whitespace-nowrap' : ''} title={column === 'notes' || column === 'description' || column === 'address' ? String(row[column] || '') : undefined}>{viewTo && column === columns[0] ? <Link className="font-semibold text-primary hover:underline" to={viewTo(String(row.id))}>{displayCell(column, row[column])}</Link> : displayCell(column, row[column])}</td>)}<td className="text-right whitespace-nowrap"><div className="flex items-center justify-end gap-1.5 whitespace-nowrap">{!viewTo && <button className="btn btn-sm btn-outline-info" onClick={() => setViewing(row)}>View</button>}{printable && <button className="btn btn-sm btn-outline-dark" onClick={() => printRecord(row)}>Print</button>}{(typeof canEdit === 'function' ? canEdit(row) : canEdit) && allowed(updatePermission) && (editTo ? <Link className="btn btn-sm btn-outline-primary" to={editTo(String(row.id))}>Edit</Link> : <button className="btn btn-sm btn-outline-primary" onClick={() => showEdit(row)}>Edit</button>)}{allowed(updatePermission) && transitions.filter((item) => (!item.when || item.when.includes(row.status)) && allowed(item.permission)).map((item) => <button key={item.action} className={`btn btn-sm btn-outline-${item.tone || 'primary'}`} onClick={() => transition(row, item)}>{item.label}</button>)}{(typeof canDelete === 'function' ? canDelete(row) : canDelete) && allowed(deletePermission) && <button className="btn btn-sm btn-outline-danger" onClick={() => remove(row)}>Delete</button>}</div></td></tr>)}</tbody>
                 </table>}
         </div>
         <Modal open={Boolean(viewing)} onClose={closeViewing} title={`${title} details`} wide>

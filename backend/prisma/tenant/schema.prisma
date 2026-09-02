@@ -82,6 +82,8 @@ enum TaskPriority {
 }
 
 enum PropertyType {
+  RENT
+  SALE
   HOUSE
   APARTMENT
   LAND
@@ -812,10 +814,13 @@ model RentalContract {
   id          String         @id @default(cuid())
   tenantId    String         @map("tenant_id")
   propertyId  String         @map("property_id")
+  unitId      String?        @map("unit_id")
   monthlyRent Decimal        @db.Decimal(12, 2) @map("monthly_rent")
+  billingPeriod String       @default("MONTHLY") @map("billing_period")
   startDate   DateTime       @map("start_date")
-  endDate     DateTime       @map("end_date")
+  endDate     DateTime?      @map("end_date")
   renewalDate DateTime?      @map("renewal_date")
+  documentUrl String?        @map("document_url")
   status      ContractStatus @default(ACTIVE)
   notes       String?
 
@@ -825,10 +830,12 @@ model RentalContract {
 
   tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  unit     RentalUnit? @relation(fields: [unitId], references: [id], onDelete: SetNull)
   payments RentPayment[]
 
   @@index([tenantId])
   @@index([propertyId])
+  @@index([unitId])
   @@index([status])
   @@map("rental_contracts")
 }
@@ -851,6 +858,7 @@ model RentPayment {
 
   tenant   Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   contract RentalContract? @relation(fields: [contractId], references: [id], onDelete: SetNull)
+  receipts RentReceipt[]
 
   @@index([tenantId])
   @@index([dueDate])
@@ -868,6 +876,7 @@ model Supplier {
   address String?
   balance Decimal @default(0) @db.Decimal(12, 2)
   notes   String?
+  version Int     @default(0)
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -881,17 +890,25 @@ model Supplier {
 }
 
 model SupplierTransaction {
-  id          String   @id @default(cuid())
-  supplierId  String   @map("supplier_id")
-  amount      Decimal  @db.Decimal(12, 2)
-  description String
-  date        DateTime @default(now())
+  id              String   @id @default(cuid())
+  supplierId      String   @map("supplier_id")
+  purchaseOrderId String?  @map("purchase_order_id")
+  type            String   @default("PURCHASE")
+  amount          Decimal  @db.Decimal(12, 2)
+  referenceNo     String?  @unique @map("reference_no")
+  paymentMethod   String?  @map("payment_method")
+  description     String
+  notes           String?
+  date            DateTime @default(now())
+  recordedById    String?  @map("recorded_by_id")
 
   createdAt DateTime @default(now()) @map("created_at")
 
-  supplier Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  supplier     Supplier       @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  purchaseOrder PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id], onDelete: SetNull)
 
   @@index([supplierId])
+  @@index([purchaseOrderId])
   @@index([date])
   @@map("supplier_transactions")
 }
@@ -905,6 +922,7 @@ model PurchaseOrder {
   orderedAt  DateTime?           @map("ordered_at")
   receivedAt DateTime?           @map("received_at")
   notes      String?
+  version    Int                 @default(0)
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -912,6 +930,7 @@ model PurchaseOrder {
 
   supplier Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
   items PurchaseOrderItem[]
+  supplierTransactions SupplierTransaction[]
 
   @@index([supplierId])
   @@index([status])
@@ -1142,6 +1161,7 @@ model Property {
   area        Decimal?       @db.Decimal(10, 2)
   bedrooms    Int?
   bathrooms   Int?
+  floors      Int?
   imageUrl    String?        @map("image_url")
   version     Int            @default(0)
 
@@ -1153,10 +1173,71 @@ model Property {
   transactions Transaction[]
   tenants      Tenant[]
   rentalContracts RentalContract[]
+  units        RentalUnit[]
 
   @@index([type])
   @@index([status])
   @@map("properties")
+}
+
+model RentReceipt {
+  id            String   @id @default(cuid())
+  rentPaymentId String   @map("rent_payment_id")
+  amount        Decimal  @db.Decimal(12, 2)
+  receivedAt    DateTime @default(now()) @map("received_at")
+  receiptNo     String?  @unique @map("receipt_no")
+  notes         String?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  rentPayment RentPayment @relation(fields: [rentPaymentId], references: [id], onDelete: Cascade)
+
+  @@index([rentPaymentId, receivedAt])
+  @@map("rent_receipts")
+}
+
+model RentalUnit {
+  id          String   @id @default(cuid())
+  propertyId  String   @map("property_id")
+  categoryId  String?  @map("category_id")
+  name        String
+  code        String?
+  monthlyRent Decimal  @db.Decimal(12, 2) @map("monthly_rent")
+  status      String   @default("AVAILABLE")
+  floor       String?
+  bedrooms    Int?
+  bathrooms   Int?
+  section     String?
+  area        Decimal? @db.Decimal(10, 2)
+  details     String?
+  imageUrl    String?  @map("image_url")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  property  Property         @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  category  RentalUnitCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  contracts RentalContract[]
+
+  @@unique([propertyId, name])
+  @@index([propertyId, status])
+  @@index([categoryId])
+  @@map("rental_units")
+}
+
+model RentalUnitCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  rooms       Int
+  bathrooms   Int
+  monthlyRent Decimal  @db.Decimal(12, 2) @map("monthly_rent")
+  section     String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  units RentalUnit[]
+
+  @@map("rental_unit_categories")
 }
 
 // ──────────────────────────────────────────────────────────────

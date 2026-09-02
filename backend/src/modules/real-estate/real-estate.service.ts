@@ -2,7 +2,10 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import {
   DealDto,
   PropertyDto,
+  RentalUnitDto,
+  RentalUnitCategoryDto,
   RentalContractDto,
+  RentReceiptDto,
   RentPaymentDto,
   TenantDto,
 } from './real-estate.dto';
@@ -28,7 +31,7 @@ export class RealEstateService {
     return tenantDb.property.findMany({
       where,
       include: {
-        _count: { select: { deals: true, rentalContracts: true, tenants: true } },
+        _count: { select: { deals: true, rentalContracts: true, tenants: true, units: { where: { deletedAt: null } } } },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -37,7 +40,7 @@ export class RealEstateService {
   getPropertyOptions(tenantDb: any) {
     return tenantDb.property.findMany({
       where: { deletedAt: null },
-      select: { id: true, title: true },
+      select: { id: true, title: true, floors: true, type: true },
       orderBy: { title: 'asc' },
     });
   }
@@ -48,6 +51,7 @@ export class RealEstateService {
       include: {
         deals: { where: { deletedAt: null }, include: { client: true }, orderBy: { createdAt: 'desc' } },
         rentalContracts: { where: { deletedAt: null }, include: { tenant: true, payments: true } },
+        units: { where: { deletedAt: null }, include: { contracts: { where: { deletedAt: null }, include: { tenant: true } } } },
         tenants: { where: { deletedAt: null } },
         transactions: { where: { deletedAt: null }, orderBy: { date: 'desc' }, take: 50 },
       },
@@ -57,30 +61,123 @@ export class RealEstateService {
   }
 
   async createProperty(tenantDb: any, companyId: string, data: PropertyDto) {
+    const { units = [], ...propertyData } = data;
     return this.entitlements.withinTenantQuota(
       companyId,
       tenantDb,
       'properties',
-      (tx) => tx.property.create({
-        data: { ...data, type: data.type as any, status: 'AVAILABLE' },
+      async (tx) => tx.property.create({
+        data: {
+          ...propertyData,
+          price: propertyData.price ?? 0,
+          type: propertyData.type as any,
+          status: 'AVAILABLE',
+          units: units.length ? { create: (await this.prepareRentalUnits(tx, units)).map((unit) => ({ ...unit, status: unit.status || 'AVAILABLE' })) } : undefined,
+        },
+        include: { units: true },
       }),
     );
   }
 
   async updateProperty(tenantDb: any, id: string, data: PropertyDto) {
-    const { status: _status, ...propertyData } = data;
+    const { status: _status, units = [], ...propertyData } = data;
     const where: any = { id, deletedAt: null };
     if (data.version !== undefined) where.version = data.version;
     const result = await tenantDb.property.updateMany({
       where,
       data: {
         ...propertyData,
+        ...(propertyData.price !== undefined ? { price: propertyData.price } : {}),
+        ...(data.status ? { status: data.status as any } : {}),
         type: propertyData.type as any,
         version: { increment: 1 },
       },
     });
     if (!result.count) throw new ConflictException('Property changed or no longer exists; reload and retry');
+    if (units.length) await tenantDb.rentalUnit.createMany({ data: (await this.prepareRentalUnits(tenantDb, units)).map((unit) => ({ ...unit, propertyId: id, status: unit.status || 'AVAILABLE' })) });
     return tenantDb.property.findUnique({ where: { id } });
+  }
+
+  getRentalUnits(tenantDb: any, propertyId?: string) {
+    return tenantDb.rentalUnit.findMany({
+      where: { deletedAt: null, ...(propertyId ? { propertyId } : {}) },
+      include: { property: true, category: true, contracts: { where: { deletedAt: null, status: { in: ['ACTIVE', 'RENEWAL_DUE'] } }, include: { tenant: true } } },
+      orderBy: [{ property: { title: 'asc' } }, { name: 'asc' }],
+    });
+  }
+
+  getRentalUnitOptions(tenantDb: any, propertyId?: string) {
+    return tenantDb.rentalUnit.findMany({
+      where: { deletedAt: null, ...(propertyId ? { propertyId } : {}) },
+      select: { id: true, propertyId: true, name: true, monthlyRent: true, status: true, property: { select: { title: true } } },
+      orderBy: [{ property: { title: 'asc' } }, { name: 'asc' }],
+    });
+  }
+
+  getRentalUnitCategories(tenantDb: any) {
+    return tenantDb.rentalUnitCategory.findMany({ where: { deletedAt: null }, orderBy: { name: 'asc' } });
+  }
+
+  createRentalUnitCategory(tenantDb: any, data: RentalUnitCategoryDto) {
+    return tenantDb.rentalUnitCategory.create({ data });
+  }
+
+  async updateRentalUnitCategory(tenantDb: any, id: string, data: RentalUnitCategoryDto) {
+    return tenantDb.$transaction(async (tx: any) => {
+      const result = await tx.rentalUnitCategory.updateMany({ where: { id, deletedAt: null }, data });
+      if (!result.count) throw new NotFoundException('Unit category not found');
+      await tx.rentalUnit.updateMany({ where: { categoryId: id, deletedAt: null }, data: { monthlyRent: data.monthlyRent, bedrooms: data.rooms, bathrooms: data.bathrooms, section: data.section } });
+      return tx.rentalUnitCategory.findUnique({ where: { id } });
+    });
+  }
+
+  async deleteRentalUnitCategory(tenantDb: any, id: string) {
+    const activeUnits = await tenantDb.rentalUnit.count({ where: { categoryId: id, deletedAt: null } });
+    if (activeUnits) throw new ConflictException('Reassign or remove units before deleting this category');
+    const result = await tenantDb.rentalUnitCategory.updateMany({ where: { id, deletedAt: null }, data: { deletedAt: new Date() } });
+    if (!result.count) throw new NotFoundException('Unit category not found');
+    return { deleted: true };
+  }
+
+  async createRentalUnits(tenantDb: any, propertyId: string, units: RentalUnitDto[]) {
+    if (!units.length) throw new BadRequestException('Add at least one unit');
+    const property = await tenantDb.property.findFirst({ where: { id: propertyId, deletedAt: null } });
+    if (!property) throw new NotFoundException('Property not found');
+    return tenantDb.rentalUnit.createMany({ data: (await this.prepareRentalUnits(tenantDb, units)).map((unit) => ({ ...unit, propertyId, status: unit.status || 'AVAILABLE' })) });
+  }
+
+  async updateRentalUnit(tenantDb: any, id: string, data: RentalUnitDto) {
+    const unit = await tenantDb.rentalUnit.findFirst({ where: { id, deletedAt: null } });
+    if (!unit) throw new NotFoundException('Unit not found');
+    const activeLease = await tenantDb.rentalContract.count({ where: { unitId: id, deletedAt: null, status: { in: ['ACTIVE', 'RENEWAL_DUE'] } } });
+    if (activeLease && data.status && data.status !== 'OCCUPIED') throw new ConflictException('End or terminate the active lease before changing an occupied unit');
+    if (!activeLease && data.status === 'OCCUPIED') throw new ConflictException('Only an active lease can mark a unit occupied');
+    const [prepared] = await this.prepareRentalUnits(tenantDb, [data]);
+    return tenantDb.rentalUnit.update({ where: { id }, data: prepared });
+  }
+
+  async deleteRentalUnit(tenantDb: any, id: string) {
+    const active = await tenantDb.rentalContract.count({ where: { unitId: id, deletedAt: null, status: { in: ['ACTIVE', 'RENEWAL_DUE'] } } });
+    if (active) throw new ConflictException('End or terminate the active lease before removing this unit');
+    const result = await tenantDb.rentalUnit.updateMany({ where: { id, deletedAt: null }, data: { deletedAt: new Date() } });
+    if (!result.count) throw new NotFoundException('Unit not found');
+    return { deleted: true };
+  }
+
+  private async prepareRentalUnits(tenantDb: any, units: RentalUnitDto[]) {
+    const categoryIds = [...new Set(units.map((unit) => unit.categoryId))];
+    const categories = await tenantDb.rentalUnitCategory.findMany({ where: { id: { in: categoryIds }, deletedAt: null } });
+    const byId = new Map<string, any>(categories.map((category: any) => [category.id, category]));
+    return units.map((unit: any) => {
+      const category = byId.get(unit.categoryId);
+      if (!category) throw new BadRequestException('Select a valid unit category');
+      return {
+        name: unit.name, categoryId: unit.categoryId, floor: unit.floor || undefined,
+        imageUrl: unit.imageUrl || undefined, status: unit.status || undefined,
+        monthlyRent: Number(category.monthlyRent), bedrooms: category.rooms,
+        bathrooms: category.bathrooms, section: category.section,
+      };
+    });
   }
 
   async deleteProperty(tenantDb: any, id: string) {
@@ -232,10 +329,24 @@ export class RealEstateService {
     return { deleted: true };
   }
 
+  async getTenantRentalProfile(tenantDb: any, id: string) {
+    const tenant = await tenantDb.tenant.findFirst({
+      where: { id, deletedAt: null },
+      include: {
+        contracts: { where: { deletedAt: null }, include: { property: true, unit: true }, orderBy: { startDate: 'desc' } },
+        rentPayments: { where: { deletedAt: null }, include: { contract: { include: { property: true, unit: true } }, receipts: { orderBy: { receivedAt: 'desc' } } }, orderBy: { dueDate: 'desc' } },
+      },
+    });
+    if (!tenant) throw new NotFoundException('Tenant not found');
+    const payments = tenant.rentPayments.map((payment: any) => ({ ...payment, status: this.paymentStatus(Number(payment.amountDue), Number(payment.amountPaid), payment.dueDate), remaining: Number(payment.amountDue) - Number(payment.amountPaid) }));
+    const totals = payments.reduce((sum: any, payment: any) => ({ due: sum.due + Number(payment.amountDue), paid: sum.paid + Number(payment.amountPaid), balance: sum.balance + payment.remaining }), { due: 0, paid: 0, balance: 0 });
+    return { tenant: { ...tenant, rentPayments: undefined }, contracts: tenant.contracts, invoices: payments, receipts: payments.flatMap((payment: any) => payment.receipts.map((receipt: any) => ({ ...receipt, invoiceId: payment.id, contractId: payment.contractId }))), totals };
+  }
+
   getRentalContracts(tenantDb: any) {
     return tenantDb.rentalContract.findMany({
       where: { deletedAt: null },
-      include: { tenant: true, property: true, payments: { where: { deletedAt: null } } },
+      include: { tenant: true, property: true, unit: true, payments: { where: { deletedAt: null } } },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -245,23 +356,22 @@ export class RealEstateService {
     return tenantDb.$transaction(async (tx: any) => {
       const property = await this.lockPropertyRow(tx, data.propertyId);
       if (property.status === 'SOLD') throw new BadRequestException('Sold property cannot be rented');
+      const unit = await this.assertRentalUnit(tx, data.unitId, data.propertyId, true);
       const activeContract = await tx.rentalContract.findFirst({
         where: {
-          propertyId: data.propertyId,
+          unitId: data.unitId,
           deletedAt: null,
           status: { in: ['ACTIVE', 'RENEWAL_DUE'] },
         },
       });
-      if (activeContract) throw new ConflictException('Property already has an active rental contract');
+      if (activeContract) throw new ConflictException('Unit already has an active rental contract');
       const tenant = await tx.tenant.findFirst({ where: { id: data.tenantId, deletedAt: null } });
       if (!tenant) throw new NotFoundException('Tenant not found');
       const contract = await tx.rentalContract.create({
-        data: { ...data, status: 'ACTIVE' },
+        data: { ...data, monthlyRent: data.monthlyRent || Number(unit.monthlyRent), billingPeriod: data.billingPeriod || 'MONTHLY', status: 'ACTIVE' },
       });
-      await tx.property.update({
-        where: { id: data.propertyId },
-        data: { status: 'RENTED', version: { increment: 1 } },
-      });
+      await this.syncRentalUnitStatus(tx, data.unitId);
+      await this.syncDealPropertyStatus(tx, data.propertyId);
       await tx.tenant.update({ where: { id: data.tenantId }, data: { propertyId: data.propertyId } });
       return contract;
     });
@@ -273,6 +383,8 @@ export class RealEstateService {
       const existing = await tx.rentalContract.findFirst({ where: { id, deletedAt: null } });
       if (!existing) throw new NotFoundException('Rental contract not found');
       const targetPropertyId = data.propertyId || existing.propertyId;
+      const targetUnitId = data.unitId || existing.unitId;
+      if (!targetUnitId) throw new BadRequestException('A rental unit is required');
       const targetStatus = existing.status;
       // Lock every affected property in a deterministic order so concurrent
       // updates cannot double-assign the same property.
@@ -280,21 +392,24 @@ export class RealEstateService {
       for (const propertyId of propertyIds) {
         await this.lockPropertyRow(tx, propertyId);
       }
+      await this.assertRentalUnit(tx, targetUnitId, targetPropertyId, targetUnitId !== existing.unitId);
       if (['ACTIVE', 'RENEWAL_DUE'].includes(targetStatus)) {
         const activeContract = await tx.rentalContract.findFirst({
           where: {
             id: { not: id },
-            propertyId: targetPropertyId,
+            unitId: targetUnitId,
             deletedAt: null,
             status: { in: ['ACTIVE', 'RENEWAL_DUE'] },
           },
         });
-        if (activeContract) throw new ConflictException('Property already has an active rental contract');
+        if (activeContract) throw new ConflictException('Unit already has an active rental contract');
       }
       const contract = await tx.rentalContract.update({
         where: { id },
-        data: { ...data, status: existing.status },
+        data: { ...data, billingPeriod: data.billingPeriod || existing.billingPeriod, status: existing.status },
       });
+      if (existing.unitId) await this.syncRentalUnitStatus(tx, existing.unitId);
+      await this.syncRentalUnitStatus(tx, contract.unitId);
       await this.syncDealPropertyStatus(tx, contract.propertyId);
       if (existing.propertyId !== contract.propertyId) await this.syncDealPropertyStatus(tx, existing.propertyId);
       await this.syncTenantProperty(tx, existing.tenantId);
@@ -315,6 +430,7 @@ export class RealEstateService {
       };
       if (!allowed[existing.status]?.includes(status)) throw new BadRequestException(`Cannot change ${existing.status} lease to ${status}`);
       const contract = await tx.rentalContract.update({ where: { id }, data: { status: status as any } });
+      if (existing.unitId) await this.syncRentalUnitStatus(tx, existing.unitId);
       await this.syncDealPropertyStatus(tx, existing.propertyId);
       await this.syncTenantProperty(tx, existing.tenantId);
       return contract;
@@ -326,28 +442,31 @@ export class RealEstateService {
       const contract = await tx.rentalContract.findFirst({ where: { id, deletedAt: null } });
       if (!contract) throw new NotFoundException('Rental contract not found');
       await tx.rentalContract.update({ where: { id }, data: { deletedAt: new Date(), status: 'TERMINATED' } });
+      if (contract.unitId) await this.syncRentalUnitStatus(tx, contract.unitId);
       await this.syncDealPropertyStatus(tx, contract.propertyId);
       await this.syncTenantProperty(tx, contract.tenantId);
       return { deleted: true };
     });
   }
 
-  getRentPayments(tenantDb: any, status?: string) {
-    const where: any = { deletedAt: null };
-    if (status) where.status = status;
-    return tenantDb.rentPayment.findMany({
-      where,
-      include: { tenant: true, contract: { include: { property: true } } },
+  async getRentPayments(tenantDb: any, status?: string) {
+    const payments = await tenantDb.rentPayment.findMany({
+      where: { deletedAt: null },
+      include: { tenant: true, receipts: true, contract: { include: { property: true, unit: true } } },
       orderBy: { dueDate: 'desc' },
     });
+    const current = payments.map((payment: any) => ({ ...payment, status: this.paymentStatus(Number(payment.amountDue), Number(payment.amountPaid), payment.dueDate), remaining: Number(payment.amountDue) - Number(payment.amountPaid) }));
+    return status ? current.filter((payment: any) => payment.status === status) : current;
   }
 
   async generateMonthlyRentInvoices(tenantDb: any, dateStr?: string) {
     const targetDate = dateStr ? new Date(dateStr) : new Date();
-    const year = targetDate.getFullYear();
-    const month = targetDate.getMonth();
+    if (Number.isNaN(targetDate.getTime())) throw new BadRequestException('Invalid invoice month');
+    const year = targetDate.getUTCFullYear();
+    const month = targetDate.getUTCMonth();
     const startOfMonth = new Date(Date.UTC(year, month, 1));
     const endOfMonth = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));
+    const now = new Date();
 
     let generatedCount = 0;
     let skippedCount = 0;
@@ -359,40 +478,36 @@ export class RealEstateService {
       // first run committed, keeping generation idempotent.
       await tx.$queryRaw`
         SELECT "id" FROM "rental_contracts"
-        WHERE "status" = 'ACTIVE' AND "deleted_at" IS NULL
+        WHERE "status" IN ('ACTIVE', 'RENEWAL_DUE') AND "deleted_at" IS NULL
         ORDER BY "id" FOR UPDATE`;
 
       const activeContracts = await tx.rentalContract.findMany({
-        where: { status: 'ACTIVE', deletedAt: null },
-        include: { tenant: true, property: true },
+        where: { status: { in: ['ACTIVE', 'RENEWAL_DUE'] }, deletedAt: null },
+        include: { tenant: true, property: true, unit: true },
       });
 
       for (const contract of activeContracts) {
-        const existing = await tx.rentPayment.findFirst({
-          where: {
-            contractId: contract.id,
-            deletedAt: null,
-            dueDate: { gte: startOfMonth, lte: endOfMonth },
-          },
-        });
-
-        if (existing) {
+        await this.syncRentalUnitStatus(tx, contract.unitId);
+        if (!contract.unitId || !contract.unit || Number(contract.monthlyRent) <= 0) {
           skippedCount++;
           continue;
         }
 
-        const monthlyRent = Number(contract.monthlyRent || 0);
-        if (monthlyRent <= 0) {
+        const dueDate = this.invoiceDateForMonth(contract.startDate, contract.billingPeriod, year, month);
+        if (!dueDate || (!dateStr && dueDate > now) || dueDate < startOfMonth || dueDate > endOfMonth || (contract.endDate && this.advanceBillingPeriod(dueDate, contract.billingPeriod, contract.startDate) > contract.endDate)) {
           skippedCount++;
           continue;
         }
+        const existing = await tx.rentPayment.findFirst({ where: { contractId: contract.id, deletedAt: null, dueDate } });
+        if (existing) { skippedCount++; continue; }
 
-        const dueDate = new Date(Date.UTC(year, month, 1));
+        const amountDue = this.rentForBillingPeriod(contract.monthlyRent, contract.billingPeriod);
+
         const payment = await tx.rentPayment.create({
           data: {
             tenantId: contract.tenantId,
             contractId: contract.id,
-            amountDue: monthlyRent,
+            amountDue,
             amountPaid: 0,
             dueDate,
             status: 'UNPAID',
@@ -403,7 +518,7 @@ export class RealEstateService {
 
         await this.syncRentPaymentLedger(tx, payment);
         generatedCount++;
-        totalAmount += monthlyRent;
+        totalAmount += amountDue;
       }
     });
 
@@ -416,18 +531,19 @@ export class RealEstateService {
   }
 
   async createRentPayment(tenantDb: any, data: RentPaymentDto) {
-    this.validatePayment(data);
     return tenantDb.$transaction(async (tx: any) => {
-      if (data.contractId) await this.assertRentPaymentTenant(tx, data.contractId, data.tenantId);
-      const amountPaid = Number(data.amountPaid || 0);
+      const contract = await this.assertRentPaymentTenant(tx, data.contractId, data.tenantId);
+      const dueDate = new Date(data.dueDate);
+      if (!['ACTIVE', 'RENEWAL_DUE'].includes(contract.status) || !this.isScheduledInvoiceDate(contract, dueDate)) throw new BadRequestException('Invoice date is outside the lease billing schedule');
+      if (await tx.rentPayment.findFirst({ where: { contractId: data.contractId, dueDate, deletedAt: null } })) throw new ConflictException('An invoice already exists for this lease period');
       const amountDue = Number(data.amountDue);
-      const status = this.paymentStatus(amountDue, amountPaid, new Date(data.dueDate));
+      if (Math.abs(amountDue - this.rentForBillingPeriod(contract.monthlyRent, contract.billingPeriod)) > 0.005) throw new BadRequestException('Invoice amount must match the lease billing amount');
       const payment = await tx.rentPayment.create({
         data: {
           ...data,
-          status: status as any,
-          amountPaid,
-          paidDate: amountPaid > 0 ? (data.paidDate ? new Date(data.paidDate) : new Date()) : null,
+          status: this.paymentStatus(amountDue, 0, dueDate) as any,
+          amountPaid: 0,
+          paidDate: null,
         },
       });
       await this.syncRentPaymentLedger(tx, payment);
@@ -436,55 +552,23 @@ export class RealEstateService {
   }
 
   async updateRentPayment(tenantDb: any, id: string, data: RentPaymentDto) {
-    this.validatePayment(data);
     return tenantDb.$transaction(async (tx: any) => {
       const existing = await tx.rentPayment.findFirst({ where: { id, deletedAt: null } });
       if (!existing) throw new NotFoundException('Rent payment not found');
-      const contractId = data.contractId ?? existing.contractId;
-      const tenantId = data.tenantId ?? existing.tenantId;
-      if (contractId) await this.assertRentPaymentTenant(tx, contractId, tenantId);
-      const amountPaid = Number(data.amountPaid ?? existing.amountPaid ?? 0);
-      const amountDue = Number(data.amountDue ?? existing.amountDue);
-      const dueDate = data.dueDate ? new Date(data.dueDate) : existing.dueDate;
-      const status = this.paymentStatus(amountDue, amountPaid, dueDate);
+      if (await tx.rentReceipt.count({ where: { rentPaymentId: id } })) throw new ConflictException('Invoices with receipts can only be adjusted through their receipts');
+      const contract = await this.assertRentPaymentTenant(tx, data.contractId, data.tenantId);
+      const amountDue = Number(data.amountDue);
+      const dueDate = new Date(data.dueDate);
+      if (!this.isScheduledInvoiceDate(contract, dueDate)) throw new BadRequestException('Invoice date is outside the lease billing schedule');
+      if (Math.abs(amountDue - this.rentForBillingPeriod(contract.monthlyRent, contract.billingPeriod)) > 0.005) throw new BadRequestException('Invoice amount must match the lease billing amount');
       const payment = await tx.rentPayment.update({
         where: { id },
         data: {
           ...data,
-          amountPaid,
           amountDue,
-          status: status as any,
-          paidDate: amountPaid > 0 ? (data.paidDate ? new Date(data.paidDate) : existing.paidDate || new Date()) : null,
-        },
-      });
-      await this.syncRentPaymentLedger(tx, payment);
-      return payment;
-    }, { timeout: 15_000 });
-  }
-
-  async updateRentPaymentStatus(tenantDb: any, id: string, status: string) {
-    return tenantDb.$transaction(async (tx: any) => {
-      const existing = await tx.rentPayment.findFirst({ where: { id, deletedAt: null } });
-      if (!existing) throw new NotFoundException('Rent payment not found');
-      const amountDue = Number(existing.amountDue);
-      let amountPaid = Number(existing.amountPaid);
-      let paidDate = existing.paidDate;
-      if (status === 'PAID') {
-        amountPaid = amountDue;
-        paidDate = new Date();
-      } else if (status === 'UNPAID' || status === 'LATE') {
-        amountPaid = 0;
-        paidDate = null;
-      } else if (status === 'PARTIAL' && !(amountPaid > 0 && amountPaid < amountDue)) {
-        throw new BadRequestException('PARTIAL status requires amountPaid between 0 and amountDue');
-      }
-      const derived = this.paymentStatus(amountDue, amountPaid, existing.dueDate);
-      const payment = await tx.rentPayment.update({
-        where: { id },
-        data: {
-          status: derived as any,
-          paidDate,
-          amountPaid,
+          status: this.paymentStatus(amountDue, 0, dueDate) as any,
+          amountPaid: 0,
+          paidDate: null,
         },
       });
       await this.syncRentPaymentLedger(tx, payment);
@@ -494,6 +578,7 @@ export class RealEstateService {
 
   async deleteRentPayment(tenantDb: any, id: string) {
     return tenantDb.$transaction(async (tx: any) => {
+      if (await tx.rentReceipt.count({ where: { rentPaymentId: id } })) throw new ConflictException('Invoices with receipts cannot be deleted');
       const result = await tx.rentPayment.updateMany({
         where: { id, deletedAt: null },
         data: { deletedAt: new Date() },
@@ -516,14 +601,8 @@ export class RealEstateService {
     }
   }
 
-  private validatePayment(data: RentPaymentDto) {
-    if (Number(data.amountPaid || 0) > data.amountDue) {
-      throw new BadRequestException('Paid amount cannot exceed amount due');
-    }
-  }
-
-  private validateDateRange(start: Date, end: Date) {
-    if (new Date(end) < new Date(start)) throw new BadRequestException('End date must be on or after start date');
+  private validateDateRange(start: Date, end?: Date) {
+    if (end && new Date(end) < new Date(start)) throw new BadRequestException('End date must be on or after start date');
   }
 
   private async lockPropertyRow(tx: any, propertyId: string) {
@@ -537,6 +616,67 @@ export class RealEstateService {
     return rows[0];
   }
 
+  async recordRentReceipt(tenantDb: any, rentPaymentId: string, data: RentReceiptDto) {
+    return tenantDb.$transaction(async (tx: any) => {
+      await tx.$queryRaw`SELECT "id" FROM "rent_payments" WHERE "id" = ${rentPaymentId} AND "deleted_at" IS NULL FOR UPDATE`;
+      const payment = await tx.rentPayment.findFirst({ where: { id: rentPaymentId, deletedAt: null }, include: { contract: true } });
+      if (!payment || !payment.contractId || !payment.contract) throw new NotFoundException('Rental invoice not found');
+      const amount = Number(data.amount);
+      const paid = Number(payment.amountPaid);
+      const due = Number(payment.amountDue);
+      if (amount > due - paid) throw new BadRequestException('Receipt amount cannot exceed the remaining invoice balance');
+      if (data.receiptNo && await tx.rentReceipt.findFirst({ where: { receiptNo: data.receiptNo } })) throw new ConflictException('Receipt number already exists');
+      const receivedAt = data.receivedAt ? new Date(data.receivedAt) : new Date();
+      if (receivedAt > new Date()) throw new BadRequestException('Receipt date cannot be in the future');
+      const updated = await tx.rentPayment.update({ where: { id: rentPaymentId }, data: { amountPaid: paid + amount, paidDate: receivedAt, status: this.paymentStatus(due, paid + amount, payment.dueDate) as any } });
+      const receipt = await tx.rentReceipt.create({ data: { rentPaymentId, amount, receivedAt, receiptNo: data.receiptNo, notes: data.notes } });
+      await this.syncRentPaymentLedger(tx, updated);
+      return receipt;
+    });
+  }
+
+  private async assertRentalUnit(tx: any, unitId: string, propertyId: string, forNewLease: boolean) {
+    const rows: any[] = await tx.$queryRaw`
+      SELECT "id", "property_id", "status" FROM "rental_units"
+      WHERE "id" = ${unitId} AND "deleted_at" IS NULL FOR UPDATE`;
+    const unit = rows[0];
+    if (!unit || unit.property_id !== propertyId) throw new BadRequestException('Unit does not belong to the selected property');
+    if (forNewLease && unit.status !== 'AVAILABLE') throw new ConflictException('Unit is not available for a new lease');
+    return unit;
+  }
+
+  private async syncRentalUnitStatus(tx: any, unitId?: string | null) {
+    if (!unitId) return;
+    const now = new Date();
+    const active = await tx.rentalContract.findFirst({ where: { unitId, deletedAt: null, status: { in: ['ACTIVE', 'RENEWAL_DUE'] }, startDate: { lte: now }, OR: [{ endDate: null }, { endDate: { gte: now } }] } });
+    if (active) {
+      await tx.rentalUnit.updateMany({ where: { id: unitId, deletedAt: null }, data: { status: 'OCCUPIED' } });
+    } else {
+      await tx.rentalUnit.updateMany({ where: { id: unitId, deletedAt: null, status: 'OCCUPIED' }, data: { status: 'AVAILABLE' } });
+    }
+  }
+
+  private invoiceDateForMonth(start: Date, billingPeriod: string, year: number, month: number) {
+    const periods: Record<string, number> = { MONTHLY: 1, QUARTERLY: 3, YEARLY: 12 };
+    const interval = periods[billingPeriod] || 1;
+    const first = new Date(start);
+    const offset = (year - first.getUTCFullYear()) * 12 + month - first.getUTCMonth();
+    if (offset < 0 || offset % interval) return null;
+    return new Date(Date.UTC(year, month, Math.min(first.getUTCDate(), new Date(Date.UTC(year, month + 1, 0)).getUTCDate())));
+  }
+
+  private advanceBillingPeriod(date: Date, billingPeriod: string, anchor: Date = date) {
+    const periods: Record<string, number> = { MONTHLY: 1, QUARTERLY: 3, YEARLY: 12 };
+    const targetMonth = date.getUTCMonth() + (periods[billingPeriod] || 1);
+    const lastDay = new Date(Date.UTC(date.getUTCFullYear(), targetMonth + 1, 0)).getUTCDate();
+    return new Date(Date.UTC(date.getUTCFullYear(), targetMonth, Math.min(new Date(anchor).getUTCDate(), lastDay)));
+  }
+
+  private isScheduledInvoiceDate(contract: any, dueDate: Date) {
+    const expected = this.invoiceDateForMonth(contract.startDate, contract.billingPeriod, dueDate.getUTCFullYear(), dueDate.getUTCMonth());
+    return Boolean(expected && expected.getTime() === dueDate.getTime() && (!contract.endDate || this.advanceBillingPeriod(dueDate, contract.billingPeriod, contract.startDate) <= contract.endDate));
+  }
+
   private async claimAvailableProperty(tx: any, propertyId: string) {
     const property = await this.lockPropertyRow(tx, propertyId);
     if (property.status !== 'AVAILABLE') {
@@ -547,17 +687,19 @@ export class RealEstateService {
   private async assertRentPaymentTenant(tx: any, contractId: string, tenantId: string) {
     const contract = await tx.rentalContract.findFirst({
       where: { id: contractId, deletedAt: null },
-      select: { id: true, tenantId: true },
+      select: { id: true, tenantId: true, status: true, startDate: true, endDate: true, billingPeriod: true, monthlyRent: true },
     });
     if (!contract) throw new BadRequestException('Rental contract not found');
     if (contract.tenantId !== tenantId) {
       throw new BadRequestException('Tenant does not belong to the specified rental contract');
     }
+    return contract;
   }
 
   private async syncDealPropertyStatus(tx: any, propertyId: string) {
+    const now = new Date();
     const activeRental = await tx.rentalContract.findFirst({
-      where: { propertyId, deletedAt: null, status: { in: ['ACTIVE', 'RENEWAL_DUE'] } },
+      where: { propertyId, deletedAt: null, status: { in: ['ACTIVE', 'RENEWAL_DUE'] }, startDate: { lte: now }, OR: [{ endDate: null }, { endDate: { gte: now } }] },
     });
     if (activeRental) {
       await tx.property.update({ where: { id: propertyId }, data: { status: 'RENTED', version: { increment: 1 } } });
@@ -574,8 +716,9 @@ export class RealEstateService {
   }
 
   private async syncTenantProperty(tx: any, tenantId: string) {
+    const now = new Date();
     const contract = await tx.rentalContract.findFirst({
-      where: { tenantId, deletedAt: null, status: { in: ['ACTIVE', 'RENEWAL_DUE'] } },
+      where: { tenantId, deletedAt: null, status: { in: ['ACTIVE', 'RENEWAL_DUE'] }, startDate: { lte: now }, OR: [{ endDate: null }, { endDate: { gte: now } }] },
       orderBy: { createdAt: 'desc' },
       select: { propertyId: true },
     });
@@ -665,7 +808,12 @@ export class RealEstateService {
   private paymentStatus(due: number, paid: number, dueDate: Date) {
     if (paid >= due) return 'PAID';
     if (paid > 0) return 'PARTIAL';
-    return new Date(dueDate) < new Date() ? 'LATE' : 'UNPAID';
+    const date = new Date(dueDate); const now = new Date();
+    return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) < Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) ? 'LATE' : 'UNPAID';
+  }
+
+  private rentForBillingPeriod(monthlyRent: unknown, billingPeriod: string) {
+    return Math.round(Number(monthlyRent) * ({ MONTHLY: 1, QUARTERLY: 3, YEARLY: 12 }[billingPeriod] || 1) * 100) / 100;
   }
 
   private async syncRentPaymentLedger(tx: any, payment: any) {

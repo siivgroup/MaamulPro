@@ -20,6 +20,10 @@ const UPLOAD_WRITE_PERMISSIONS = [
   'construction_inventory.update',
   'users.update',
   'settings.update',
+  'rentals.create',
+  'rentals.update',
+  'workforce_contracts.create',
+  'workforce_contracts.update',
 ];
 
 @UseGuards(TenantAccessGuard)
@@ -50,6 +54,17 @@ export class UploadsController {
   @RequireAnyPermission('workforce_contracts.update', 'rentals.update', 'payroll.approve', 'accounting.approve')
   signDocument(@GetTenantDb() db: any, @Body('id') id: string, @CurrentUser('id') userId: string) {
     return this.uploads.signDocument(db, id, userId);
+  }
+
+  @Post('files')
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 15 * 1024 * 1024, files: 1 } }))
+  @RequireAnyPermission(...UPLOAD_WRITE_PERMISSIONS)
+  uploadFile(
+    @UploadedFile() file: any,
+    @Query('folder') folder: string | undefined,
+    @CurrentUser() user: any,
+  ) {
+    return this.uploads.uploadFile(file, folder, user.companyId);
   }
 
   @Post('images')

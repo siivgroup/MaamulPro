@@ -57,6 +57,8 @@ const companyGroups: Group[] = [
         { label: 'Clients', to: '/app/real-estate/clients', icon: <UserCheck size={16} className={subIconClass} />, permission: ['clients.read', 'rentals.read'] },
         { label: 'Sales', to: '/app/real-estate/sales', icon: <Handshake size={16} className={subIconClass} />, permission: 'deals.read' },
         { label: 'Rentals', to: '/app/real-estate/rentals', icon: <KeyRound size={16} className={subIconClass} />, permission: 'rentals.read' },
+        { label: 'Units', to: '/app/real-estate/units', icon: <Building2 size={16} className={subIconClass} />, permission: 'rentals.read' },
+        { label: 'Unit categories', to: '/app/real-estate/unit-categories', icon: <Building2 size={16} className={subIconClass} />, permission: 'rentals.read' },
         { label: 'Rent payments', to: '/app/real-estate/rent-payments', icon: <Wallet size={16} className={subIconClass} />, permission: 'rentals.read' },
         { label: 'Reports', to: '/app/real-estate/reports', icon: <BarChart3 size={16} className={subIconClass} />, permission: 'reports.real_estate.read' },
     ] },
