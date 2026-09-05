@@ -864,6 +864,144 @@ export class ConstructionService {
     };
   }
 
+  async getMaterialConsumptionReport(
+    tenantDb: any,
+    filters?: { projectId?: string; materialId?: string; startDate?: string; endDate?: string },
+  ) {
+    const where: any = { type: 'USAGE' };
+    if (filters?.projectId) where.projectId = filters.projectId;
+    if (filters?.materialId) where.materialId = filters.materialId;
+    if (filters?.startDate || filters?.endDate) {
+      where.date = {};
+      if (filters.startDate) where.date.gte = new Date(filters.startDate);
+      if (filters.endDate) {
+        const end = new Date(filters.endDate);
+        end.setHours(23, 59, 59, 999);
+        where.date.lte = end;
+      }
+    }
+
+    const usages = await tenantDb.constructionInventoryTransaction.findMany({
+      where,
+      include: {
+        material: true,
+        project: { select: { id: true, name: true, status: true, budget: true } },
+        user: { select: { id: true, name: true, email: true } },
+      },
+      orderBy: { date: 'desc' },
+      take: 1000,
+    });
+
+    const projectMap = new Map<string, {
+      projectId: string;
+      projectName: string;
+      projectStatus: string;
+      totalCost: number;
+      totalItemsCount: number;
+      materials: Record<string, { name: string; unit: string; quantity: number; cost: number }>;
+    }>();
+
+    const materialMap = new Map<string, {
+      materialId: string;
+      materialName: string;
+      unit: string;
+      totalQuantity: number;
+      totalCost: number;
+      projects: Set<string>;
+    }>();
+
+    let totalDeployedCost = 0;
+
+    for (const row of usages) {
+      const pId = row.projectId || 'unassigned';
+      const pName = row.project?.name || 'Unassigned';
+      const pStatus = row.project?.status || 'UNKNOWN';
+      const mId = row.materialId;
+      const mName = row.material?.name || 'Unknown Material';
+      const mUnit = row.material?.unit || 'UNIT';
+      const qty = Number(row.quantity || 0);
+      const unitCost = Number(row.unitCost ?? row.material?.unitCost ?? 0);
+      const cost = Number(row.totalCost ?? (qty * unitCost));
+
+      totalDeployedCost += cost;
+
+      // Project aggregation
+      if (!projectMap.has(pId)) {
+        projectMap.set(pId, {
+          projectId: pId,
+          projectName: pName,
+          projectStatus: pStatus,
+          totalCost: 0,
+          totalItemsCount: 0,
+          materials: {},
+        });
+      }
+      const pData = projectMap.get(pId)!;
+      pData.totalCost += cost;
+      pData.totalItemsCount += qty;
+      if (!pData.materials[mId]) {
+        pData.materials[mId] = { name: mName, unit: mUnit, quantity: 0, cost: 0 };
+      }
+      pData.materials[mId].quantity += qty;
+      pData.materials[mId].cost += cost;
+
+      // Material aggregation
+      if (!materialMap.has(mId)) {
+        materialMap.set(mId, {
+          materialId: mId,
+          materialName: mName,
+          unit: mUnit,
+          totalQuantity: 0,
+          totalCost: 0,
+          projects: new Set(),
+        });
+      }
+      const mData = materialMap.get(mId)!;
+      mData.totalQuantity += qty;
+      mData.totalCost += cost;
+      mData.projects.add(pName);
+    }
+
+    const byProject = Array.from(projectMap.values()).map(p => ({
+      ...p,
+      materials: Object.values(p.materials),
+    })).sort((a, b) => b.totalCost - a.totalCost);
+
+    const byMaterial = Array.from(materialMap.values()).map(m => ({
+      materialId: m.materialId,
+      materialName: m.materialName,
+      unit: m.unit,
+      totalQuantity: m.totalQuantity,
+      totalCost: m.totalCost,
+      projects: Array.from(m.projects),
+    })).sort((a, b) => b.totalCost - a.totalCost);
+
+    return {
+      summary: {
+        totalDeployedCost: Math.round(totalDeployedCost * 100) / 100,
+        totalUsages: usages.length,
+        activeProjectsConsuming: projectMap.size,
+        materialsConsumedCount: materialMap.size,
+      },
+      byProject,
+      byMaterial,
+      movements: usages.map((u: any) => ({
+        id: u.id,
+        date: u.date,
+        materialName: u.material?.name || '—',
+        unit: u.material?.unit || '—',
+        quantity: Number(u.quantity),
+        unitCost: Number(u.unitCost ?? u.material?.unitCost ?? 0),
+        totalCost: Number(u.totalCost ?? (Number(u.quantity) * Number(u.unitCost ?? u.material?.unitCost ?? 0))),
+        projectName: u.project?.name || '—',
+        projectId: u.projectId,
+        warehouse: u.warehouse || '—',
+        notes: u.notes || '—',
+        recordedBy: u.user?.name || u.user?.email || 'System',
+      })),
+    };
+  }
+
   getMaterials(tenantDb: any, search?: string) {
     const where: any = { deletedAt: null };
     if (search) where.OR = [
@@ -1003,7 +1141,7 @@ export class ConstructionService {
     });
   }
 
-  private validateDateRange(startDate?: Date, endDate?: Date) {
+  private validateDateRange(startDate?: Date | string, endDate?: Date | string) {
     if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
       throw new BadRequestException('End date must be on or after start date');
     }

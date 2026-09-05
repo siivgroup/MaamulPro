@@ -90,14 +90,21 @@ const AccountsPage = () => {
             if (end) params.set('endDate', end);
             const res = await api<{
                 account: Account;
-                openingBalance: number;
-                lines: any[];
-                total: number;
+                opening?: number;
+                openingBalance?: number;
+                closing?: number;
+                data?: any[];
+                lines?: any[];
+                total?: number;
+                pagination?: { total: number };
             }>(`/api/accounting/accounts/${acc.code}/ledger?${params.toString()}`);
+            const lines = res.lines || res.data || [];
+            const openingBalance = res.openingBalance ?? res.opening ?? 0;
+            const total = res.total ?? res.pagination?.total ?? lines.length;
             setLedgerData({
-                openingBalance: res.openingBalance || 0,
-                lines: res.lines || [],
-                total: res.total || 0,
+                openingBalance,
+                lines,
+                total,
             });
         } catch (err) {
             console.error('Failed to load account ledger:', err);

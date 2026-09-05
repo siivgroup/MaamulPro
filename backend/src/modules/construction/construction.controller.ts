@@ -344,6 +344,18 @@ export class ConstructionController {
     return this.constructionService.getInventory(db, projectId);
   }
 
+  @Get('inventory/reports/consumption')
+  @RequirePermissions('construction_inventory.read')
+  getMaterialConsumptionReport(
+    @GetTenantDb() db: any,
+    @Query('projectId') projectId?: string,
+    @Query('materialId') materialId?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.constructionService.getMaterialConsumptionReport(db, { projectId, materialId, startDate, endDate });
+  }
+
   @Post('inventory/movements')
   @RequirePermissions('construction_inventory.create')
   createInventoryMovement(

@@ -408,11 +408,23 @@ function GeneralLedgerTab() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [expanded, setExpanded] = useState<Set<string>>(new Set());
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         api<{ code: string; name: string; type: string }[]>('/api/accounting/accounts')
             .then((r) => setAccounts(r))
             .catch(() => {});
+    }, []);
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setDropdownOpen(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
     const filteredAccounts = accounts.filter(
@@ -460,38 +472,60 @@ function GeneralLedgerTab() {
             <div className="print:hidden mb-4 flex flex-wrap items-end gap-3">
                 <DateInput label="From" value={startDate} onChange={setStartDate} />
                 <DateInput label="To" value={endDate} onChange={setEndDate} />
-                <div className="flex flex-col gap-0.5 text-xs font-semibold text-white-dark">
-                    <span>Filter accounts ({selectedCodes.length ? `${selectedCodes.length} selected` : 'all'})</span>
-                    <div className="relative">
+                <div className="relative flex flex-col gap-0.5 text-xs font-semibold text-white-dark" ref={dropdownRef}>
+                    <label className="text-xs font-semibold text-white-dark">
+                        Filter accounts ({selectedCodes.length ? `${selectedCodes.length} selected` : 'all'})
+                    </label>
+                    <div className="relative min-w-[220px]">
                         <input
                             type="text"
                             placeholder="Search accounts…"
                             value={accountSearch}
-                            onChange={(e) => setAccountSearch(e.target.value)}
-                            className="form-input h-8 text-xs"
+                            onFocus={() => setDropdownOpen(true)}
+                            onChange={(e) => {
+                                setAccountSearch(e.target.value);
+                                setDropdownOpen(true);
+                            }}
+                            className="form-input h-9 text-xs ltr:pr-8 rtl:pl-8"
                         />
+                        {accountSearch && (
+                            <button
+                                type="button"
+                                onClick={() => setAccountSearch('')}
+                                className="absolute inset-y-0 ltr:right-2.5 rtl:left-2.5 text-white-dark hover:text-danger text-xs"
+                            >
+                                ✕
+                            </button>
+                        )}
                     </div>
-                    {accountSearch && (
-                        <div className="absolute z-20 mt-1 max-h-48 w-64 overflow-y-auto rounded-lg border border-white-light bg-white shadow-lg dark:border-[#1b2e4b] dark:bg-[#1a2941]">
-                            {filteredAccounts.slice(0, 20).map((a) => (
-                                <label key={a.code} className="flex cursor-pointer items-center gap-2 px-3 py-1.5 text-sm hover:bg-white-light/50 dark:hover:bg-[#1b2e4b]">
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedCodes.includes(a.code)}
-                                        onChange={() => toggleCode(a.code)}
-                                        className="form-checkbox"
-                                    />
-                                    <span className="font-mono text-xs text-white-dark">{a.code}</span>
-                                    <span>{a.name}</span>
-                                </label>
-                            ))}
+                    {dropdownOpen && (
+                        <div className="absolute left-0 top-full z-50 mt-1.5 max-h-56 w-72 overflow-y-auto rounded-lg border border-white-light bg-white p-1.5 shadow-xl dark:border-[#1b2e4b] dark:bg-[#1a2941]">
+                            {filteredAccounts.length === 0 ? (
+                                <p className="p-3 text-center text-xs text-white-dark">No matching accounts</p>
+                            ) : (
+                                filteredAccounts.slice(0, 30).map((a) => (
+                                    <label
+                                        key={a.code}
+                                        className="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-xs transition-colors hover:bg-primary-light/40 dark:hover:bg-[#1b2e4b]"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedCodes.includes(a.code)}
+                                            onChange={() => toggleCode(a.code)}
+                                            className="form-checkbox"
+                                        />
+                                        <span className="font-mono font-bold text-primary">{a.code}</span>
+                                        <span className="truncate text-slate-700 dark:text-slate-200">{a.name}</span>
+                                    </label>
+                                ))
+                            )}
                         </div>
                     )}
                 </div>
                 {selectedCodes.length > 0 && (
-                    <button className="btn btn-sm btn-outline-danger mt-4" onClick={() => setSelectedCodes([])}>Clear filter</button>
+                    <button className="btn btn-sm btn-outline-danger" onClick={() => setSelectedCodes([])}>Clear filter</button>
                 )}
-                <button className="btn btn-primary btn-sm mt-4" onClick={load} disabled={loading}>Run</button>
+                <button className="btn btn-primary btn-sm" onClick={load} disabled={loading}>Run</button>
             </div>
 
             {error && <ErrorAlert message={error} onRetry={load} />}

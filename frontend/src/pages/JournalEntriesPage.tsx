@@ -1,3 +1,4 @@
+import { AlertTriangle, Info } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import AppShell from '../components/maamulpro/AppShell';
 import {
@@ -275,13 +276,19 @@ const JournalEntriesPage = () => {
                             </div>
                         )}
                         {detail.reversedBy && (
-                            <div className="rounded-md bg-danger-light p-3 text-sm font-semibold text-danger">
-                                ⚠️ This transaction was reversed by batch <span className="font-mono underline">{detail.reversedBy.batchNumber}</span>.
+                            <div className="flex items-center gap-2 rounded-md bg-danger-light p-3 text-sm font-semibold text-danger">
+                                <AlertTriangle size={18} className="shrink-0" />
+                                <span>
+                                    This transaction was reversed by batch <span className="font-mono underline">{detail.reversedBy.batchNumber}</span>.
+                                </span>
                             </div>
                         )}
                         {detail.reverses && (
-                            <div className="rounded-md bg-info-light p-3 text-sm font-semibold text-info">
-                                ℹ️ This is a reversing entry for batch <span className="font-mono underline">{detail.reverses.batchNumber}</span>.
+                            <div className="flex items-center gap-2 rounded-md bg-info-light p-3 text-sm font-semibold text-info">
+                                <Info size={18} className="shrink-0" />
+                                <span>
+                                    This is a reversing entry for batch <span className="font-mono underline">{detail.reverses.batchNumber}</span>.
+                                </span>
                             </div>
                         )}
                         <div className="overflow-x-auto">

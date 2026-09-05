@@ -763,6 +763,7 @@ export class AccountingService {
         sourceRef: r.batch?.sourceRef,
         memo: r.memo,
         contactName: r.contactName,
+        accountCode: r.accountCode,
         debit: dr,
         credit: cr,
         balance: running,
@@ -777,8 +778,11 @@ export class AccountingService {
         normalBalance: account.normalBalance,
       },
       opening,
+      openingBalance: opening,
       closing: running,
       data: lines,
+      lines,
+      total,
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     };
   }
