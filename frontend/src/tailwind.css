@@ -466,34 +466,43 @@
         @apply overflow-auto;
     }
     table {
-        @apply w-full !border-collapse;
+        @apply w-full !border-collapse text-sm text-[#0e1726] dark:text-[#bfc9d4];
     }
-    table thead tr,
+    table thead tr {
+        @apply border-b border-[#e2e8f0] bg-[#f8fafc] dark:border-[#1b2e4b] dark:!bg-[#121e32];
+    }
     table tfoot tr {
-        @apply border-b-0 bg-white-light/30  dark:!bg-[#1a2941];
+        @apply border-t-2 border-[#e2e8f0] bg-[#f8fafc] font-semibold dark:border-[#1b2e4b] dark:!bg-[#121e32];
     }
     table thead tr th,
     table tfoot tr th,
     table tbody tr td {
-        @apply py-3 px-4 ltr:text-left rtl:text-right;
+        @apply py-3.5 px-4 ltr:text-left rtl:text-right align-middle;
     }
     table thead tr th,
     table tfoot tr th {
-        @apply font-semibold;
+        @apply text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400;
     }
     table tbody tr {
-        @apply border-b !border-white-light/40 dark:!border-[#191e3a];
+        @apply border-b border-[#f1f5f9] transition-colors duration-150 dark:!border-[#191e3a]/60;
     }
-    table.table-hover tbody tr {
-        @apply hover:!bg-white-light/20 dark:hover:!bg-[#1a2941]/40;
+    table tbody tr:nth-child(even) {
+        @apply bg-white dark:bg-[#0e1726];
+    }
+    table tbody tr:nth-child(odd) {
+        @apply bg-[#f8fafc]/80 dark:bg-[#152238]/45;
+    }
+    table.table-hover tbody tr:hover,
+    table tbody tr:hover {
+        @apply !bg-primary/[0.04] dark:!bg-primary/[0.12];
     }
     table.table-striped tbody tr:nth-child(odd) {
-        @apply !bg-white-light/20 dark:!bg-[#1a2941]/40;
+        @apply !bg-[#f8fafc]/90 dark:!bg-[#152238]/60;
     }
 
     table.dataTable-table tbody tr th,
     table.dataTable-table tbody tr td {
-        @apply border-b border-[#e5e7eb] py-3 px-4 ltr:text-left rtl:text-right dark:border-[#191e3a];
+        @apply border-b border-[#f1f5f9] py-3.5 px-4 ltr:text-left rtl:text-right dark:border-[#191e3a]/60;
     }
     table.dataTable-table tbody tr:last-child td {
         @apply border-b-0;
