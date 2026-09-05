@@ -3,11 +3,8 @@ import { Link } from 'react-router-dom';
 import {
     AlertTriangle,
     BarChart3,
-    Boxes,
-    Building2,
     Download,
     FileSpreadsheet,
-    FileText,
     Layers,
     Package,
     Printer,
@@ -493,9 +490,9 @@ const ConstructionInventoryPage = () => {
 
                 {/* Tab 3: Consumption & Reports */}
                 {tab === 'reports' && (
-                    <div className="p-4 sm:p-6">
+                    <div className="p-4 sm:p-5">
                         {/* Printable Report Header */}
-                        <div className="hidden print:block">
+                        <div className="hidden print:block mb-4">
                             <ReportHeader
                                 branding={branding}
                                 title="Project Material Consumption Report"
@@ -503,61 +500,48 @@ const ConstructionInventoryPage = () => {
                             />
                         </div>
 
-                        {/* Filter Bar */}
-                        <div className="mb-6 rounded-lg border border-white-light bg-[#f9fafb] p-4 dark:border-[#191e3a] dark:bg-[#121e32] print:hidden">
-                            <div className="mb-2 text-xs font-bold uppercase tracking-wider text-white-dark">Filter Consumption Data</div>
-                            <div className="grid gap-3 sm:grid-cols-4">
-                                <div>
-                                    <label className="text-xs font-semibold">Project</label>
-                                    <select
-                                        className="form-select form-select-sm mt-1"
-                                        value={filterProjectId}
-                                        onChange={(e) => setFilterProjectId(e.target.value)}
-                                    >
-                                        <option value="">All Projects</option>
-                                        {projects.map((p) => (
-                                            <option key={p.id} value={p.id}>
-                                                {p.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="text-xs font-semibold">Material</label>
-                                    <select
-                                        className="form-select form-select-sm mt-1"
-                                        value={filterMaterialId}
-                                        onChange={(e) => setFilterMaterialId(e.target.value)}
-                                    >
-                                        <option value="">All Materials</option>
-                                        {inventory?.materials.map((m) => (
-                                            <option key={m.id} value={m.id}>
-                                                {m.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="text-xs font-semibold">Start Date</label>
-                                    <input
-                                        type="date"
-                                        className="form-input form-input-sm mt-1"
-                                        value={filterStartDate}
-                                        onChange={(e) => setFilterStartDate(e.target.value)}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="text-xs font-semibold">End Date</label>
-                                    <input
-                                        type="date"
-                                        className="form-input form-input-sm mt-1"
-                                        value={filterEndDate}
-                                        onChange={(e) => setFilterEndDate(e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                            {(filterProjectId || filterMaterialId || filterStartDate || filterEndDate) && (
-                                <div className="mt-3 flex justify-end">
+                        {/* Compact Filter & Summary Bar */}
+                        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-white-light bg-[#f9fafb] p-3 dark:border-[#191e3a] dark:bg-[#121e32] print:hidden">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <select
+                                    className="form-select form-select-sm w-44"
+                                    value={filterProjectId}
+                                    onChange={(e) => setFilterProjectId(e.target.value)}
+                                >
+                                    <option value="">All Projects</option>
+                                    {projects.map((p) => (
+                                        <option key={p.id} value={p.id}>
+                                            {p.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <select
+                                    className="form-select form-select-sm w-44"
+                                    value={filterMaterialId}
+                                    onChange={(e) => setFilterMaterialId(e.target.value)}
+                                >
+                                    <option value="">All Materials</option>
+                                    {inventory?.materials.map((m) => (
+                                        <option key={m.id} value={m.id}>
+                                            {m.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <input
+                                    type="date"
+                                    className="form-input form-input-sm w-36"
+                                    value={filterStartDate}
+                                    onChange={(e) => setFilterStartDate(e.target.value)}
+                                    placeholder="Start date"
+                                />
+                                <input
+                                    type="date"
+                                    className="form-input form-input-sm w-36"
+                                    value={filterEndDate}
+                                    onChange={(e) => setFilterEndDate(e.target.value)}
+                                    placeholder="End date"
+                                />
+                                {(filterProjectId || filterMaterialId || filterStartDate || filterEndDate) && (
                                     <button
                                         type="button"
                                         className="btn btn-xs btn-outline-danger flex items-center gap-1"
@@ -569,183 +553,86 @@ const ConstructionInventoryPage = () => {
                                         }}
                                     >
                                         <RotateCcw size={12} />
-                                        Reset Filters
+                                        Clear
                                     </button>
+                                )}
+                            </div>
+
+                            {reportData && (
+                                <div className="flex items-center gap-4 text-xs font-semibold">
+                                    <div>
+                                        <span className="text-white-dark">Total Deployed:</span>{' '}
+                                        <span className="text-base font-bold text-primary">{currency(reportData.summary.totalDeployedCost)}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-white-dark">Entries:</span>{' '}
+                                        <span className="text-base font-bold text-dark dark:text-white">{reportData.summary.totalUsages}</span>
+                                    </div>
                                 </div>
                             )}
                         </div>
 
                         {reportLoading ? (
                             <LoadingState />
-                        ) : !reportData || (!reportData.byProject.length && !reportData.byMaterial.length) ? (
+                        ) : !reportData || !reportData.movements.length ? (
                             <EmptyState
                                 title="No material consumption recorded"
-                                description="When materials are assigned to projects with 'USAGE', the project cost breakdown will appear here."
+                                description="Record a stock movement with type 'USAGE' and assign it to a project to track consumption."
                             />
                         ) : (
-                            <div className="space-y-8">
-                                {/* Summary KPI Strip */}
-                                <div className="grid gap-4 sm:grid-cols-4">
-                                    <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
-                                        <p className="text-xs font-bold uppercase text-primary">Total Deployed Value</p>
-                                        <p className="mt-1 text-2xl font-extrabold text-primary">{currency(reportData.summary.totalDeployedCost)}</p>
-                                    </div>
-                                    <div className="rounded-lg border border-success/20 bg-success/5 p-4">
-                                        <p className="text-xs font-bold uppercase text-success">Consuming Projects</p>
-                                        <p className="mt-1 text-2xl font-extrabold text-success">{reportData.summary.activeProjectsConsuming}</p>
-                                    </div>
-                                    <div className="rounded-lg border border-info/20 bg-info/5 p-4">
-                                        <p className="text-xs font-bold uppercase text-info">Material Types Deployed</p>
-                                        <p className="mt-1 text-2xl font-extrabold text-info">{reportData.summary.materialsConsumedCount}</p>
-                                    </div>
-                                    <div className="rounded-lg border border-warning/20 bg-warning/5 p-4">
-                                        <p className="text-xs font-bold uppercase text-warning">Total Dispatch Entries</p>
-                                        <p className="mt-1 text-2xl font-extrabold text-warning">{reportData.summary.totalUsages}</p>
-                                    </div>
-                                </div>
-
-                                {/* Section 1: Project-by-Project Consumption */}
-                                <div>
-                                    <div className="mb-3 flex items-center justify-between">
-                                        <h3 className="flex items-center gap-2 text-base font-bold text-secondary dark:text-white">
-                                            <Building2 size={18} className="text-primary" />
-                                            Project Material Breakdown
-                                        </h3>
-                                        <span className="text-xs text-white-dark">{reportData.byProject.length} project(s)</span>
-                                    </div>
-                                    <div className="overflow-x-auto rounded-lg border border-white-light dark:border-[#191e3a]">
-                                        <table className="table-hover w-full">
-                                            <thead>
-                                                <tr>
-                                                    <th>Project</th>
-                                                    <th>Status</th>
-                                                    <th>Materials Consumed</th>
-                                                    <th className="text-right">Total Material Cost</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {reportData.byProject.map((p) => (
-                                                    <tr key={p.projectId}>
-                                                        <td>
-                                                            <Link
-                                                                to={`/app/construction/projects/${p.projectId}`}
-                                                                className="font-bold text-primary hover:underline"
-                                                            >
-                                                                {p.projectName}
-                                                            </Link>
-                                                        </td>
-                                                        <td>
-                                                            <StatusPill value={p.projectStatus} />
-                                                        </td>
-                                                        <td>
-                                                            <div className="flex flex-wrap gap-1.5">
-                                                                {p.materials.map((m, idx) => (
-                                                                    <span
-                                                                        key={idx}
-                                                                        className="badge bg-white-light/70 text-xs font-medium text-black dark:bg-[#1a2941] dark:text-white"
-                                                                    >
-                                                                        {m.name}: <strong className="ml-1 text-primary">{m.quantity} {m.unit}</strong> ({currency(m.cost)})
-                                                                    </span>
-                                                                ))}
-                                                            </div>
-                                                        </td>
-                                                        <td className="text-right font-bold text-secondary dark:text-white">
-                                                            {currency(p.totalCost)}
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-
-                                {/* Section 2: Material Aggregation */}
-                                <div>
-                                    <div className="mb-3 flex items-center justify-between">
-                                        <h3 className="flex items-center gap-2 text-base font-bold text-secondary dark:text-white">
-                                            <Boxes size={18} className="text-primary" />
-                                            Material Usage Aggregation
-                                        </h3>
-                                        <span className="text-xs text-white-dark">{reportData.byMaterial.length} item(s)</span>
-                                    </div>
-                                    <div className="overflow-x-auto rounded-lg border border-white-light dark:border-[#191e3a]">
-                                        <table className="table-hover w-full">
-                                            <thead>
-                                                <tr>
-                                                    <th>Material Name</th>
-                                                    <th>Total Quantity Issued</th>
-                                                    <th>Deployed Across Projects</th>
-                                                    <th className="text-right">Total Cost</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {reportData.byMaterial.map((m) => (
-                                                    <tr key={m.materialId}>
-                                                        <td className="font-semibold text-primary">{m.materialName}</td>
-                                                        <td className="font-bold">
-                                                            {m.totalQuantity} <span className="text-xs text-white-dark">{m.unit}</span>
-                                                        </td>
-                                                        <td>
-                                                            <div className="flex flex-wrap gap-1">
-                                                                {m.projects.map((pName, pIdx) => (
-                                                                    <span key={pIdx} className="badge badge-outline-primary text-xs">
-                                                                        {pName}
-                                                                    </span>
-                                                                ))}
-                                                            </div>
-                                                        </td>
-                                                        <td className="text-right font-bold text-secondary dark:text-white">
-                                                            {currency(m.totalCost)}
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-
-                                {/* Section 3: Itemized Movement Ledger */}
-                                <div>
-                                    <div className="mb-3 flex items-center justify-between">
-                                        <h3 className="flex items-center gap-2 text-base font-bold text-secondary dark:text-white">
-                                            <FileText size={18} className="text-primary" />
-                                            Itemized Usage Ledger
-                                        </h3>
-                                        <span className="text-xs text-white-dark">{reportData.movements.length} records</span>
-                                    </div>
-                                    <div className="overflow-x-auto rounded-lg border border-white-light dark:border-[#191e3a]">
-                                        <table className="table-hover w-full text-xs">
-                                            <thead>
-                                                <tr>
-                                                    <th>Date</th>
-                                                    <th>Project</th>
-                                                    <th>Material</th>
-                                                    <th>Qty</th>
-                                                    <th>Unit Cost</th>
-                                                    <th>Total Cost</th>
-                                                    <th>Warehouse</th>
-                                                    <th>Recorded By</th>
-                                                    <th>Notes</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {reportData.movements.map((entry) => (
-                                                    <tr key={entry.id}>
-                                                        <td>{shortDate(entry.date)}</td>
-                                                        <td className="font-semibold text-primary">{entry.projectName}</td>
-                                                        <td className="font-medium">{entry.materialName}</td>
-                                                        <td className="font-semibold">{entry.quantity} {entry.unit}</td>
-                                                        <td>{currency(entry.unitCost)}</td>
-                                                        <td className="font-bold text-secondary dark:text-white">{currency(entry.totalCost)}</td>
-                                                        <td>{entry.warehouse || '—'}</td>
-                                                        <td>{entry.recordedBy || '—'}</td>
-                                                        <td className="text-white-dark">{entry.notes || '—'}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
+                            <div className="overflow-x-auto rounded-lg border border-white-light dark:border-[#191e3a]">
+                                <table className="table-hover w-full">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Project</th>
+                                            <th>Material</th>
+                                            <th className="text-right">Quantity</th>
+                                            <th className="text-right">Unit Cost</th>
+                                            <th className="text-right">Total Cost</th>
+                                            <th>Warehouse</th>
+                                            <th>Notes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {reportData.movements.map((entry) => (
+                                            <tr key={entry.id}>
+                                                <td>{shortDate(entry.date)}</td>
+                                                <td>
+                                                    <Link
+                                                        to={`/app/construction/projects/${entry.projectId}`}
+                                                        className="font-bold text-primary hover:underline"
+                                                    >
+                                                        {entry.projectName}
+                                                    </Link>
+                                                </td>
+                                                <td className="font-semibold text-secondary dark:text-white">{entry.materialName}</td>
+                                                <td className="text-right font-semibold">
+                                                    {entry.quantity} <span className="text-xs text-white-dark">{entry.unit}</span>
+                                                </td>
+                                                <td className="text-right font-mono">{currency(entry.unitCost)}</td>
+                                                <td className="text-right font-mono font-bold text-primary">{currency(entry.totalCost)}</td>
+                                                <td>{entry.warehouse || '—'}</td>
+                                                <td className="text-xs text-white-dark">{entry.notes || '—'}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr className="border-t-2 bg-[#f9fafb] font-bold dark:bg-[#121e32]">
+                                            <td colSpan={3} className="text-dark dark:text-white">
+                                                Total ({reportData.movements.length} records)
+                                            </td>
+                                            <td className="text-right font-semibold">
+                                                {reportData.movements.reduce((acc, m) => acc + Number(m.quantity || 0), 0)} units
+                                            </td>
+                                            <td />
+                                            <td className="text-right font-mono text-base font-extrabold text-primary">
+                                                {currency(reportData.summary.totalDeployedCost)}
+                                            </td>
+                                            <td colSpan={2} />
+                                        </tr>
+                                    </tfoot>
+                                </table>
                             </div>
                         )}
                     </div>
