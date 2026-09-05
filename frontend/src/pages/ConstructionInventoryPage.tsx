@@ -136,7 +136,7 @@ function downloadCsv(filename: string, headers: string[], rows: (string | number
 
 const ConstructionInventoryPage = () => {
     const { hasPermission } = usePermissions();
-    const { branding } = useBranding();
+    const branding = useBranding();
     const [inventory, setInventory] = useState<InventoryResponse | null>(null);
     const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
     const [loading, setLoading] = useState(true);
