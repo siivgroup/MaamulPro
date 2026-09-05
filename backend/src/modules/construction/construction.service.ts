@@ -16,7 +16,7 @@ import {
 } from './dto/construction.dto';
 import { SubscriptionEntitlementService } from '../../common/subscriptions/subscription-entitlement.service';
 import { CONSTRUCTION_EXPENSE_CATEGORIES, constructionExpenseCategory } from './construction-expense-categories';
-import { projectProgress } from './construction-progress';
+import { determineProjectStatus, projectProgress, taskProgress } from './construction-progress';
 
 @Injectable()
 export class ConstructionService {
@@ -28,6 +28,27 @@ export class ConstructionService {
   // -----------------------------------------------------------
   // Projects & Tasks
   // -----------------------------------------------------------
+
+  async syncProjectProgressAndStatus(tenantDb: any, projectId: string) {
+    if (!tenantDb || !projectId) return;
+    const project = await tenantDb.project.findFirst({
+      where: { id: projectId, deletedAt: null },
+      include: {
+        tasks: { where: { deletedAt: null }, select: { status: true } },
+      },
+    });
+    if (!project) return;
+
+    const progress = projectProgress(project.tasks);
+    const status = determineProjectStatus(project.status, project.tasks);
+
+    if (project.progress !== progress || project.status !== status) {
+      await tenantDb.project.update({
+        where: { id: projectId },
+        data: { progress, status: status as any },
+      });
+    }
+  }
 
   async getProjects(tenantDb: any, query?: { status?: string; search?: string }) {
     if (!tenantDb) return [];
@@ -81,6 +102,7 @@ export class ConstructionService {
           endDate: data.endDate ? new Date(data.endDate) : null,
           status: (data.status || 'PLANNING') as any,
           imageUrl: data.imageUrl,
+          progress: 0,
         },
       }),
     );
@@ -102,10 +124,12 @@ export class ConstructionService {
 
   async updateProject(tenantDb: any, id: string, data: ProjectDto) {
     await this.getProject(tenantDb, id);
-    return tenantDb.project.update({
+    const updated = await tenantDb.project.update({
       where: { id },
       data: { ...data, status: data.status as any },
     });
+    await this.syncProjectProgressAndStatus(tenantDb, id);
+    return updated;
   }
 
   async deleteProject(tenantDb: any, id: string) {
@@ -132,15 +156,19 @@ export class ConstructionService {
     });
   }
 
-  createTask(tenantDb: any, data: TaskDto) {
-    return tenantDb.projectTask.create({
+  async createTask(tenantDb: any, data: TaskDto) {
+    const status = (data.status as any) || 'NOT_STARTED';
+    const computedProgress = taskProgress(status);
+    const task = await tenantDb.projectTask.create({
       data: {
         ...data,
-        status: (data.status as any) || 'NOT_STARTED',
+        status,
         priority: (data.priority as any) || 'MEDIUM',
-        progress: data.progress || 0,
+        progress: computedProgress,
       },
     });
+    await this.syncProjectProgressAndStatus(tenantDb, data.projectId);
+    return task;
   }
 
   async getTask(tenantDb: any, id: string) {
@@ -155,24 +183,40 @@ export class ConstructionService {
   async updateTask(tenantDb: any, id: string, data: TaskDto) {
     const task = await tenantDb.projectTask.findFirst({ where: { id, deletedAt: null } });
     if (!task) throw new NotFoundException('Task not found');
-    return tenantDb.projectTask.update({
+
+    const nextStatus = (data.status as any) ?? task.status;
+    const computedProgress = taskProgress(nextStatus);
+
+    const updatedTask = await tenantDb.projectTask.update({
       where: { id },
-      data: { ...data, status: data.status as any, priority: data.priority as any },
+      data: {
+        ...data,
+        status: nextStatus,
+        priority: (data.priority as any) ?? task.priority,
+        progress: computedProgress,
+      },
     });
+
+    await this.syncProjectProgressAndStatus(tenantDb, task.projectId);
+    if (data.projectId && data.projectId !== task.projectId) {
+      await this.syncProjectProgressAndStatus(tenantDb, data.projectId);
+    }
+
+    return updatedTask;
   }
 
   async deleteTask(tenantDb: any, id: string) {
-    const result = await tenantDb.projectTask.updateMany({
-      where: { id, deletedAt: null },
+    const task = await tenantDb.projectTask.findFirst({ where: { id, deletedAt: null } });
+    if (!task) throw new NotFoundException('Task not found');
+
+    await tenantDb.projectTask.update({
+      where: { id },
       data: { deletedAt: new Date() },
     });
-    if (!result.count) throw new NotFoundException('Task not found');
+
+    await this.syncProjectProgressAndStatus(tenantDb, task.projectId);
     return { deleted: true };
   }
-
-  // -----------------------------------------------------------
-  // Manpower & Workforce Contracts
-  // -----------------------------------------------------------
 
   async getWorkforceContracts(tenantDb: any, projectId?: string) {
     if (!tenantDb) return [];

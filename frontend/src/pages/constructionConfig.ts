@@ -41,7 +41,6 @@ export const taskFields: CrudField[] = [
     { name: 'title', label: 'Task title', required: true, placeholder: 'Dhammaystir darbiga koowaad' },
     { name: 'status', label: 'Status', type: 'select', options: options(['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'BLOCKED']) },
     { name: 'priority', label: 'Priority', type: 'select', options: options(['LOW', 'MEDIUM', 'HIGH', 'URGENT']) },
-    { name: 'progress', label: 'Progress %', type: 'number', placeholder: '50', hint: 'Geli boqolkiiba u dhexeeya 0 iyo 100.' },
     { name: 'dueDate', label: 'Due date', type: 'date' },
     { name: 'staffId', label: 'Assigned staff member', lookup: { endpoint: '/api/staff/options', labelKeys: ['firstName', 'lastName'] } },
     { name: 'description', label: 'Description', type: 'textarea', placeholder: 'Sharax shaqada, natiijada la filayo, iyo wixii caqabad ah.' },
